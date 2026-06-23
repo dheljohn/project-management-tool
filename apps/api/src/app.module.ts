@@ -8,12 +8,14 @@ import { MemberService } from './member/member.service';
 import { MemberController } from './member/member.controller';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PrismaModule,
     AuthModule,
   ],
   controllers: [AppController, MemberController],
