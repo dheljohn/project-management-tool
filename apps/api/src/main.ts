@@ -1,8 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 6000);
+
+  app.enableCors({
+    origin: 'http://localhost:3000', // Make sure this matches your Next.js URL exactly
+    credentials: true,
+  });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
+
+  await app.listen(process.env.PORT ?? 8000);
 }
 bootstrap();

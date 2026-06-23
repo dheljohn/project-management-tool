@@ -1,88 +1,71 @@
 import Image, { type ImageProps } from "next/image";
+import Link from "next/link";
 import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+import { JSX } from "react";
 
-type Props = Omit<ImageProps, "src"> & {
+interface ThemeImageProps extends Omit<ImageProps, "src"> {
   srcLight: string;
   srcDark: string;
-};
+}
 
-const ThemeImage = (props: Props) => {
+const ThemeImage: React.FC<ThemeImageProps> = (props) => {
   const { srcLight, srcDark, ...rest } = props;
 
   return (
     <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
+      {/* Tailwind handles light/dark mode display toggles */}
+      <Image {...rest} src={srcLight} className="block dark:hidden" />
+      <Image {...rest} src={srcDark} className="hidden dark:block" />
     </>
   );
 };
 
-export default function Home() {
+export default function Home(): JSX.Element {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
+    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start max-w-md w-full">
         <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
+          srcLight="/turborepo-dark.svg"
+          srcDark="/turborepo-light.svg"
           alt="Turborepo logo"
           width={180}
           height={38}
           priority
         />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
+
+        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)] text-zinc-600 dark:text-zinc-400 space-y-2">
+          <li>Welcome to the Member Portal.</li>
+          <li>Choose an authentication route below to continue.</li>
         </ol>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Tailwind Styled Navigation Action Buttons */}
+        <div className="flex gap-4 items-center flex-col sm:flex-row w-full">
+          <Link
+            href="/login"
+            className="rounded-full border border-zinc-200 dark:border-zinc-800 transition-colors flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-6 sm:px-8 w-full sm:w-auto font-medium"
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
+            Go to Sign In
+          </Link>
+
+          <Link
+            href="/register"
+            className="rounded-full border border-zinc-200 dark:border-zinc-800 transition-colors flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-6 sm:px-8 w-full sm:w-auto font-medium"
           >
-            Read our docs
-          </a>
+            Register Account
+          </Link>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
+
+        <Button
+          appName="web"
+          className="rounded-full border border-zinc-200 dark:border-zinc-800 transition-colors flex items-center justify-center text-xs h-8 px-4 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+        >
+          System Status
         </Button>
       </main>
-      <footer className={styles.footer}>
+
+      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center text-sm text-zinc-500">
         <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
           href="https://turborepo.dev?utm_source=create-turbo"
           target="_blank"
           rel="noopener noreferrer"
@@ -93,8 +76,9 @@ export default function Home() {
             alt="Globe icon"
             width={16}
             height={16}
+            className="dark:invert"
           />
-          Go to turborepo.dev →
+          Go to docs.dev →
         </a>
       </footer>
     </div>
