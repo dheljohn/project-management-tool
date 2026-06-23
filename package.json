@@ -22,6 +22,9 @@
     "packages/*"
   ],
   "dependencies": {
+    "@emnapi/core": "1.11.1",
+    "@emnapi/runtime": "1.11.1",
+    "@emnapi/wasi-threads": "2.0.0",
     "@tailwindcss/postcss": "^4.3.1",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.1"

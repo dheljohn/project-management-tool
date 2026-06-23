@@ -31,13 +31,16 @@ export default function RegisterPage(): JSX.Element {
     });
 
     try {
-      const response = await fetch("http://localhost:8000/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "http://localhost:8000/test01/create_member",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user_id, email, password }),
         },
-        body: JSON.stringify({ user_id, email, password }),
-      });
+      );
 
       // 2. Log the raw response parameters
       console.log(
