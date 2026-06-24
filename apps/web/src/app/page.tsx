@@ -3,7 +3,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import PublicRouteGuard from "./src/components/PublicRouteGuard";
+import PublicRouteGuard from "../components/layout/PublicRouteGuard";
 
 export default function BaseRouteGatekeeper() {
   const router = useRouter();

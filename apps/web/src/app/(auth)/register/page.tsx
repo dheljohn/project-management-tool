@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, FormEvent, ChangeEvent, JSX } from "react";
-import PublicRouteGuard from "../../src/components/PublicRouteGuard";
+import PublicRouteGuard from "../../../components/layout/PublicRouteGuard";
+import api from "../../../../lib/api";
 
 interface ApiErrorResponse {
   message: string | string[];
@@ -23,63 +24,26 @@ export default function RegisterPage(): JSX.Element {
     setError("");
     setIsLoading(true);
 
-    // 1. Log the initiation and payload being sent
-    console.log("🚀 [Registration] Starting submission...");
-    console.log("📦 [Registration] Payload data:", {
-      user_id,
-      email,
-      password: "🏼🔒 (Hidden for security)",
-    });
-
     try {
-      const response = await fetch(
-        "http://localhost:8000/test01/create_member",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ user_id, email, password }),
-        },
-      );
+      await api.post("/test01/create_member", {
+        user_id,
+        email,
+        password,
+      });
 
-      // 2. Log the raw response parameters
-      console.log(
-        `📡 [Registration] Response received. Status: ${response.status} (${response.statusText})`,
-      );
-
-      const data: ApiErrorResponse & Record<string, any> =
-        await response.json();
-
-      // 3. Log the response payload body from the server
-      console.log("📥 [Registration] Response data body:", data);
-
-      if (!response.ok) {
-        const errorMessage = Array.isArray(data.message)
-          ? data.message.join(", ")
-          : data.message;
-        throw new Error(errorMessage || "Registration failed");
-      }
-
-      console.log("✅ [Registration] Account created successfully!");
       setMessage("Registration successful!");
       setUser_id("");
       setEmail("");
       setPassword("");
-    } catch (err: unknown) {
-      // 4. Log details about structural network or validation errors
-      console.error("❌ [Registration] Caught operational exception:");
-
-      if (err instanceof Error) {
-        console.error(`💥 Error Message: ${err.message}`);
-        setError(err.message);
-      } else {
-        console.error("💥 Unknown Error Object:", err);
-        setError("An unexpected error occurred");
-      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message;
+      setError(
+        Array.isArray(msg)
+          ? msg.join(", ")
+          : (msg ?? "An unexpected error occurred."),
+      );
     } finally {
       setIsLoading(false);
-      console.log("🏁 [Registration] Execution context closed.");
     }
   };
 

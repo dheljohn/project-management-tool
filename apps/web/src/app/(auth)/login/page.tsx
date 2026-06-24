@@ -1,12 +1,12 @@
 "use strict";
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import RouteGuard from "../../src/components/RouteGuard";
-import PublicRouteGuard from "../../src/components/PublicRouteGuard";
+import PublicRouteGuard from "../../../components/layout/PublicRouteGuard";
+import api from "../../../../lib/api";
 export default function LoginPage() {
   const router = useRouter();
-  const [userId, setUser_id] = useState("");
+  const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -17,7 +17,6 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
-    // 1. Matches your state variable 'userId'
     if (!userId || !password) {
       setError("Please fill in all fields.");
       setIsLoading(false);
@@ -25,31 +24,19 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/testlogin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        // 2. Maps the frontend 'userId' variable to the backend 'user_id' property key
-        body: JSON.stringify({ user_id: userId, password }),
+      const { data } = await api.post("/testlogin", {
+        user_id: userId,
+        password,
       });
 
-      // 3. Extract JSON payload from the response stream
-      const data = await response.json();
-
-      // 4. Safely intercept 4xx or 5xx status codes
-      if (!response.ok) {
-        setError(data.message || "Invalid user ID or password.");
-        setIsLoading(false);
-        return;
-      }
       localStorage.setItem("auth_token", data.access_token);
-      console.log("Login network response:", data);
       router.push("/dashboard");
-    } catch (err) {
-      // 5. Catches absolute network dropouts or firewall blocks
-      setError("Network error. Cannot reach the authentication server.");
+    } catch (err: any) {
+      console.log(err);
+      setError(
+        err.response?.data?.message ??
+          "Network error. Cannot reach the authentication server.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +80,7 @@ export default function LoginPage() {
                   type="text"
                   autoComplete="username"
                   value={userId}
-                  onChange={(e) => setUser_id(e.target.value)}
+                  onChange={(e) => setUserId(e.target.value)}
                   className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-950 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
                   placeholder="e.g. john_doe123"
                 />

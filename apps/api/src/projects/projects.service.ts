@@ -22,6 +22,14 @@ export class ProjectsService {
     if (all.length === 0) throw new NotFoundException('No projects found');
     return all;
   }
+
+  async findAllByUser(userId: number) {
+    const all = await this.prisma.project.findMany({
+      where: { ownerId: userId },
+    });
+    if (all.length === 0) throw new NotFoundException('No projects found');
+    return all;
+  }
   async findOne(projectId: number, userId: number) {
     console.log('projId:', projectId, typeof projectId);
     const proj = await this.prisma.project.findUnique({

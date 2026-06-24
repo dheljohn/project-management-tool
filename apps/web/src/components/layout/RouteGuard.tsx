@@ -8,7 +8,7 @@ interface RouteGuardProps {
   children: React.ReactNode;
 }
 
-export default function RouteGuard({ children }: RouteGuardProps) {
+export default function ProtectedRoute({ children }: RouteGuardProps) {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 

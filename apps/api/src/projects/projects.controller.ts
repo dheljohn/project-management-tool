@@ -23,7 +23,6 @@ export class ProjectsController {
   @UseGuards(JwtAuthGuard)
   @Post('create_project')
   create(@Body() createDto: CreateProjectDto, @Req() req: RequestWithUser) {
-    console.log(req.user);
     return this.projectsService.create(req.user.id, createDto);
   }
 
@@ -31,6 +30,12 @@ export class ProjectsController {
   @Get('get_all_projects')
   findAll(@Req() req: RequestWithUser) {
     return this.projectsService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('get_user_projects')
+  findAllByUser(@Req() req: RequestWithUser) {
+    return this.projectsService.findAllByUser(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -42,8 +47,6 @@ export class ProjectsController {
   @UseGuards(JwtAuthGuard)
   @Patch('patch_project')
   update(@Body() updateDto: UpdateProjectDto, @Req() req: RequestWithUser) {
-    console.log(updateDto);
-    console.log(req.user.id);
     return this.projectsService.update(req.user.id, updateDto);
   }
 }
