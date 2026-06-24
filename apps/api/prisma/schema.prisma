@@ -14,4 +14,20 @@ model Member {
   user_id  String  @unique
   email    String  @unique
   password String
+
+  projects Project[]
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+
+  name        String
+  description String?
+
+  ownerId     Int
+
+  owner       Member   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

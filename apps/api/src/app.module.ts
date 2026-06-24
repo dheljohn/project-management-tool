@@ -9,6 +9,7 @@ import { MemberController } from './member/member.controller';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PrismaModule } from './prisma/prisma.module';
     }),
     PrismaModule,
     AuthModule,
+    ProjectsModule,
   ],
   controllers: [AppController, MemberController],
   providers: [AppService, PrismaService, MemberService],

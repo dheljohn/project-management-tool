@@ -6,11 +6,6 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get('testlogin')
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
   loginMember(): string {
     return this.appService.loginMember();
   }

@@ -6,6 +6,8 @@ import {
   Body,
   Query,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { MemberService } from './member.service';
 import { CreateMemberDto } from './dto/create-member.dto';
@@ -17,6 +19,7 @@ export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
   @Post('create_member')
+  @HttpCode(HttpStatus.CREATED)
   create(@Body() createDto: CreateMemberDto) {
     return this.memberService.create(createDto);
   }
@@ -33,12 +36,6 @@ export class MemberController {
     return this.memberService.findOne(Number(id));
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @Patch('update_member')
-  // update(@Query('id') id: string, @Body() updateDto: UpdateMemberDto) {
-  //   return this.memberService.update(Number(id), updateDto);
-  // }
-  // member.controller.ts
   @UseGuards(JwtAuthGuard)
   @Patch('update_member')
   update(@Body() dto: UpdateMemberDto) {

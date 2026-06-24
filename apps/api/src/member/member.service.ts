@@ -35,27 +35,7 @@ export class MemberService {
     return member;
   }
 
-  // async update(id: number, dto: UpdateMemberDto) {
-  //   await this.findOne(id); // 404 guard
-
-  //   if (dto.password) {
-  //     dto.password = await bcrypt.hash(dto.password, 10);
-  //   }
-
-  //   return this.prisma.member.update({
-  //     where: { id },
-  //     data: dto,
-  //   });
-  // }
-
   async update(updateDto: UpdateMemberDto) {
-    // // 1. Convert user_id to a number if your Prisma schema uses Int IDs
-    // const numericId = Number(dto.user_id);
-    // if (isNaN(numericId)) {
-    //   throw new NotFoundException('Invalid user ID format');
-    // }
-
-    // 2. Fetch the existing user from the database
     const member = await this.prisma.member.findUnique({
       where: { user_id: updateDto.user_id },
     });
@@ -64,7 +44,7 @@ export class MemberService {
       throw new NotFoundException('Member not found');
     }
 
-    // 3. Verify the old password matches the database hash
+    // Verify the old password matches the database hash
     const isPasswordValid = await bcrypt.compare(
       updateDto.old_password,
       member.password,
@@ -75,10 +55,10 @@ export class MemberService {
       );
     }
 
-    // 4. Hash the new password
+    //  Hash new pass
     const hashedNewPassword = await bcrypt.hash(updateDto.new_password, 10);
 
-    // 5. Update the record in the database
+    // Update database record
     return this.prisma.member.update({
       where: { user_id: updateDto.user_id },
       data: {
