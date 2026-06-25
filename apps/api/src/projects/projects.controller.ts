@@ -35,6 +35,7 @@ export class ProjectsController {
   @UseGuards(JwtAuthGuard)
   @Get('get_user_projects')
   findAllByUser(@Req() req: RequestWithUser) {
+    console.log('USER ID:', req.user); //!
     return this.projectsService.findAllByUser(req.user.id);
   }
 

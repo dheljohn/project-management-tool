@@ -26,7 +26,9 @@ export class MemberService {
   }
 
   findAll() {
-    return this.prisma.member.findMany();
+    const member = this.prisma.member.findMany();
+    if (!member) throw new NotFoundException('No members found');
+    return member;
   }
 
   async findOne(id: number) {

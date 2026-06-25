@@ -1,4 +1,3 @@
-// src/components/projects/ProjectModal.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,7 +12,6 @@ interface Project {
   updatedAt: string;
 }
 
-// ProjectModal.tsx
 interface ProjectModalProps {
   mode: "create" | "edit";
   project?: Project;
@@ -32,7 +30,6 @@ export default function ProjectModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Pre-fill fields on edit mode
   useEffect(() => {
     if (mode === "edit" && project) {
       setName(project.name);
@@ -70,7 +67,6 @@ export default function ProjectModal({
   }
 
   return (
-    // Backdrop
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
       onClick={onClose}

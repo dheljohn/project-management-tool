@@ -5,19 +5,19 @@ import { TaskStatusPayload } from '../enums/status.enum';
 export class CreateTaskDto {
   @IsNumber()
   @IsNotEmpty()
-  project_id: number;
+  project_id!: number;
 
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsEnum(TaskStatusPayload, {
     message: 'status must be exactly: Todo, In Progress, or Done',
   })
   @IsNotEmpty()
-  status: TaskStatusPayload;
+  status!: TaskStatusPayload;
 
   @IsString()
   @IsNotEmpty()
-  contents: string;
+  contents!: string;
 }

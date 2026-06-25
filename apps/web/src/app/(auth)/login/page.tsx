@@ -30,6 +30,7 @@ export default function LoginPage() {
       });
 
       localStorage.setItem("auth_token", data.access_token);
+      console.log(data.access_token);
       router.push("/dashboard");
     } catch (err: any) {
       console.log(err);

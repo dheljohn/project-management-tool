@@ -7,12 +7,12 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: number, dto: CreateProjectDto) {
-    console.log(userId);
+  async create(userId: number, createDto: CreateProjectDto) {
+    if (!createDto.name) throw new NotFoundException('no project name');
     return this.prisma.project.create({
       data: {
-        name: dto.name,
-        description: dto.description,
+        name: createDto.name,
+        description: createDto.description,
         ownerId: userId,
       },
     });
