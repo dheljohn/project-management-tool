@@ -9,6 +9,7 @@ import { Task, TaskStatus } from "../../../../types/task";
 import { DragDropProvider } from "@dnd-kit/react";
 import Draggable from "../../../../components/DND/Draggable";
 import Droppable from "../../../../components/DND/Droppable";
+import { KanbanColumn } from "../../../../components/tasks/KanbanColumn";
 
 interface Project {
   id: number;
@@ -106,7 +107,6 @@ export default function KanbanPage() {
         ) as TaskStatus;
         const previousTasks = [...tasks];
 
-        // 2. Update local UI state immediately for responsive drag feedback
         setTasks((prevTasks) =>
           prevTasks.map((task) =>
             String(task.id) === String(draggedId)
@@ -117,14 +117,12 @@ export default function KanbanPage() {
 
         try {
           const taskIdNumber = Number(draggedId);
-
-          // 3. Map "In_Progress" back to "In Progress" to clear your NestJS DTO validator validation rules!
           const payloadStatus =
             targetColumnId === "In_Progress" ? "In Progress" : targetColumnId;
 
           await api.patch(`/test03/patch_task`, {
             project_id: taskIdNumber,
-            status: payloadStatus, // Sends "In Progress" safely past your DTO block
+            status: payloadStatus,
           });
 
           console.log(
@@ -132,7 +130,7 @@ export default function KanbanPage() {
           );
         } catch (err) {
           console.error("Failed to update task status on backend:", err);
-          setTasks(previousTasks); // Rollback local state on network error
+          setTasks(previousTasks);
           alert("Failed to save changes. Please try dragging again.");
         }
       }}
@@ -175,68 +173,13 @@ export default function KanbanPage() {
 
         {/* Kanban Columns */}
         <div className="grid grid-cols-3 gap-4 flex-1 overflow-hidden">
-          {COLUMNS.map((col) => {
-            const colTasks = getTasksByStatus(col.status);
-
-            return (
-              <Droppable key={col.status} id={col.status}>
-                {/* Column Header */}
-                <div
-                  className={`flex items-center justify-between px-4 py-3 border-b-2 w-full ${col.color}`}
-                >
-                  <h2 className="text-sm font-semibold text-white">
-                    {col.label}
-                  </h2>
-                  <span className="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full">
-                    {colTasks.length}
-                  </span>
-                </div>
-
-                {/* Task List */}
-                <div className="flex flex-col gap-3 p-3 overflow-y-auto flex-1 w-full min-h-[300px]">
-                  {colTasks.length === 0 && (
-                    <div className="flex items-center justify-center h-24 border border-dashed border-gray-700 rounded-lg">
-                      <p className="text-gray-600 text-xs">No tasks</p>
-                    </div>
-                  )}
-
-                  {colTasks.map((task) => (
-                    <Draggable key={task.id} id={String(task.id)}>
-                      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-cyan-500 transition-colors cursor-pointer group w-full text-left">
-                        {/* Task Title */}
-                        <p className="text-white text-sm font-medium group-hover:text-cyan-400 transition-colors">
-                          {task.title}
-                        </p>
-
-                        {/* Task Description */}
-                        {task.description && (
-                          <p className="text-gray-400 text-xs mt-1.5 line-clamp-2">
-                            {task.description}
-                          </p>
-                        )}
-
-                        {/* Task Meta */}
-                        <div className="mt-3 flex items-center justify-between">
-                          <span className="text-xs text-gray-500">
-                            #{task.id}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {new Date(task.updatedAt).toLocaleDateString(
-                              "en-PH",
-                              {
-                                month: "short",
-                                day: "numeric",
-                              },
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </Draggable>
-                  ))}
-                </div>
-              </Droppable>
-            );
-          })}
+          {COLUMNS.map((col) => (
+            <KanbanColumn
+              key={col.status}
+              column={col}
+              tasks={getTasksByStatus(col.status)}
+            />
+          ))}
         </div>
 
         {/* Modal */}
