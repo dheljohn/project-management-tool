@@ -69,4 +69,9 @@ export class MemberService {
       },
     });
   }
+  async deleteByUserId(user_id: string) {
+    return this.prisma.member.deleteMany({
+      where: { user_id },
+    });
+  }
 }

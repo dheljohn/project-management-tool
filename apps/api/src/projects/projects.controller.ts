@@ -35,7 +35,11 @@ export class ProjectsController {
   @UseGuards(JwtAuthGuard)
   @Get('get_user_projects')
   findAllByUser(@Req() req: RequestWithUser) {
-    console.log('USER ID:', req.user); //!
+    console.log(
+      '🚀 Decoded Passport User Object Profile:',
+      JSON.stringify(req.user, null, 2),
+    );
+
     return this.projectsService.findAllByUser(req.user.id);
   }
 

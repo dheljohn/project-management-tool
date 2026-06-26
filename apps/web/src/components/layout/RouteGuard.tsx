@@ -16,7 +16,7 @@ export default function ProtectedRoute({ children }: RouteGuardProps) {
     // Check your auth state storage (Cookie, LocalStorage, Context, or Redux)
     const token = localStorage.getItem("auth_token");
     console.log(token);
-
+    // AUTH_TOKEN_KEY
     if (!token) {
       setIsAuthenticated(false);
       router.push("/login"); // Redirect to login if token is missing

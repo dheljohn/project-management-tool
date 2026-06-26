@@ -51,4 +51,11 @@ export class TaskController {
   update(@Body() updateDto: UpdateTaskDto) {
     return this.taskService.update(updateDto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('patch_task_status')
+  @HttpCode(HttpStatus.OK)
+  updateStatus(@Body() updateDto: UpdateTaskDto) {
+    return this.taskService.updateStatus(updateDto);
+  }
 }

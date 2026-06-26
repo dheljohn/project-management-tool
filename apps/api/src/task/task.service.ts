@@ -11,36 +11,61 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TaskService {
-  async findAllByProject(arg0: number) {
+  constructor(private prisma: PrismaService) {}
+
+  async findAllByProject(projsID: number) {
     const projectTasks = await this.prisma.task.findMany({
-      where: { projectId: arg0 },
+      where: { projectId: projsID },
     });
     if (!projectTasks)
       throw new NotFoundException('Task will be displayed here');
     return projectTasks;
   }
-  constructor(private prisma: PrismaService) {}
 
-  async update(updateDto: UpdateTaskDto) {
-    const { project_id, ...data } = updateDto;
-    console.log(data);
-    const task = await this.prisma.task.findUnique({
+  async updateStatus(updateDto: UpdateTaskDto) {
+    let formattedStatus: TaskStatus;
+
+    if (updateDto.status === 'In Progress') {
+      formattedStatus = 'In_Progress' as TaskStatus;
+    } else {
+      formattedStatus = updateDto.status as unknown as TaskStatus;
+    }
+
+    // 2. Commit transaction to your PostgreSQL instance
+    const update = await this.prisma.task.update({
       where: {
         id: updateDto.project_id,
-        projectId: updateDto.project_id,
+      },
+      data: {
+        status: formattedStatus,
       },
     });
 
-    if (!task) {
-      throw new NotFoundException('Project not found or not yours');
+    console.log('🎉 Database successfully updated:', update);
+    return update;
+  }
+
+  async update(updateDto: UpdateTaskDto) {
+    // Extract fields and handle the status formatting
+    const { project_id, status, ...data } = updateDto;
+
+    let formattedStatus: TaskStatus | undefined;
+
+    if (status) {
+      // Converts "In Progress" or "in_progress" into "In_Progress"
+      const normalized = status.replace(/\s+/g, '_').toLowerCase();
+
+      if (normalized === 'in_progress')
+        formattedStatus = TaskStatus.In_Progress;
+      else if (normalized === 'todo') formattedStatus = TaskStatus.Todo;
+      else if (normalized === 'done') formattedStatus = TaskStatus.Done;
     }
 
     return this.prisma.task.update({
-      where: { id: updateDto.project_id },
+      where: { id: updateDto.project_id }, // Ensure this is the Task ID
       data: {
-        projectId: updateDto.project_id,
+        status: formattedStatus,
         title: updateDto.name,
-        status: updateDto.status as TaskStatus,
         description: updateDto.contents,
       },
     });

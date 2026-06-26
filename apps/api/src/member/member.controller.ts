@@ -8,6 +8,9 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Delete,
+  UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { MemberService } from './member.service';
 import { CreateMemberDto } from './dto/create-member.dto';
@@ -41,5 +44,17 @@ export class MemberController {
   update(@Body() dto: UpdateMemberDto) {
     // Pass the entire DTO to the service layer
     return this.memberService.update(dto);
+  }
+
+  @Delete('test_cleanup')
+  @HttpCode(HttpStatus.OK)
+  testCleanup(@Body() body: { user_id: string; secret: string }) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new NotFoundException();
+    }
+    if (body.secret !== process.env.TEST_SECRET) {
+      throw new UnauthorizedException();
+    }
+    return this.memberService.deleteByUserId(body.user_id);
   }
 }

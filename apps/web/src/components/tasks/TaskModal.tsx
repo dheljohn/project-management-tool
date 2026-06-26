@@ -2,20 +2,9 @@
 
 import { useState } from "react";
 import api from "../../../lib/api";
+import { TaskStatus, Task } from "../../types/task";
 
-type TaskStatus = "Todo" | "In_Progress" | "Done";
-
-interface Task {
-  id: number;
-  title: string;
-  description: string | null;
-  status: TaskStatus;
-  projectId: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface taskModalProps {
+interface TaskModalProps {
   task?: Task;
   projectId: number;
   onClose: () => void;
@@ -27,10 +16,10 @@ export default function TaskModal({
   projectId,
   onClose,
   onSuccess,
-}: taskModalProps) {
+}: TaskModalProps) {
   const [name, setName] = useState("");
   const [contents, setContents] = useState("");
-  const [status, setStatus] = useState<"Todo" | "In_Progress" | "Done">("Todo");
+  const [status] = useState<"Todo" | "In_Progress" | "Done">("Todo");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
