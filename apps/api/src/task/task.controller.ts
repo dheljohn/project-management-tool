@@ -8,11 +8,13 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
+// import type { RequestWithUser } from 'src/common/interface/request-with-user.interface';
 
 @Controller('test03')
 export class TaskController {
@@ -53,9 +55,9 @@ export class TaskController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('patch_task_status')
+  @Get('get_task_history')
   @HttpCode(HttpStatus.OK)
-  updateStatus(@Body() updateDto: UpdateTaskDto) {
-    return this.taskService.updateStatus(updateDto);
+  getHistory(@Query('task_id') taskId: string) {
+    return this.taskService.getTaskHistory(Number(taskId));
   }
 }

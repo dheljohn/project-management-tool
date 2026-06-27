@@ -1,11 +1,21 @@
 // src/tasks/dto/create-task.dto.ts
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { TaskStatusPayload } from '../enums/status.enum';
 
 export class CreateTaskDto {
   @IsNumber()
   @IsNotEmpty()
   project_id!: number;
+
+  @IsString()
+  @IsNotEmpty()
+  user_id!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -18,6 +28,10 @@ export class CreateTaskDto {
   status!: TaskStatusPayload;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   contents!: string;
+
+  @IsString()
+  @IsOptional()
+  remark?: string;
 }

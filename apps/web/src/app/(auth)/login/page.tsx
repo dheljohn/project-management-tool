@@ -30,7 +30,10 @@ export default function LoginPage() {
       });
 
       localStorage.setItem("auth_token", data.access_token);
+      localStorage.setItem("user_id", userId);
       console.log(data.access_token);
+      console.log("NAME: ", localStorage.getItem("user_id"));
+
       router.push("/dashboard");
     } catch (err: any) {
       const msg = err.response?.data?.message;

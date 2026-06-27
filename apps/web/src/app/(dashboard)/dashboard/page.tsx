@@ -1,3 +1,5 @@
+import Sidebar from "../../../components/layout/Sidebar";
+
 export default function DashboardPage() {
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
@@ -27,7 +29,7 @@ export default function DashboardPage() {
             </a>
           </nav>
         </aside> */}
-
+      <Sidebar />
       {/* Main Content Workspace */}
       <div className="flex-1 flex flex-col">
         {/* Top Navbar Placeholder */}

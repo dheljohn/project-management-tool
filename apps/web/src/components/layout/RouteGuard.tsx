@@ -1,4 +1,3 @@
-// Wrapper
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -13,10 +12,8 @@ export default function ProtectedRoute({ children }: RouteGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Check your auth state storage (Cookie, LocalStorage, Context, or Redux)
     const token = localStorage.getItem("auth_token");
-    console.log(token);
-    // AUTH_TOKEN_KEY
+
     if (!token) {
       setIsAuthenticated(false);
       router.push("/login"); // Redirect to login if token is missing
@@ -25,7 +22,6 @@ export default function ProtectedRoute({ children }: RouteGuardProps) {
     }
   }, [router]);
 
-  // Show a loading state while checking credentials to prevent visual flash
   if (isAuthenticated === null) {
     return (
       <div className="flex h-screen items-center justify-center">

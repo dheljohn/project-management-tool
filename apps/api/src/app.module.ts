@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TaskModule } from './task/task.module';
+import { ChangelogModule } from './changelog/changelog.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TaskModule } from './task/task.module';
     AuthModule,
     ProjectsModule,
     TaskModule,
+    ChangelogModule,
   ],
   controllers: [AppController, MemberController],
   providers: [AppService, PrismaService, MemberService],
