@@ -41,7 +41,7 @@ export default function RegisterPage(): JSX.Element {
 
       localStorage.setItem("auth_token", token);
 
-      router.push("/dashboard");
+      router.push("/projects");
     } catch (err: any) {
       const msg = err.response?.data?.message;
       setError(

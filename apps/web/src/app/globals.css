@@ -1,83 +1,139 @@
 @import "tailwindcss";
 
-/* 1. Map custom theme properties cleanly using Tailwind's v4 @theme directive */
 @theme {
-  --color-site-bg: var(--site-bg);
-  --color-site-fg: var(--site-fg);
+  /* Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-status-todo: var(--status-todo);
+  --color-status-progress: var(--status-progress);
+  --color-status-done: var(--status-done);
+
+  /* Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Fonts — clean & readable for PM tools */
+  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Shadows */
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.04), 0 4px 16px oklch(0 0 0 / 0.04);
+  --shadow-lift: 0 2px 4px oklch(0 0 0 / 0.06), 0 12px 32px oklch(0 0 0 / 0.08);
 }
 
+/* ─── Light mode (default) ─── */
 :root {
-  --site-bg: #ffffff;
-  --site-fg: #171717;
+  --radius: 0.75rem;
+
+  --background: oklch(0.985 0.008 95);
+  --foreground: oklch(0.18 0.02 60);
+  --surface: oklch(0.965 0.012 90);
+  --card: oklch(1 0 0);
+  /* --card: oklch(1 0 0); */
+  --card-foreground: oklch(0.18 0.02 60);
+
+  --border: oklch(0.9 0.012 80);
+  --input: oklch(0.9 0.012 80);
+  --ring: oklch(0.7 0.18 45);
+  --muted: oklch(0.94 0.015 90);
+  --muted-foreground: oklch(0.5 0.02 60);
+
+  --primary: oklch(0.22 0.03 50);
+  --primary-foreground: oklch(0.985 0.008 95);
+  --secondary: oklch(0.94 0.015 90);
+  --secondary-foreground: oklch(0.22 0.03 50);
+
+  --accent: oklch(0.7 0.18 45);
+  --accent-foreground: oklch(0.99 0.005 95);
+
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  --status-todo: oklch(0.65 0.04 250);
+  --status-progress: oklch(0.72 0.16 70);
+  --status-done: oklch(0.62 0.14 150);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --site-bg: #0a0a0a;
-    --site-fg: #ededed;
+/* ─── Dark mode — add class="dark" to <html> ─── */
+.dark {
+  --background: oklch(0.12 0.008 60);
+  --foreground: oklch(0.93 0.01 80);
+  --surface: oklch(0.16 0.01 60);
+  --card: oklch(0.17 0.01 60);
+  --card-foreground: oklch(0.93 0.01 80);
+
+  --border: oklch(0.28 0.01 60);
+  --input: oklch(0.28 0.01 60);
+  --ring: oklch(0.7 0.18 45);
+  --muted: oklch(0.22 0.015 60);
+  --muted-foreground: oklch(0.6 0.02 60);
+
+  --primary: oklch(0.93 0.01 80);
+  --primary-foreground: oklch(0.12 0.008 60);
+  --secondary: oklch(0.22 0.015 60);
+  --secondary-foreground: oklch(0.93 0.01 80);
+
+  --accent: oklch(0.7 0.18 45);
+  --accent-foreground: oklch(0.99 0.005 95);
+
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  --status-todo: oklch(0.65 0.04 250);
+  --status-progress: oklch(0.72 0.16 70);
+  --status-done: oklch(0.62 0.14 150);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--color-border);
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
   }
-}
 
-/* 2. Fixed layout viewport properties */
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  color: var(--site-fg);
-  background: var(--site-bg);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* 3. Safe image switching states */
-.imgDark {
-  display: none;
-}
-
-/* new */
-/* Custom scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #22d3ee transparent;
-}
-
-*::-webkit-scrollbar {
-  width: 4px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: #22d3ee;
-  border-radius: 999px;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: #06b6d4;
-}
-/* new */
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+  *::-webkit-scrollbar {
+    width: 4px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--ring);
   }
 
-  .imgLight {
-    display: none;
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
   }
-  .imgDark {
-    display: block; /* Explicit layout type instead of 'unset' */
+
+  a {
+    color: inherit;
+    text-decoration: none;
   }
 }

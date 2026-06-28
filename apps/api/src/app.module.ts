@@ -12,6 +12,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TaskModule } from './task/task.module';
 import { ChangelogModule } from './changelog/changelog.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ChangelogModule } from './changelog/changelog.module';
     ProjectsModule,
     TaskModule,
     ChangelogModule,
+    SeedModule,
   ],
   controllers: [AppController, MemberController],
   providers: [AppService, PrismaService, MemberService],

@@ -13,7 +13,7 @@ export default function BaseRouteGatekeeper() {
 
     if (token) {
       // User is authenticated -> Send them straight into the system workspace
-      router.replace("/dashboard");
+      router.replace("/projects");
     } else {
       // User is a stranger -> Show them your beautiful marketing site
       router.replace("/landing");

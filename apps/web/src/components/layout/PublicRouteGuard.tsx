@@ -16,7 +16,7 @@ export default function PublicRouteGuard({ children }: PublicRouteGuardProps) {
 
     if (token) {
       setIsGuest(false);
-      router.push("/dashboard"); // Redirect logged-in users away from login page
+      router.push("/projects"); // Redirect logged-in users away from login page
     } else {
       setIsGuest(true);
     }

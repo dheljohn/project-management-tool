@@ -24,3 +24,13 @@ export interface ChangeLog {
     user_id: string;
   };
 }
+
+export interface Breadcrumb {
+  label: string;
+  href?: string;
+}
+
+export interface ActivityLogProps {
+  logs: ChangeLog[];
+  loading: boolean;
+}
