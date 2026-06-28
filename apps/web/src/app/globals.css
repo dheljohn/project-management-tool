@@ -44,6 +44,31 @@ a {
   display: none;
 }
 
+/* new */
+/* Custom scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #22d3ee transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #22d3ee;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #06b6d4;
+}
+/* new */
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

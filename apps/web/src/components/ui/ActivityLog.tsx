@@ -7,6 +7,19 @@ interface ActivityLogProps {
   loading: boolean;
 }
 
+function formatLog(log: ChangeLog): string {
+  const who = log.member?.user_id ?? "Someone";
+
+  if (log.field === "task creation") return `${who} created this task`;
+  if (log.field === "status")
+    return `${who} moved this card from ${log.oldValue} to ${log.newValue}`;
+  if (log.field === "title")
+    return `${who} renamed this task to "${log.newValue}"`;
+  if (log.field === "description") return `${who} updated the description`;
+
+  return `${who} changed ${log.field} from "${log.oldValue}" to "${log.newValue}"`;
+}
+
 export default function ActivityLog({ logs, loading }: ActivityLogProps) {
   if (loading) return <p className="text-gray-400 text-sm">Loading...</p>;
   if (logs.length === 0)
@@ -15,7 +28,6 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
   return (
     <div className="flex flex-col gap-3">
       {logs.map((log) => {
-        // 1. Create a helper flag to identify task creations easily
         const isCreationLog = log.field === "task creation";
 
         return (
@@ -43,11 +55,12 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
             {/* 2. Custom Layout Generation Logic */}
             {isCreationLog ? (
               <p className="text-emerald-400 text-xs font-medium">
-                👤 {log.member?.user_id ?? "Someone"} added a new task!
+                {/* 👤 {log.member?.user_id ?? "Someone"} added a new task! */}
+                👤 {formatLog(log)}
               </p>
             ) : (
               <p className="text-gray-400 text-xs">
-                <span className="text-gray-500 capitalize">{log.field}</span>{" "}
+                {/* <span className="text-gray-500 capitalize">{log.field}</span>{" "}
                 changed from{" "}
                 <span className="text-red-400 font-mono">
                   {log.oldValue || "—"}
@@ -55,7 +68,8 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
                 {" → "}
                 <span className="text-cyan-400 font-mono">
                   {log.newValue || "—"}
-                </span>
+                </span> */}
+                {formatLog(log)}
               </p>
             )}
 
