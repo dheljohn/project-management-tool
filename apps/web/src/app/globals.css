@@ -137,3 +137,10 @@
     text-decoration: none;
   }
 }
+
+@layer utilities {
+  .progress-fill {
+    width: var(--fill-width, 0%);
+    transition: width 700ms ease-out;
+  }
+}

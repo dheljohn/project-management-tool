@@ -1,25 +1,26 @@
 "use client";
 
-type ActiveView = "kanban" | "activity" | "both";
+// 1. Grab your radio station hook
+import { useView } from "../../context/ViewContext";
 
-interface BoardToggleProps {
-  active: ActiveView;
-  onChange: (view: ActiveView) => void;
-}
+export default function BoardToggle() {
+  // 2. Connect directly to the radio station state
+  const { activeView, setActiveView } = useView();
 
-export default function BoardToggle({ active, onChange }: BoardToggleProps) {
+  // 3. Updated toggle function to talk directly to the radio station!
   function toggle(view: "kanban" | "activity") {
-    if (active === "both") {
-      onChange(view === "kanban" ? "activity" : "kanban");
-    } else if (active === view) {
+    if (activeView === "both") {
+      setActiveView(view === "kanban" ? "activity" : "kanban");
+    } else if (activeView === view) {
       return;
     } else {
-      onChange("both");
+      setActiveView("both");
     }
   }
 
-  const kanbanOn = active === "kanban" || active === "both";
-  const activityOn = active === "activity" || active === "both";
+  // 4. Use activeView from the context to check what's turned on
+  const kanbanOn = activeView === "kanban" || activeView === "both";
+  const activityOn = activeView === "activity" || activeView === "both";
 
   return (
     <div className="flex items-center gap-1 bg-surface border border-border rounded-xl px-2 py-1.5 fixed bottom-5 left-1/2 -translate-x-1/2 z-50 shadow-lift shadow-accent/10">

@@ -182,26 +182,44 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
         </div>
 
         {/* ── Progress bar ── */}
+        {/* ── Progress bar ── */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Completion</span>
+            <span className="text-xs text-muted-foreground">Progress</span>
             <span
               className={`text-xs font-semibold tabular-nums transition-colors
-                ${isComplete ? "text-status-done" : "text-foreground"}`}
+      ${isComplete ? "text-status-done" : "text-foreground"}`}
             >
               {counts ? `${donePercent}%` : "—"}
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+
+          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden flex gap-0.5">
             {counts === null ? (
-              /* Loading shimmer */
               <div className="h-full w-1/3 rounded-full bg-border animate-pulse" />
             ) : (
-              <div
-                className={`h-full rounded-full transition-all duration-700 ease-out
-                  ${isComplete ? "bg-status-done" : "bg-accent"}`}
-                style={{ width: `${donePercent}%` }}
-              />
+              <>
+                {counts.done > 0 && (
+                  <div
+                    className="h-full bg-status-done transition-all duration-700"
+                    style={{ width: `${(counts.done / counts.total) * 100}%` }}
+                  />
+                )}
+                {counts.inProgress > 0 && (
+                  <div
+                    className="h-full bg-status-progress transition-all duration-700"
+                    style={{
+                      width: `${(counts.inProgress / counts.total) * 100}%`,
+                    }}
+                  />
+                )}
+                {counts.todo > 0 && (
+                  <div
+                    className="h-full bg-status-todo transition-all duration-700"
+                    style={{ width: `${(counts.todo / counts.total) * 100}%` }}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>

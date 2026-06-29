@@ -69,6 +69,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useBreadcrumbs } from "../../context/BreadcrumbContext";
+import Image from "next/image"; // ✅ Correct
 
 export default function Navbar() {
   const router = useRouter();
@@ -119,16 +120,24 @@ export default function Navbar() {
     <header className="h-16 border-b border-border bg-card shrink-0">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
         {/* ── Left: Logo + Breadcrumbs ── */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
           <Link
             href="/projects"
             className="flex items-center gap-2 select-none"
           >
             {/* Icon mark */}
-            <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center shrink-0">
-              <span className="text-accent-foreground text-xs font-black">
+            <div className="w-10 h-10 rounded-lg  flex items-center justify-center shrink-0">
+              {/* <span className="text-accent-foreground text-xs font-black">
                 P
-              </span>
+              </span> */}
+
+              <Image
+                src="/proyekto.png"
+                alt="Logo"
+                width={30}
+                height={30}
+                priority
+              />
             </div>
             {/* Wordmark */}
             <span className="text-foreground font-bold text-base tracking-tight">
