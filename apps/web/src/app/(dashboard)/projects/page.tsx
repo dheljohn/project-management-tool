@@ -1,145 +1,3 @@
-// "use client";
-
-// import { useEffect, useState } from "react";
-// import api from "../../../../lib/api";
-// import ProjectCard from "../../../components/projects/ProjectCard";
-// import ProjectModal from "../../../components/projects/ProjectModal";
-// import { useBreadcrumbs } from "../../../context/BreadcrumbContext";
-
-// interface Project {
-//   id: number;
-//   name: string;
-//   description: string | null;
-//   ownerId: number;
-//   createdAt: string;
-//   updatedAt: string;
-// }
-
-// export default function ProjectsPage() {
-//   const [projects, setProjects] = useState<Project[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
-
-//   const [modalOpen, setModalOpen] = useState(false);
-//   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-//   const [selectedProject, setSelectedProject] = useState<Project | undefined>(
-//     undefined,
-//   );
-
-//   const { setBreadcrumbs } = useBreadcrumbs();
-
-//   useEffect(() => {
-//     setBreadcrumbs([{ label: "" }]);
-//   }, [setBreadcrumbs]);
-
-//   useEffect(() => {
-//     fetchProjects();
-//   }, []);
-
-//   async function fetchProjects() {
-//     try {
-//       const res = await api.get("/test02/get_user_projects");
-//       setProjects(res.data);
-//     } catch {
-//       setError("Failed to fetch projects.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   }
-
-//   function openCreateModal() {
-//     setSelectedProject(undefined);
-//     setModalMode("create");
-//     setModalOpen(true);
-//   }
-
-//   function openEditModal(project: Project) {
-//     setSelectedProject(project);
-//     setModalMode("edit");
-//     setModalOpen(true);
-//   }
-
-//   function handleModalSuccess(updatedProject: Project) {
-//     if (modalMode === "create") {
-//       setProjects((prev) => [updatedProject, ...prev]);
-//     } else {
-//       setProjects((prev) =>
-//         prev.map((p) => (p.id === updatedProject.id ? updatedProject : p)),
-//       );
-//     }
-//   }
-
-//   if (loading) {
-//     return (
-//       <div className="flex h-full items-center justify-center">
-//         <p className="text-muted-foreground">Loading projects...</p>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="flex h-full items-center justify-center">
-//         <p className="text-destructive">{error}</p>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="p-6">
-//       {/* ── Header ── */}
-//       <div className="flex items-center justify-between mb-6">
-//         <div>
-//           <h1 className="text-2xl font-bold text-foreground">Projects</h1>
-//           <p className="text-muted-foreground text-sm mt-1">
-//             {projects.length} project(s) found
-//           </p>
-//         </div>
-//         <button
-//           onClick={openCreateModal}
-//           className="bg-accent hover:opacity-90 text-accent-foreground text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
-//         >
-//           + New Project
-//         </button>
-//       </div>
-
-//       {/* ── Empty State ── */}
-//       {projects.length === 0 && (
-//         <div className="flex flex-col items-center justify-center h-64 border border-dashed border-border rounded-xl">
-//           <p className="text-muted-foreground text-sm">No projects yet.</p>
-//           <button
-//             onClick={openCreateModal}
-//             className="mt-3 text-accent text-sm hover:underline"
-//           >
-//             Create your first project
-//           </button>
-//         </div>
-//       )}
-
-//       {/* ── Project Grid ── */}
-//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-//         {projects.map((project) => (
-//           <ProjectCard
-//             key={project.id}
-//             project={project}
-//             onEdit={openEditModal}
-//           />
-//         ))}
-//       </div>
-
-//       {/* ── Modal ── */}
-//       {modalOpen && (
-//         <ProjectModal
-//           mode={modalMode}
-//           project={selectedProject}
-//           onClose={() => setModalOpen(false)}
-//           onSuccess={handleModalSuccess}
-//         />
-//       )}
-//     </div>
-//   );
-// }
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -216,7 +74,7 @@ export default function ProjectsPage() {
     p.name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  // ── Most recently updated ──
+  //  Most recently updated
   const recentProject = projects.reduce<Project | null>((latest, p) => {
     if (!latest) return p;
     return new Date(p.updatedAt) > new Date(latest.updatedAt) ? p : latest;
@@ -251,7 +109,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* ── Workspace Header ── */}
+      {/*  Workspace Header  */}
       <div className="px-8 pt-8 pb-6 border-b border-border shrink-0">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-start justify-between gap-4">
@@ -262,7 +120,7 @@ export default function ProjectsPage() {
               <h1 className="text-3xl font-bold text-foreground">Projects</h1>
               <p className="text-muted-foreground text-sm mt-1.5">
                 {projects.length === 0
-                  ? "No projects yet — create one to get started."
+                  ? "No projects yet. Get started by creating your first one!"
                   : `${projects.length} project${projects.length !== 1 ? "s" : ""} in your workspace`}
               </p>
             </div>
@@ -285,7 +143,7 @@ export default function ProjectsPage() {
               </button> */}
           </div>
 
-          {/* ── Stats Row ── */}
+          {/*  Stats Row  */}
           {projects.length > 0 && (
             <div className="flex items-center gap-6 mt-5">
               <div className="flex items-center gap-2">
@@ -352,10 +210,10 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* ── Content Area ── */}
+      {/*  Content Area  */}
       <div className="flex-1 overflow-y-auto px-8 py-6">
         <div className="max-w-6xl mx-auto">
-          {/* ── Search ── */}
+          {/*  Search  */}
           <div className="flex items-center justify-between mb-6">
             {projects.length > 0 && (
               <div className="relative  max-w-sm my-auto">
@@ -399,7 +257,7 @@ export default function ProjectsPage() {
             </button> */}
           </div>
 
-          {/* ── Empty State ── */}
+          {/*  Empty State  */}
           {projects.length === 0 && (
             <div className="flex flex-col items-center justify-center h-72 border border-dashed border-border rounded-xl">
               <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
@@ -441,7 +299,7 @@ export default function ProjectsPage() {
             </div>
           )}
 
-          {/* ── No Search Results ── */}
+          {/*  No Search Results  */}
           {projects.length > 0 && filtered.length === 0 && (
             <div className="flex flex-col items-center justify-center h-48 border border-dashed border-border rounded-xl">
               <p className="text-muted-foreground text-sm">
@@ -457,7 +315,7 @@ export default function ProjectsPage() {
             </div>
           )}
 
-          {/* ── Project Grid ── */}
+          {/*  Project Grid  */}
           {filtered.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((project) => (
@@ -472,7 +330,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* ── Modal ── */}
+      {/*  Modal  */}
       {modalOpen && (
         <ProjectModal
           mode={modalMode}

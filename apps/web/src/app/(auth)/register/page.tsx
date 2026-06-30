@@ -1,165 +1,48 @@
-"use client";
+import RegisterForm from "../../../components/auth/RegisterForm";
 
-import { useState, FormEvent, ChangeEvent, JSX } from "react";
-import api from "../../../../lib/api";
-import { useRouter } from "next/navigation";
-
-// interface ApiErrorResponse {
-//   message: string | string[];
-//   error?: string;
-//   statusCode?: number;
-// }
-
-export default function RegisterPage(): JSX.Element {
-  const router = useRouter();
-  const [user_id, setUser_id] = useState("");
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [message, setMessage] = useState<string>("");
-  const [error, setError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
-    setMessage("");
-    setError("");
-    setIsLoading(true);
-
-    try {
-      await api.post("/test01/create_member", {
-        user_id,
-        email,
-        password,
-      });
-
-      const loginRes = await api.post("/testlogin", {
-        user_id,
-        password,
-      });
-
-      const token = loginRes.data.access_token;
-
-      localStorage.setItem("auth_token", token);
-
-      router.push("/projects");
-    } catch (err: any) {
-      const msg = err.response?.data?.message;
-      setError(
-        Array.isArray(msg)
-          ? msg.join(", ")
-          : (msg ?? "An unexpected error occurred."),
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // const handleLogin = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-  //   try {
-  //     const loginRes = await api.post("/testlogin", {
-  //       user_id,
-  //       password,
-  //     });
-  //     const token = loginRes.data.access_token;
-  //     console.log(loginRes.data);
-  //     localStorage.setItem("token", token);
-  //     router.push("/dashboard");
-  //   } catch (err: any) {
-  //     const msg = err.response?.data?.message;
-  //     setError(
-  //       Array.isArray(msg)
-  //         ? msg.join(", ")
-  //         : (msg ?? "An unexpected error occurred."),
-  //     );
-  //   }
-  // };
-
+export default function RegisterPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-md">
-        <div>
-          <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
-            Create an Account
-          </h2>
-        </div>
-
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div className="space-y-4 rounded-md">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                User ID
-              </label>
-              <input
-                type="text"
-                value={user_id}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setUser_id(e.target.value)
-                }
-                required
-                disabled={isLoading}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                placeholder="John Doe"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setEmail(e.target.value)
-                }
-                required
-                disabled={isLoading}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setPassword(e.target.value)
-                }
-                required
-                disabled={isLoading}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? "Registering..." : "Register"}
-            </button>
-          </div>
-        </form>
-
-        {message && (
-          <div className="mt-4 rounded-md bg-green-50 border border-green-200 p-3 text-center text-sm font-medium text-green-800">
-            {message}
-          </div>
-        )}
-
-        {error && (
-          <div className="mt-4 rounded-md bg-red-50 border border-red-200 p-3 text-center text-sm font-medium text-red-800">
-            {error}
-          </div>
-        )}
+    <div className="space-y-6">
+      {/*  Header  */}
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          Create an account
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Join your team's workspace
+        </p>
       </div>
+
+      <RegisterForm />
+
+      {/*  Divider  */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
+        </div>
+      </div>
+
+      {/*  OAuth buttons  */}
+      <div className="grid grid-cols-2 gap-3">
+        <button className="flex w-full items-center justify-center rounded-lg border border-border bg-muted px-4 py-2 text-sm font-medium text-foregroundhover:bg-muted/70 transition-colors">
+          Google
+        </button>
+        <button className="flex w-full items-center justify-center rounded-lg border border-border bg-muted px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/70 transition-colors">
+          GitHub
+        </button>
+      </div>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <a href="/login" className="font-medium text-accent hover:underline">
+          Sign in
+        </a>
+      </p>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import Navbar from "../../components/layout/Navbar";
 import ProtectedRoute from "../../components/layout/RouteGuard";
-import Sidebar from "../../components/layout/Sidebar";
 import { BreadcrumbProvider } from "../../context/BreadcrumbContext";
 
 export default function DashboardLayout({

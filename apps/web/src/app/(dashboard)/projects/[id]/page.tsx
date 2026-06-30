@@ -107,7 +107,7 @@ function KanbanPageContent() {
           className={`flex gap-4 flex-1 overflow-hidden transition-all duration-300 mx-auto  min-w-[1400px] 
           ${isSplit ? "flex-row" : "flex-col"}`}
         >
-          {/* ── Kanban Panel ── */}
+          {/*  Kanban Panel  */}
           {showKanban && (
             <div
               className={`flex flex-col overflow-hidden border border-border bg-card
@@ -145,7 +145,7 @@ function KanbanPageContent() {
 
           <BoardToggle />
 
-          {/* ── Activity Log Panel ── */}
+          {/*  Activity Log Panel  */}
           {showActivity && (
             <div
               className={`flex flex-col overflow-hidden border border-border 

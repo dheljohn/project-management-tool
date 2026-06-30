@@ -39,7 +39,7 @@
   --shadow-lift: 0 2px 4px oklch(0 0 0 / 0.06), 0 12px 32px oklch(0 0 0 / 0.08);
 }
 
-/* ─── Light mode (default) ─── */
+/*  Light mode (default)  */
 :root {
   --radius: 0.75rem;
 
@@ -72,7 +72,7 @@
   --status-done: oklch(0.62 0.14 150);
 }
 
-/* ─── Dark mode — add class="dark" to <html> ─── */
+/*  Dark mode — add class="dark" to <html>  */
 .dark {
   --background: oklch(0.12 0.008 60);
   --foreground: oklch(0.93 0.01 80);
@@ -130,6 +130,7 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-feature-settings: "ss01", "cv11";
+    scroll-behavior: smooth;
   }
 
   a {

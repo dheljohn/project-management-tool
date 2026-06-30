@@ -1,131 +1,96 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import api from "../../../lib/api";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import {
+  loginSchema,
+  LoginFormValues,
+} from "../../features/auth/schemas/login.schema";
+import { useLogin } from "../../features/auth/hooks/useLogin";
 
 export default function LoginForm() {
-  const router = useRouter();
-  const [userId, setUserId] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { mutate, isPending, error } = useLogin();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
 
-    if (!userId || !password) {
-      setError("Please fill in all fields.");
-      setIsLoading(false);
-      return;
-    }
+  const onSubmit = (values: LoginFormValues) => mutate(values);
 
-    try {
-      const { data } = await api.post("/testlogin", {
-        user_id: userId,
-        password,
-      });
-      localStorage.setItem("auth_token", data.access_token);
-      localStorage.setItem("user_id", userId);
-      router.push("/projects");
-    } catch (err: any) {
-      const msg = err.response?.data?.message;
-      setError(
-        Array.isArray(msg)
-          ? msg.join(", ")
-          : (msg ?? "Network error. Cannot reach the authentication server."),
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const inputClass =
+    "block w-full rounded-lg border border-border bg-muted px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent text-sm transition-colors";
 
   return (
-    <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-600">
-          {error}
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+          {(error as any)?.response?.data?.message ??
+            "Network error. Cannot reach the authentication server."}
         </div>
       )}
 
-      <div className="space-y-4 ">
-        {/* User ID */}
-        <div>
-          <label
-            htmlFor="userId"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            User ID
-          </label>
-          <input
-            id="userId"
-            name="userId"
-            type="text"
-            autoComplete="username"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder="e.g. john_doe123"
-            className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-950 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
-
-        {/* Password */}
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Password
-          </label>
-          <div className="relative">
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-950 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500 hover:text-gray-700"
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Remember me / Forgot password */}
-      <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 text-sm text-gray-700 select-none">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-          />
-          Remember me
-        </label>
-        <a
-          href="#"
-          className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+      <div>
+        <label
+          htmlFor="user_id"
+          className="block text-sm font-medium text-foreground mb-1.5"
         >
-          Forgot password?
-        </a>
+          User ID
+        </label>
+        <input
+          id="user_id"
+          autoComplete="username"
+          placeholder="e.g. john_doe"
+          className={inputClass}
+          {...register("user_id")}
+        />
+        {errors.user_id && (
+          <p className="mt-1 text-xs text-destructive">
+            {errors.user_id.message}
+          </p>
+        )}
       </div>
 
-      {/* Submit */}
+      <div>
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-foreground mb-1.5"
+        >
+          Password
+        </label>
+        <div className="relative">
+          <input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            placeholder="••••••••"
+            className={inputClass}
+            {...register("password")}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
+        {errors.password && (
+          <p className="mt-1 text-xs text-destructive">
+            {errors.password.message}
+          </p>
+        )}
+      </div>
+
       <button
         type="submit"
-        disabled={isLoading}
-        className="flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        disabled={isPending}
+        className="mt-2 flex w-full justify-center rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
       >
-        {isLoading ? "Signing in..." : "Sign in"}
+        {isPending ? "Signing in..." : "Sign in"}
       </button>
     </form>
   );

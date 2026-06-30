@@ -123,7 +123,7 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
 
         return (
           <li key={log.id} className="relative flex gap-4 py-3">
-            {/* ── Avatar bubble ── */}
+            {/*  Avatar bubble  */}
             <span
               className={`relative z-10 mt-1 grid h-8 w-8 shrink-0 place-items-center
                       rounded-full border text-[10px] font-bold
@@ -136,7 +136,7 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
               {getInitials(actor)}
             </span>
 
-            {/* ── Entry card ── */}
+            {/*  Entry card  */}
             <div className="flex-1 rounded-xl border border-border bg-background p-4 min-w-0">
               {/* Top row: message + timestamp */}
               <div className="flex flex-wrap items-baseline justify-between gap-2">

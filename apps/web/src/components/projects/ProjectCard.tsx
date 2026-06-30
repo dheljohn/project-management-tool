@@ -1,73 +1,3 @@
-// "use client";
-
-// import { useRouter } from "next/navigation";
-
-// export interface Project {
-//   id: number;
-//   name: string;
-//   description: string | null;
-//   ownerId: number;
-//   createdAt: string;
-//   updatedAt: string;
-// }
-
-// interface ProjectCardProps {
-//   project: Project;
-//   onEdit: (project: Project) => void;
-// }
-
-// export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
-//   const router = useRouter();
-
-//   return (
-//     <div className="bg-card border border-border rounded-xl p-5 hover:border-accent transition-colors group relative">
-//       {/* ── Edit Button ── */}
-//       <button
-//         onClick={(e) => {
-//           e.stopPropagation();
-//           onEdit(project);
-//         }}
-//         className="absolute top-4 right-4 text-muted-foreground hover:text-accent text-xs px-2 py-1 rounded-md border border-border hover:border-accent transition-colors"
-//       >
-//         Edit
-//       </button>
-
-//       {/* ── Clickable Area → Kanban ── */}
-//       <div
-//         onClick={() => router.push(`/projects/${project.id}`)}
-//         className="cursor-pointer"
-//       >
-//         <h2 className="text-foreground font-semibold text-lg group-hover:text-accent transition-colors pr-12">
-//           {project.name}
-//         </h2>
-
-//         <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
-//           {project.description ?? "No description provided."}
-//         </p>
-
-//         <div className="mt-4 flex flex-col gap-1 text-xs text-muted-foreground">
-//           <span>
-//             Created:{" "}
-//             {new Date(project.createdAt).toLocaleDateString("en-PH", {
-//               year: "numeric",
-//               month: "short",
-//               day: "numeric",
-//             })}
-//           </span>
-//           <span>
-//             Updated:{" "}
-//             {new Date(project.updatedAt).toLocaleDateString("en-PH", {
-//               year: "numeric",
-//               month: "short",
-//               day: "numeric",
-//             })}
-//           </span>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -126,7 +56,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-accent transition-all duration-200 group hover:shadow-lift flex flex-col relative">
-      {/* ── Accent top strip — grows with completion ── */}
+      {/*  Accent top strip — grows with completion  */}
       {/* <div className="h-0.5 w-full bg-muted relative overflow-hidden">
         <div
           className="absolute inset-y-0 left-0 bg-accent transition-all duration-700 ease-out w-full"
@@ -134,7 +64,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
         />
       </div> */}
 
-      {/* ── Body ── */}
+      {/*  Body  */}
       <div
         onClick={() => router.push(`/projects/${project.id}`)}
         className="cursor-pointer p-5 flex flex-col gap-3 flex-1"
@@ -177,12 +107,11 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
             </span>{" "}
             in progress
           </span>
-          <span className="h-3 w-px bg-border" />
-          <span>Updated {project.updatedAt.split("T")[0]}</span>
+          {/* <span className="h-3 w-px bg-border" />
+          <span>Updated {project.updatedAt.split("T")[0]}</span> */}
         </div>
 
-        {/* ── Progress bar ── */}
-        {/* ── Progress bar ── */}
+        {/*  Progress bar  */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Progress</span>
@@ -224,7 +153,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
           </div>
         </div>
 
-        {/* ── Task stat pills ── */}
+        {/*  Task stat pills  */}
         {/* <div className="flex items-center gap-2">
           {counts === null ? (
             <>
@@ -260,7 +189,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
         </div> */}
       </div>
 
-      {/* ── Footer ── */}
+      {/*  Footer  */}
       <div className="px-5 py-3 border-t border-border flex items-center justify-between">
         <span className="text-xs text-muted-foreground">
           Updated{" "}

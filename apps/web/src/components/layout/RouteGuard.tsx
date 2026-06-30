@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import api from "../../../lib/api";
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -12,20 +13,21 @@ export default function ProtectedRoute({ children }: RouteGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      setIsAuthenticated(false);
-      router.push("/login"); // Redirect to login if token is missing
-    } else {
-      setIsAuthenticated(true);
-    }
+    api
+      .get("/testlogin/me")
+      .then(() => setIsAuthenticated(true))
+      .catch(() => {
+        (setIsAuthenticated(false), router.push("/login"));
+      });
   }, [router]);
 
   if (isAuthenticated === null) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p className="text-lg font-medium">Loading...</p>
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-6 h-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+          <p className="text-sm text-muted-foreground">Verifying session...</p>
+        </div>
       </div>
     );
   }

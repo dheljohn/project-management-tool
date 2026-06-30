@@ -51,7 +51,7 @@ export default function BoardToggle() {
         )}
       </button>
 
-      {/* ── Divider ── */}
+      {/*  Divider  */}
       <div className="w-px h-5 bg-border mx-1" />
 
       <button

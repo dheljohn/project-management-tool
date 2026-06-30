@@ -1,75 +1,11 @@
-// "use client";
-
-// import Link from "next/link";
-// import { useRouter } from "next/navigation";
-// import { useBreadcrumbs } from "../../context/BreadcrumbContext";
-// import { usePathname } from "next/navigation";
-
-// export default function Navbar() {
-//   const router = useRouter();
-//   const { breadcrumbs } = useBreadcrumbs();
-//   const username = localStorage.getItem("user_id");
-//   const pathname = usePathname();
-
-//   function handleLogout() {
-//     localStorage.removeItem("auth_token");
-//     router.push("/login");
-//   }
-
-//   return (
-//     <header className="h-16 border-b border-border bg-card">
-//       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
-//         {/* ── Left ── */}
-//         <div className="flex items-center gap-6">
-//           <Link href="/projects" className="text-lg font-semibold">
-//             <span className="text-accent">Project Manage</span>
-//           </Link>
-
-//           {breadcrumbs.length > 0 && pathname !== "/projects" && (
-//             <nav className="hidden items-center gap-2 text-sm text-muted-foreground md:flex">
-//               {breadcrumbs.map((crumb, index) => (
-//                 <div key={index} className="flex items-center gap-2">
-//                   <span>/</span>
-//                   {crumb.href ? (
-//                     <Link
-//                       href={crumb.href}
-//                       className="hover:text-foreground transition-colors"
-//                     >
-//                       {crumb.label}
-//                     </Link>
-//                   ) : (
-//                     <span className="text-foreground">{crumb.label}</span>
-//                   )}
-//                 </div>
-//               ))}
-//             </nav>
-//           )}
-//         </div>
-
-//         {/* ── Right ── */}
-//         <div className="flex items-center gap-4">
-//           <span className="text-sm text-muted-foreground">
-//             Welcome, {username?.toUpperCase()}!
-//           </span>
-
-//           <button
-//             onClick={handleLogout}
-//             className="rounded-lg bg-destructive px-3 py-1.5 text-sm text-destructive-foreground hover:opacity-90 transition-opacity"
-//           >
-//             Logout
-//           </button>
-//         </div>
-//       </div>
-//     </header>
-//   );
-// }
 "use client";
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useBreadcrumbs } from "../../context/BreadcrumbContext";
-import Image from "next/image"; // ✅ Correct
+import Image from "next/image";
+import api from "../../../lib/api";
 
 export default function Navbar() {
   const router = useRouter();
@@ -108,8 +44,9 @@ export default function Navbar() {
     setIsDark(next);
   }
 
-  function handleLogout() {
-    localStorage.removeItem("auth_token");
+  async function handleLogout() {
+    await api.post("testlogin/logout");
+    localStorage.removeItem("user_id");
     router.push("/login");
   }
 
@@ -119,7 +56,7 @@ export default function Navbar() {
   return (
     <header className="h-16 border-b border-border bg-card shrink-0">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
-        {/* ── Left: Logo + Breadcrumbs ── */}
+        {/*  Left: Logo + Breadcrumbs  */}
         <div className="flex items-center gap-3">
           <Link
             href="/projects"
@@ -169,7 +106,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* ── Right: Avatar + Settings ── */}
+        {/*  Right: Avatar + Settings  */}
         <div className="flex items-center gap-3">
           {/* Username */}
           <span className="hidden md:block text-sm text-muted-foreground">
@@ -209,7 +146,7 @@ export default function Navbar() {
               </svg>
             </button>
 
-            {/* ── Settings Popup ── */}
+            {/*  Settings Popup  */}
             {settingsOpen && (
               <div
                 className="absolute right-0 top-full mt-2 w-52 bg-card border border-border
