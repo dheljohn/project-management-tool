@@ -10,6 +10,7 @@ export const useLogin = () => {
     mutationFn: loginUser,
     onSuccess: (_, variables) => {
       localStorage.setItem("user_id", variables.user_id);
+      console.log("🚀 redirecting:", variables);
       router.push("/projects");
     },
   });

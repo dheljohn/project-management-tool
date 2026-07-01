@@ -1,7 +1,6 @@
 "use client";
 
-import { ChangeLog } from "../../types/types";
-import { ActivityLogProps } from "../../types/types";
+import { ChangeLog, ActivityLogProps } from "../../types/types";
 
 function formatRelative(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -40,26 +39,37 @@ function formatAction(log: ChangeLog): {
   detail?: string;
 } {
   const actor = log.member?.user_id ?? "Someone";
-  const target = log.task?.title ?? `Task #${log.task?.id ?? log.id}`;
+  // Use id only — never the live title join
+  const taskRef = `Task #${log.task?.id ?? log.id}`;
 
   switch (log.field) {
     case "task creation":
-      return { actor, action: "created", target };
+      return {
+        actor,
+        action: "created",
+        target: log.newValue ?? taskRef, // newValue now holds the title snapshot
+      };
 
     case "status":
       return {
         actor,
-        action: "moved task from",
-        target: `${formatStatus(log.oldValue)} → ${formatStatus(log.newValue)}`,
+        action: "moved",
+        target: taskRef,
+        detail: `${formatStatus(log.oldValue)} → ${formatStatus(log.newValue)}`,
       };
+
     case "title":
-      return { actor, action: "renamed task to", target: log.newValue ?? "" };
+      return {
+        actor,
+        action: "renamed task to",
+        target: log.newValue ?? taskRef, // newValue is the new title
+      };
 
     case "description":
       return {
         actor,
         action: "updated description on",
-        target,
+        target: taskRef,
         detail: log.newValue ?? undefined,
       };
 
@@ -67,7 +77,7 @@ function formatAction(log: ChangeLog): {
       return {
         actor,
         action: `changed ${log.field} on`,
-        target,
+        target: taskRef,
         detail: `${log.oldValue ?? "—"} → ${log.newValue ?? "—"}`,
       };
   }
@@ -165,8 +175,7 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
                   on{" "}
                   <span className="text-foreground bg-muted px-1.5 py-0.5 rounded font-mono">
                     #{log.task.id}
-                  </span>{" "}
-                  {log.task.title}
+                  </span>
                 </p>
               )}
 

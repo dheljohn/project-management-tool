@@ -3,11 +3,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  registerSchema,
-  RegisterFormValues,
-} from "../../features/auth/schemas/register.schema";
-import { useRegister } from "../../features/auth/hooks/useRegister";
+import { registerSchema, RegisterFormValues } from "../schemas/register.schema";
+import { useRegister } from "../hooks/useRegister";
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);

@@ -1,18 +1,25 @@
-"use client";
+// "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+// import { useEffect } from "react";
+// import { useRouter } from "next/navigation";
 
-export default function BaseRouteGatekeeper() {
-  const router = useRouter();
+// export default function BaseRouteGatekeeper() {
+//   const router = useRouter();
 
-  useEffect(() => {
-    router.replace("/landing");
-  }, [router]);
+//   useEffect(() => {
+//     router.replace("/landing");
+//   }, [router]);
 
-  return (
-    <div className="flex h-screen items-center justify-center bg-slate-50">
-      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  );
+//   return (
+//     <div className="flex h-screen items-center justify-center bg-slate-50">
+//       <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+//     </div>
+//   );
+// }
+// app/page.tsx
+import { redirect } from "next/navigation";
+
+export default function RootPage() {
+  // Let the server handle the direction immediately before rendering anything
+  redirect("/landing");
 }

@@ -42,11 +42,11 @@ export class TaskService {
     if (!existing) throw new NotFoundException('Task not found');
 
     const fieldsToTrack = [
-      { field: 'title', oldValue: existing.title, newValue: updateDto.name },
+      { field: 'title', oldValue: existing.title, newValue: updateDto.title },
       {
         field: 'description',
         oldValue: existing.description,
-        newValue: updateDto.contents,
+        newValue: updateDto.description,
       },
       {
         field: 'status',
@@ -85,9 +85,9 @@ export class TaskService {
       this.prisma.task.update({
         where: { id: taskId },
         data: {
-          ...(updateDto.name && { title: updateDto.name }),
-          ...(updateDto.contents !== undefined && {
-            description: updateDto.contents,
+          ...(updateDto.title && { title: updateDto.title }),
+          ...(updateDto.description !== undefined && {
+            description: updateDto.description,
           }),
           ...(formattedStatus && { status: formattedStatus }),
         },
@@ -126,14 +126,13 @@ export class TaskService {
         throw new BadRequestException('Invalid status value provided');
     }
 
-    // 1. Save the transaction results into a variable
+    // Save the transaction results into a variable
     const newTask = await this.prisma.$transaction(async (tx) => {
       const task = await tx.task.create({
         data: {
           projectId: dto.project_id,
-          // user_id: dto.user_id,
-          title: dto.name, // Prisma saves it as 'title'
-          description: dto.contents,
+          title: dto.title,
+          description: dto.description,
           status: dbStatus,
         },
       });
@@ -144,20 +143,14 @@ export class TaskService {
           username: dto.user_id,
           field: 'task creation',
           oldValue: '',
-          newValue: 'Task Created',
+          newValue: task.title,
           remark: dto.remark ?? 'Initial creation log',
         },
       });
-      console.log('TASK PAYLOAD', task);
-      return task; // Returns the database row object
+      console.log('TASK PAYLOAD', newLog);
+      return task;
     });
 
-    // 2. Destructure 'title' out, and rename it to 'name' for the frontend response
-    const { title, ...restOfTask } = newTask;
-
-    return {
-      ...restOfTask,
-      name: title, // This guarantees the frontend gets 'name' back!
-    };
+    return newTask;
   }
 }

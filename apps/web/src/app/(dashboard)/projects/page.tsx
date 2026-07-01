@@ -1,24 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import api from "../../../../lib/api";
-import ProjectCard from "../../../components/projects/ProjectCard";
-import ProjectModal from "../../../components/projects/ProjectModal";
+import ProjectCard from "../../../features/projects/components/ProjectCard";
+import ProjectModal from "../../../features/projects/components/ProjectModal";
 import { useBreadcrumbs } from "../../../context/BreadcrumbContext";
-
-interface Project {
-  id: number;
-  name: string;
-  description: string | null;
-  ownerId: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import { useProjects } from "../../../features/projects/hooks/useProjects";
+import { Project } from "../../../types/types";
+import { Button } from "../../../components/ui/Button";
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: projects, isLoading, isError, refetch } = useProjects();
   const [search, setSearch] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -27,26 +18,16 @@ export default function ProjectsPage() {
     undefined,
   );
 
+  const [sortBy, setSortBy] = useState<"updatedAt" | "createdAt" | "name">(
+    "updatedAt",
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
   const { setBreadcrumbs } = useBreadcrumbs();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "" }]);
   }, [setBreadcrumbs]);
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  async function fetchProjects() {
-    try {
-      const res = await api.get("/test02/get_user_projects");
-      setProjects(res.data);
-    } catch {
-      setError("Failed to fetch projects.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function openCreateModal() {
     setSelectedProject(undefined);
@@ -60,27 +41,36 @@ export default function ProjectsPage() {
     setModalOpen(true);
   }
 
-  function handleModalSuccess(updatedProject: Project) {
-    if (modalMode === "create") {
-      setProjects((prev) => [updatedProject, ...prev]);
-    } else {
-      setProjects((prev) =>
-        prev.map((p) => (p.id === updatedProject.id ? updatedProject : p)),
-      );
-    }
+  function handleModalSuccess() {
+    setModalOpen(false);
   }
 
-  const filtered = projects.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const list = projects ?? [];
 
-  //  Most recently updated
-  const recentProject = projects.reduce<Project | null>((latest, p) => {
+  const filtered = list
+    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      let comparison = 0;
+
+      if (sortBy === "name") {
+        comparison = a.name.localeCompare(b.name);
+      } else if (sortBy === "updatedAt") {
+        comparison =
+          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+      } else {
+        comparison =
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+  const recentProject = list.reduce<Project | null>((latest, p) => {
     if (!latest) return p;
     return new Date(p.updatedAt) > new Date(latest.updatedAt) ? p : latest;
   }, null);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -91,13 +81,15 @@ export default function ProjectsPage() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <p className="text-destructive font-medium">{error}</p>
+          <p className="text-destructive font-medium">
+            Failed to fetch projects.
+          </p>
           <button
-            onClick={fetchProjects}
+            onClick={() => refetch()}
             className="mt-3 text-accent text-sm hover:underline"
           >
             Try again
@@ -119,36 +111,18 @@ export default function ProjectsPage() {
               </p>
               <h1 className="text-3xl font-bold text-foreground">Projects</h1>
               <p className="text-muted-foreground text-sm mt-1.5">
-                {projects.length === 0
+                {list.length === 0
                   ? "No projects yet. Get started by creating your first one!"
-                  : `${projects.length} project${projects.length !== 1 ? "s" : ""} in your workspace`}
+                  : `${list.length} project${list.length !== 1 ? "s" : ""} in your workspace`}
               </p>
             </div>
-
-            {/* <button
-                onClick={openCreateModal}
-                className="shrink-0 flex items-center gap-2 bg-accent hover:opacity-90 text-accent-foreground text-sm font-medium px-4 py-2.5 rounded-lg transition-opacity my-auto"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                New Project
-              </button> */}
           </div>
 
-          {/*  Stats Row  */}
-          {projects.length > 0 && (
+          {list.length > 0 && (
             <div className="flex items-center gap-6 mt-5">
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold text-foreground">
-                  {projects.length}
+                  {list.length}
                 </span>
                 <span className="text-xs text-muted-foreground leading-tight">
                   Total
@@ -160,7 +134,7 @@ export default function ProjectsPage() {
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold text-foreground">
                   {
-                    projects.filter((p) => {
+                    list.filter((p) => {
                       const d = new Date(p.updatedAt);
                       const now = new Date();
                       return (
@@ -213,52 +187,73 @@ export default function ProjectsPage() {
       {/*  Content Area  */}
       <div className="flex-1 overflow-y-auto px-8 py-6">
         <div className="max-w-6xl mx-auto">
-          {/*  Search  */}
           <div className="flex items-center justify-between mb-6">
-            {projects.length > 0 && (
-              <div className="relative  max-w-sm my-auto">
-                <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search projects..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-muted border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
-                />
-              </div>
+            {list.length > 0 && (
+              <>
+                <div className="relative max-w-sm my-auto">
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search projects..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full bg-muted border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="cancel"
+                    onClick={() =>
+                      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+                    }
+                    // className="ml-2 px-3 py-2 rounded-full border border-border bg-muted hover:bg-muted/70 flex items-center gap-2 text-sm"
+                  >
+                    {sortOrder === "asc" ? (
+                      <>
+                        ↑ <span>Asc</span>
+                      </>
+                    ) : (
+                      <>
+                        ↓ <span>Desc</span>
+                      </>
+                    )}
+                  </Button>
+                  {[
+                    { label: "Updated", value: "updatedAt" },
+                    { label: "Created", value: "createdAt" },
+                    { label: "Name", value: "name" },
+                  ].map((item) => (
+                    <Button
+                      variant="save"
+                      key={item.value}
+                      onClick={() => setSortBy(item.value as typeof sortBy)}
+                      className={`px-3 py-2 rounded-full text-sm transition-colors border
+                        ${
+                          sortBy === item.value
+                            ? "bg-accent text-accent-foreground border-accent"
+                            : "bg-muted text-muted-foreground border-border hover:bg-muted/70"
+                        }`}
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
+                </div>
+              </>
             )}
-
-            {/* <button
-              onClick={openCreateModal}
-              className="shrink-0 flex items-center gap-2 bg-accent hover:opacity-90 text-accent-foreground text-sm font-medium px-4 py-2.5 rounded-lg transition-opacity my-auto"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              New Project
-            </button> */}
           </div>
 
-          {/*  Empty State  */}
-          {projects.length === 0 && (
+          {list.length === 0 && (
             <div className="flex flex-col items-center justify-center h-72 border border-dashed border-border rounded-xl">
               <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
                 <svg
@@ -299,8 +294,7 @@ export default function ProjectsPage() {
             </div>
           )}
 
-          {/*  No Search Results  */}
-          {projects.length > 0 && filtered.length === 0 && (
+          {list.length > 0 && filtered.length === 0 && (
             <div className="flex flex-col items-center justify-center h-48 border border-dashed border-border rounded-xl">
               <p className="text-muted-foreground text-sm">
                 No projects match{" "}
@@ -315,7 +309,6 @@ export default function ProjectsPage() {
             </div>
           )}
 
-          {/*  Project Grid  */}
           {filtered.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((project) => (
@@ -330,7 +323,6 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/*  Modal  */}
       {modalOpen && (
         <ProjectModal
           mode={modalMode}

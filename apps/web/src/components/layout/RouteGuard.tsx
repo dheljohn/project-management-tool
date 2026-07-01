@@ -15,8 +15,12 @@ export default function ProtectedRoute({ children }: RouteGuardProps) {
   useEffect(() => {
     api
       .get("/testlogin/me")
-      .then(() => setIsAuthenticated(true))
+      .then(() => {
+        console.log("Authenticated");
+        setIsAuthenticated(true);
+      })
       .catch(() => {
+        console.log("Not authenticated");
         (setIsAuthenticated(false), router.push("/login"));
       });
   }, [router]);

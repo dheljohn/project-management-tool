@@ -6,7 +6,7 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;
   const { pathname } = request.nextUrl;
 
-  const publicRoutes = ["/login", "/register", "/landing", "/"];
+  const publicRoutes = ["/login", "/register", "/landing"];
   const privateRoutePrefixes = ["/projects"];
 
   const isPublicPage = publicRoutes.includes(pathname);
@@ -34,6 +34,13 @@ export async function proxy(request: NextRequest) {
       );
       isTokenValid = false;
     }
+  }
+
+  if (pathname === "/") {
+    if (isTokenValid) {
+      return NextResponse.redirect(new URL("/projects", request.url));
+    }
+    return NextResponse.redirect(new URL("/landing", request.url));
   }
 
   if (isPublicPage && isTokenValid) {

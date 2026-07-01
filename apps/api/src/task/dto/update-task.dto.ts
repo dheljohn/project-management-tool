@@ -22,7 +22,7 @@ export class UpdateTaskDto extends PartialType(CreateTaskDto) {
 
   @IsString()
   @IsOptional()
-  name?: string;
+  title?: string;
 
   @IsEnum(TaskStatusPayload, {
     message: 'status must be exactly: Todo, In Progress, or Done',
@@ -32,7 +32,7 @@ export class UpdateTaskDto extends PartialType(CreateTaskDto) {
 
   @IsString()
   @IsOptional()
-  contents?: string;
+  description?: string;
 
   @IsString()
   @IsOptional()
