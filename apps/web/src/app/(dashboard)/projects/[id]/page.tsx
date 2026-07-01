@@ -10,11 +10,14 @@ import { useChangeLogs } from "../../../../features/logs/hooks/useChangeLogs";
 import KanbanBoard from "../../../../features/tasks/components/KanbanBoard";
 import ActivityLog from "../../../../components/ui/ActivityLog";
 import BoardToggle from "../../../../components/ui/FloatingButton";
+import { WipProvider } from "../../../../context/WipContext";
 
 export default function KanbanPage() {
   return (
     <ViewProvider>
-      <KanbanPageContent />
+      <WipProvider>
+        <KanbanPageContent />
+      </WipProvider>
     </ViewProvider>
   );
 }

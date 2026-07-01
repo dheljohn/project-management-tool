@@ -72,7 +72,13 @@ function formatAction(log: ChangeLog): {
         target: taskRef,
         detail: log.newValue ?? undefined,
       };
-
+    case "priority":
+      return {
+        actor,
+        action: "changed priority to",
+        target: taskRef,
+        detail: `${formatStatus(log.oldValue)} → ${formatStatus(log.newValue)}`,
+      };
     default:
       return {
         actor,

@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { taskSchema, TaskFormValues } from "../schemas/task.schema";
+import { taskSchema, TaskFormValues, PRIORITIES } from "../schemas/task.schema";
 import { useTaskMutation } from "../hooks/useTaskMutation";
 import { Task, TaskStatus } from "../../../types/types";
 import { Button } from "../../../components/ui/Button";
+
+import { PRIORITY_CONFIG } from "../../../../lib/priority";
+import { Priority } from "../../../types/types";
 
 interface TaskModalProps {
   mode: "create" | "update";
@@ -39,6 +42,7 @@ export default function TaskModal({
       title: task?.title ?? "",
       description: task?.description ?? "",
       remark: "",
+      priority: task?.priority ?? "Medium",
     },
   });
 
@@ -49,8 +53,8 @@ export default function TaskModal({
     onSuccess: onClose,
   });
 
-  const onSubmit = (values: TaskFormValues) => mutate({ ...values, status });
-
+  const onSubmit = (values: TaskFormValues) =>
+    mutate({ ...values, status, priority: values.priority as Priority });
   const inputClass =
     "bg-muted border border-border rounded-md px-4 py-2 w-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors";
 
@@ -93,6 +97,18 @@ export default function TaskModal({
           rows={3}
           {...register("description")}
         />
+
+        <label className="text-muted-foreground text-xs block mb-1">
+          Priority
+        </label>
+
+        <select className={`${inputClass} mb-4`} {...register("priority")}>
+          {PRIORITIES.map((p) => (
+            <option key={p} value={p}>
+              {PRIORITY_CONFIG[p as Priority].label}
+            </option>
+          ))}
+        </select>
 
         {/* {mode === "update" && (
           <>

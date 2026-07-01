@@ -7,6 +7,17 @@ export interface Project {
   updatedAt: string;
 }
 
+export interface Task {
+  id: number;
+  title: string;
+  description?: string | null;
+  status: TaskStatus;
+  priority: Priority;
+  projectId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+export type Priority = "Critical" | "High" | "Medium" | "Low";
 export type TaskStatus = "Todo" | "In_Progress" | "Done";
 
 export interface Task {

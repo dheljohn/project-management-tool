@@ -55,7 +55,7 @@ export default function LandingPage() {
 
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
               Proyekto is a Kanban-style project management tool built for teams
-              that want clarity — drag tasks, track progress, and ship faster.
+              that want clarity, drag tasks, track progress, and ship faster.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">

@@ -1,5 +1,5 @@
 import api from "../../../../lib/api";
-import { Task, TaskStatus } from "../../../types/types";
+import { Priority, Task, TaskStatus } from "../../../types/types";
 
 export const getTasksByProject = async (projectId: number): Promise<Task[]> => {
   const { data } = await api.get("/test03/get_all_tasks_by_project", {
@@ -23,6 +23,7 @@ export interface CreateTaskPayload {
   title: string;
   description: string;
   status: TaskStatus;
+  priority: Priority;
   remark: string;
 }
 
@@ -32,6 +33,7 @@ export interface UpdateTaskPayload {
   title: string;
   description: string;
   status: string;
+  priority: Priority;
   remark: string;
 }
 

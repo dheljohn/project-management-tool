@@ -7,6 +7,7 @@ interface DroppableState {
 
 interface DroppableProps {
   id: string;
+  disabled?: boolean;
   children: React.ReactNode | ((state: DroppableState) => React.ReactNode);
 }
 

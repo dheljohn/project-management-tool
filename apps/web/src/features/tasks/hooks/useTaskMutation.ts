@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createTask, updateTask } from "../api/tasks.api";
 import { projectKeys } from "../../../../lib/queryKeys";
-import { Task, TaskStatus } from "../../../types/types";
+import { Priority, Task, TaskStatus } from "../../../types/types";
 
 function toApiStatus(status: TaskStatus): string {
   return status === "In_Progress" ? "In Progress" : status;
@@ -28,6 +28,7 @@ export const useTaskMutation = ({
       title: string;
       description: string;
       status: TaskStatus;
+      priority: Priority;
       remark: string;
     }) => {
       console.log("payload values:", values);
@@ -38,6 +39,7 @@ export const useTaskMutation = ({
           title: values.title,
           description: values.description,
           status: values.status,
+          priority: values.priority,
           remark: values.remark || "Created via UI modal",
         });
       } else {
@@ -47,6 +49,7 @@ export const useTaskMutation = ({
           title: values.title,
           description: values.description,
           status: toApiStatus(values.status),
+          priority: values.priority,
           remark: values.remark || "Updated via UI modal",
         });
       }
