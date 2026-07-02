@@ -21,8 +21,8 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
-  @Post('create_member')
   @HttpCode(HttpStatus.CREATED)
+  @Post('create_member')
   create(@Body() createDto: CreateMemberDto) {
     return this.memberService.create(createDto);
   }
@@ -34,7 +34,6 @@ export class MemberController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('get_member')
   findOne(@Query('id') id: string) {
     return this.memberService.findOne(Number(id));
   }
@@ -47,7 +46,6 @@ export class MemberController {
   }
 
   @Delete('test_cleanup')
-  @HttpCode(HttpStatus.OK)
   testCleanup(@Body() body: { user_id: string; secret: string }) {
     if (process.env.NODE_ENV === 'production') {
       throw new NotFoundException();

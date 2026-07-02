@@ -19,9 +19,24 @@ export default function ProtectedRoute({ children }: RouteGuardProps) {
         console.log("Authenticated");
         setIsAuthenticated(true);
       })
-      .catch(() => {
-        console.log("Not authenticated");
-        (setIsAuthenticated(false), router.push("/login"));
+      .catch((error) => {
+        if (error.response?.status === 401) {
+          console.log("Not authenticated");
+          setIsAuthenticated(false);
+          router.push("/login");
+          return;
+        }
+
+        if (error.response?.status === 429) {
+          console.log(
+            "Too many requests in a short period of time, please try again later.",
+          );
+        }
+
+        console.log(
+          "Auth check inconclusive (rate limited or network issue) — proceeding optimistically.",
+        );
+        setIsAuthenticated(true);
       });
   }, [router]);
 

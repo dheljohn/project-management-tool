@@ -19,36 +19,36 @@ export class ChangelogController {
   constructor(private readonly changelogService: ChangelogService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post('create_changelog')
   @HttpCode(HttpStatus.CREATED)
+  @Post('create_changelog')
   create(@Body() createDto: CreateChangelogDto) {
     return this.changelogService.create(createDto);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('get_all_change_log')
   @HttpCode(HttpStatus.OK)
+  @Get('get_all_change_log')
   findAll() {
     return this.changelogService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('get_change_log')
   @HttpCode(HttpStatus.OK)
+  @Get('get_change_log')
   findOne(@Query('id') id: string) {
     return this.changelogService.findOne(Number(id));
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('update_change_log')
   @HttpCode(HttpStatus.OK)
+  @Patch('update_change_log')
   update(@Body() updateDto: UpdateChangelogDto) {
     return this.changelogService.update(updateDto);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('get_change_log_by_project')
   @HttpCode(HttpStatus.OK)
+  @Get('get_change_log_by_project')
   findByProjectId(@Query('projectId') projectId: string) {
     return this.changelogService.findByProjectId(Number(projectId));
   }

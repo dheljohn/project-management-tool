@@ -54,7 +54,7 @@ export default function Navbar() {
   const initials = username.slice(0, 2).toUpperCase();
 
   return (
-    <header className="h-16 border-b border-border bg-card shrink-0">
+    <header className="h-16 border-b border-border bg-card shrink-0 shadow-sm">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
         {/*  Left: Logo + Breadcrumbs  */}
         <div className="flex items-center gap-3">

@@ -7,27 +7,34 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { Priority, TaskStatus } from 'generated/prisma/enums';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { CacheHelper } from 'src/common/cache/cache.helper';
 
 @Injectable()
 export class TaskService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cacheHelper: CacheHelper,
+  ) {}
+
   async getTaskHistory(taskId: number) {
-    return this.prisma.changeLog.findMany({
-      where: { taskId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        task: true,
-        member: true,
-      },
-    });
+    return this.cacheHelper.getOrSet(`task_history_${taskId}`, () =>
+      this.prisma.changeLog.findMany({
+        where: { taskId },
+        orderBy: { createdAt: 'desc' },
+        include: { task: true, member: true },
+      }),
+    );
   }
+
   async findAllByProject(projsID: number) {
-    const projectTasks = await this.prisma.task.findMany({
-      where: { projectId: projsID },
+    return this.cacheHelper.getOrSet(`tasks_project_${projsID}`, async () => {
+      const projectTasks = await this.prisma.task.findMany({
+        where: { projectId: projsID },
+      });
+      if (!projectTasks)
+        throw new NotFoundException('Task will be displayed here');
+      return projectTasks;
     });
-    if (!projectTasks)
-      throw new NotFoundException('Task will be displayed here');
-    return projectTasks;
   }
 
   async update(updateDto: UpdateTaskDto) {
@@ -103,6 +110,12 @@ export class TaskService {
       ...logs.map((log) => this.prisma.changeLog.create({ data: log })),
     ]);
 
+    await this.cacheHelper.invalidate(
+      'all_tasks',
+      `tasks_project_${updated.projectId}`,
+      `task_history_${taskId}`,
+    );
+
     return updated;
   }
 
@@ -111,10 +124,13 @@ export class TaskService {
     if (!onetask) throw new NotFoundException('Task not found');
     return onetask;
   }
+
   async findAll() {
-    const all = await this.prisma.task.findMany();
-    if (all.length === 0) throw new NotFoundException('No tasks found');
-    return all;
+    return this.cacheHelper.getOrSet('all_tasks', async () => {
+      const all = await this.prisma.task.findMany();
+      if (all.length === 0) throw new NotFoundException('No tasks found');
+      return all;
+    });
   }
 
   async create(dto: CreateTaskDto) {
@@ -152,7 +168,6 @@ export class TaskService {
         throw new BadRequestException('Invalid priority value provided');
     }
 
-    // Save the transaction results into a variable
     const newTask = await this.prisma.$transaction(async (tx) => {
       const task = await tx.task.create({
         data: {
@@ -177,6 +192,11 @@ export class TaskService {
       console.log('TASK PAYLOAD', newLog);
       return task;
     });
+
+    await this.cacheHelper.invalidate(
+      'all_tasks',
+      `tasks_project_${newTask.projectId}`,
+    );
 
     return newTask;
   }

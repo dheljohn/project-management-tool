@@ -11,6 +11,7 @@ import KanbanBoard from "../../../../features/tasks/components/KanbanBoard";
 import ActivityLog from "../../../../components/ui/ActivityLog";
 import BoardToggle from "../../../../components/ui/FloatingButton";
 import { WipProvider } from "../../../../context/WipContext";
+import axios from "axios";
 
 export default function KanbanPage() {
   return (
@@ -26,7 +27,13 @@ function KanbanPageContent() {
   const { id } = useParams();
   const projectId = Number(id);
 
-  const { data: project, isLoading: projectLoading } = useProject(projectId);
+  const {
+    data: project,
+    isLoading: projectLoading,
+    isError: projectError,
+    error: projectErr,
+    refetch: refetchProject,
+  } = useProject(projectId);
   const { data: tasks = [] } = useProjectTasks(projectId);
   const { data: logs = [], isLoading: logsLoading } = useChangeLogs(projectId);
 
@@ -46,22 +53,42 @@ function KanbanPageContent() {
 
   if (projectLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center text-muted-foreground">
-        Loading dashboard...
+      <div className="w-full flex flex-col items-center justify-center gap-3 text-center min-h-[calc(100vh-64px)]">
+        Loading Board...
+      </div>
+    );
+  }
+
+  if (projectError || !project) {
+    const isRateLimited =
+      axios.isAxiosError(projectErr) && projectErr.response?.status === 429;
+    return (
+      <div className="w-full flex flex-col items-center justify-center gap-3 text-center min-h-[calc(100vh-64px)]">
+        <p className="text-destructive font-medium">
+          {isRateLimited
+            ? "Too many requests. Please wait a moment."
+            : "Failed to load project."}
+        </p>
+        <button
+          onClick={() => refetchProject()}
+          className="text-accent text-sm hover:underline"
+        >
+          Try again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className={`h-full flex flex-col ${isSplit ? "p-6" : "p-0"}`}>
+    <div className={`h-full flex flex-col  ${isSplit ? "p-6" : "p-0"}`}>
       <div
-        className={`flex gap-4 flex-1 overflow-hidden transition-all duration-300 mx-auto min-w-[1400px] ${isSplit ? "flex-row" : "flex-col"}`}
+        className={`flex gap-4 flex-1  overflow-hidden transition-all duration-300 mx-auto ${isSplit ? "flex-row" : "flex-col"}`}
       >
         {showKanban && (
           <div
             className={`flex flex-col overflow-hidden border border-border bg-card ${isSplit ? "mb-2.5 rounded-xl flex-1" : "mb-0 rounded-none flex-1"}`}
           >
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-background">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card">
               <svg
                 width="14"
                 height="14"
@@ -80,7 +107,7 @@ function KanbanPageContent() {
             </div>
             <div className="flex-1 overflow-auto p-6 w-full max-w-6xl mx-auto bg-card">
               <KanbanBoard
-                project={project!}
+                project={project}
                 projectId={projectId}
                 tasks={tasks}
               />
@@ -92,7 +119,7 @@ function KanbanPageContent() {
 
         {showActivity && (
           <div
-            className={`flex flex-col overflow-hidden border border-border ${isSplit ? "mb-2.5 rounded-xl w-80 shrink-0" : "mb-0 rounded-none flex-1"}`}
+            className={`flex flex-col overflow-hidden border border-border bg-card ${isSplit ? "mb-2.5 rounded-xl w-80 shrink-0" : "mb-0 rounded-none flex-1"}`}
           >
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
               <svg

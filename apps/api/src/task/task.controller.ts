@@ -14,15 +14,14 @@ import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
-// import type { RequestWithUser } from 'src/common/interface/request-with-user.interface';
 
 @Controller('test03')
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post('create_task')
   @HttpCode(HttpStatus.CREATED)
+  @Post('create_task')
   create(@Body() createDto: CreateTaskDto) {
     return this.taskService.create(createDto);
   }

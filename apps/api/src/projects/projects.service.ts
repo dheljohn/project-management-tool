@@ -1,42 +1,48 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { CacheHelper } from 'src/common/cache/cache.helper';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cacheHelper: CacheHelper,
+  ) {}
 
   async create(userId: number, createDto: CreateProjectDto) {
     if (!createDto.name) throw new NotFoundException('no project name');
-    return this.prisma.project.create({
+    const project = await this.prisma.project.create({
       data: {
         name: createDto.name,
         description: createDto.description,
         ownerId: userId,
       },
     });
+
+    await this.cacheHelper.invalidate(
+      'all_projects',
+      `projects_user_${userId}`,
+    );
+    return project;
   }
+
   async findAll() {
-    const all = await this.prisma.project.findMany();
-    if (all.length === 0) throw new NotFoundException('No projects found');
-    return all;
+    return this.cacheHelper.getOrSet('all_projects', async () => {
+      const all = await this.prisma.project.findMany();
+      if (all.length === 0) throw new NotFoundException('No projects found');
+      return all;
+    });
   }
 
   async findAllByUser(userId: number) {
-    const projects = await this.prisma.project.findMany({
-      where: { ownerId: userId },
-    });
-
-    console.log(
-      `📦 Database project count for User #${userId}:`,
-      projects.length,
+    return this.cacheHelper.getOrSet(`projects_user_${userId}`, () =>
+      this.prisma.project.findMany({ where: { ownerId: userId } }),
     );
-
-    return projects;
   }
+
   async findOne(projectId: number, userId: number) {
-    console.log('projId:', projectId, typeof projectId);
     const proj = await this.prisma.project.findUnique({
       where: { id: projectId, ownerId: userId },
     });
@@ -46,7 +52,7 @@ export class ProjectsService {
 
   async update(userId: number, updateDto: UpdateProjectDto) {
     const { id, ...data } = updateDto;
-    console.log(data);
+
     const project = await this.prisma.project.findUnique({
       where: {
         id,
@@ -58,9 +64,15 @@ export class ProjectsService {
       throw new NotFoundException('Project not found or not yours');
     }
 
-    return this.prisma.project.update({
+    const updated = await this.prisma.project.update({
       where: { id },
       data,
     });
+
+    await this.cacheHelper.invalidate(
+      'all_projects',
+      `projects_user_${userId}`,
+    );
+    return updated;
   }
 }
