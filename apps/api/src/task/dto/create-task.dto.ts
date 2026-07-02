@@ -7,6 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 import { TaskStatusPayload } from '../enums/status.enum';
+import { TaskPriorityPayload } from '../enums/priority.enum';
 
 export class CreateTaskDto {
   @IsNumber()
@@ -26,6 +27,12 @@ export class CreateTaskDto {
   })
   @IsNotEmpty()
   status!: TaskStatusPayload;
+
+  @IsEnum(TaskPriorityPayload, {
+    message: 'priority must be exactly: Critical, High, Medium, or Low',
+  })
+  @IsNotEmpty()
+  priority!: TaskPriorityPayload;
 
   @IsString()
   @IsOptional()

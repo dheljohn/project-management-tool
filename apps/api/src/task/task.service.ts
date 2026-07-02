@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { TaskStatus } from 'generated/prisma/enums';
+import { Priority, TaskStatus } from 'generated/prisma/enums';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
@@ -53,6 +53,11 @@ export class TaskService {
         oldValue: existing.status,
         newValue: updateDto.status,
       },
+      {
+        field: 'priority',
+        oldValue: existing.priority,
+        newValue: updateDto.priority,
+      },
     ];
 
     const logs = updateDto.user_id
@@ -90,6 +95,9 @@ export class TaskService {
             description: updateDto.description,
           }),
           ...(formattedStatus && { status: formattedStatus }),
+          ...(updateDto.priority && {
+            priority: updateDto.priority as Priority,
+          }),
         },
       }),
       ...logs.map((log) => this.prisma.changeLog.create({ data: log })),
@@ -111,6 +119,7 @@ export class TaskService {
 
   async create(dto: CreateTaskDto) {
     let dbStatus: TaskStatus;
+    let dbPriority: Priority;
 
     switch (dto.status) {
       case 'Todo':
@@ -126,6 +135,23 @@ export class TaskService {
         throw new BadRequestException('Invalid status value provided');
     }
 
+    switch (dto.priority) {
+      case 'Critical':
+        dbPriority = Priority.Critical;
+        break;
+      case 'High':
+        dbPriority = Priority.High;
+        break;
+      case 'Medium':
+        dbPriority = Priority.Medium;
+        break;
+      case 'Low':
+        dbPriority = Priority.Low;
+        break;
+      default:
+        throw new BadRequestException('Invalid priority value provided');
+    }
+
     // Save the transaction results into a variable
     const newTask = await this.prisma.$transaction(async (tx) => {
       const task = await tx.task.create({
@@ -134,6 +160,7 @@ export class TaskService {
           title: dto.title,
           description: dto.description,
           status: dbStatus,
+          priority: dbPriority,
         },
       });
 

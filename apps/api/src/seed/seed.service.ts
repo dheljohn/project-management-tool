@@ -36,7 +36,7 @@ export class SeedService {
       data: {
         title: 'Setup project',
         description: 'Initialize the repository',
-        status: 'Done',
+        status: 'Todo',
         projectId: project1.id,
       },
     });

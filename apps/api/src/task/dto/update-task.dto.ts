@@ -9,6 +9,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { CreateTaskDto } from './create-task.dto';
 import { TaskStatusPayload } from '../enums/status.enum';
 import { Transform } from 'class-transformer';
+import { TaskPriorityPayload } from '../enums/priority.enum';
 export class UpdateTaskDto extends PartialType(CreateTaskDto) {
   @IsNumber()
   @IsNotEmpty()
@@ -29,6 +30,12 @@ export class UpdateTaskDto extends PartialType(CreateTaskDto) {
   })
   @IsOptional()
   status?: TaskStatusPayload;
+
+  @IsEnum(TaskPriorityPayload, {
+    message: 'priority must be exactly: Critical, High, Medium, or Low',
+  })
+  @IsOptional()
+  priority?: TaskPriorityPayload;
 
   @IsString()
   @IsOptional()
