@@ -28,7 +28,7 @@ export function KanbanColumn({
     isInProgress && wipLimit !== null && tasks.length >= wipLimit;
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden bg-background rounded-xl">
+    <div className="flex flex-col flex-1 overflow-hidden bg-surface rounded-xl max-h-[calc(100vh-10rem)]">
       <Droppable id={column.status} disabled={isAtLimit}>
         {({ isDropTarget }) => {
           const isHovering = isDropTarget;
@@ -37,7 +37,7 @@ export function KanbanColumn({
               className={`flex flex-col p-0 overflow-y-auto flex-1 w-full rounded-xl transition-all
     ${
       isHovering && !isAtLimit
-        ? "bg-background border-2 border-accent animate-[blink_1.2s_ease-in-out_infinite]"
+        ? "bg-background border border-accent animate-[blink_1.2s_ease-in-out_infinite]"
         : isAtLimit
           ? "border-2 border-destructive/30"
           : isHovering && isAtLimit
@@ -45,7 +45,7 @@ export function KanbanColumn({
             : "border border-border"
     }`}
             >
-              <header className="sticky top-0 z-10 bg-background px-6 py-2 border-b border-border items-center justify-center align-center">
+              <header className="sticky top-0 z-10 bg-card-muted px-6 py-2 border-b border-border items-center justify-center align-center">
                 <div
                   className={`flex items-center justify-between ${column.color}`}
                 >
@@ -64,7 +64,7 @@ export function KanbanColumn({
                 </div>
               </header>
               {isAtLimit && (
-                <div className="flex items-center justify-center text-xs  text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 mx-3 mt-3">
+                <div className="flex items-center justify-center text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 mx-3 mt-3">
                   <p className="items-center align-middle">
                     {" "}
                     WIP limit reached.

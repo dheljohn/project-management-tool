@@ -16,11 +16,13 @@ import { MemberService } from './member.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { SkipCsrf } from 'src/auth/decorators/skip-csrf.decorator';
 
 @Controller('test01')
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
+  @SkipCsrf()
   @HttpCode(HttpStatus.CREATED)
   @Post('create_member')
   create(@Body() createDto: CreateMemberDto) {

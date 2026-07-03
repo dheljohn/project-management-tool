@@ -1,11 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
-import { getChangeLogByProject } from "../api/logs.api";
-import { projectKeys } from "../../../../lib/queryKeys";
+// useChangeLogs.ts
+import { useInfiniteQuery } from "@tanstack/react-query";
+import api from "../../../../lib/api";
 
-export const useChangeLogs = (projectId: number) => {
-  return useQuery({
-    queryKey: projectKeys.logs(projectId),
-    queryFn: () => getChangeLogByProject(projectId),
+export function useChangeLogs(projectId: number, field?: string) {
+  return useInfiniteQuery({
+    queryKey: ["changelogs", projectId, field],
+    queryFn: async ({ pageParam }) => {
+      const { data } = await api.get("/test04/get_change_log_by_project", {
+        params: { projectId, cursor: pageParam, limit: 10, field },
+      });
+      return data;
+    },
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: !!projectId,
   });
-};
+}

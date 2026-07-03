@@ -55,20 +55,26 @@ export default function TaskModal({
 
   const onSubmit = (values: TaskFormValues) =>
     mutate({ ...values, status, priority: values.priority as Priority });
+
   const inputClass =
-    "bg-muted border border-border rounded-md px-4 py-2 w-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors";
+    "bg-muted border border-border rounded-md px-3.5 py-2.5 sm:px-4 sm:py-2 w-full text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors";
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-black/60 sm:p-4"
       onClick={onClose}
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-card border border-border rounded-xl w-full max-w-md p-6 shadow-lift"
+        className="bg-card border border-border w-full sm:max-w-md
+          rounded-t-2xl sm:rounded-xl
+          p-5 sm:p-6
+          max-h-[90vh] sm:max-h-[85vh]
+          overflow-y-auto
+          shadow-lift"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-foreground text-lg font-semibold mb-5">
+        <h2 className="text-foreground text-base sm:text-lg font-semibold mb-4 sm:mb-5">
           {mode === "create" ? "Create Task" : "Edit Task"}
         </h2>
 
@@ -136,11 +142,19 @@ export default function TaskModal({
           </p>
         )}
 
-        <div className="flex justify-end gap-2">
-          <Button variant="cancel" type="button" onClick={onClose}>
+        <div
+          className="flex flex-col-reverse sm:flex-row justify-end gap-2
+          sticky bottom-0 bg-card pt-2 sm:pt-0 sm:static"
+        >
+          <Button
+            variant="cancel"
+            type="button"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+          >
             Cancel
           </Button>
-          <Button variant="save" type="submit">
+          <Button variant="save" type="submit" className="w-full sm:w-auto">
             {isPending
               ? mode === "update"
                 ? "Updating..."

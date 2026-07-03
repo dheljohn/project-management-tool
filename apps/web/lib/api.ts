@@ -1,5 +1,6 @@
 import axios from "axios";
-import { toast } from "sonner"; // or whatever toast lib you pick
+import { toast } from "sonner";
+import { getCsrfToken } from "./csrf";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
@@ -9,11 +10,14 @@ const api = axios.create({
   },
 });
 
-// Attach JWT token to every request automatically
+// Attach CSRF token to state-changing requests (cookie auth handles the rest)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("auth_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const method = config.method?.toUpperCase();
+  if (method && !["GET", "HEAD", "OPTIONS"].includes(method)) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      config.headers["x-csrf-token"] = csrfToken;
+    }
   }
   return config;
 });
@@ -37,6 +41,10 @@ api.interceptors.response.use(
         error.response?.data?.message ??
         "Too many requests. Please wait a moment and try again.";
       toast.error(message);
+    }
+
+    if (status === 403 && error.response?.data?.message?.includes("CSRF")) {
+      toast.error("Session expired, please refresh and try again.");
     }
 
     return Promise.reject(error);

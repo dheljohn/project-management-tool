@@ -56,6 +56,7 @@ RUN addgroup --system --gid 1001 nodejs \
 # Copy everything as root first, so we can chmod before dropping privileges
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 
 # Prisma schema + CLI need to be present for `prisma migrate deploy` at runtime

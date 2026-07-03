@@ -21,6 +21,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { CacheHelperModule } from './common/cache/cache.module';
 
+import { CsrfGuard } from './common/guards/csrf.guard';
+
 @Module({
   imports: [
     CacheModule.registerAsync({
@@ -49,6 +51,7 @@ import { CacheHelperModule } from './common/cache/cache.module';
     PrismaService,
     MemberService,
     { provide: APP_GUARD, useClass: CustomThrottlerGuard },
+    { provide: APP_GUARD, useClass: CsrfGuard },
   ],
 })
 export class AppModule {}

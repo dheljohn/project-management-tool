@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useBreadcrumbs } from "../../context/BreadcrumbContext";
 import Image from "next/image";
 import api from "../../../lib/api";
+import { ChevronLeft } from "lucide-react";
 
 export default function Navbar() {
   const router = useRouter();
@@ -54,20 +55,17 @@ export default function Navbar() {
   const initials = username.slice(0, 2).toUpperCase();
 
   return (
-    <header className="h-16 border-b border-border bg-card shrink-0 shadow-sm">
+    <header className="h-16 border-b border-border bg-background shrink-0 shadow-sm z-20">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
         {/*  Left: Logo + Breadcrumbs  */}
         <div className="flex items-center gap-3">
           <Link
             href="/projects"
-            className="flex items-center gap-2 select-none"
+            className="flex items-center gap-0 select-none"
           >
+            <ChevronLeft className="block md:hidden" />
             {/* Icon mark */}
-            <div className="w-10 h-10 rounded-lg  flex items-center justify-center shrink-0">
-              {/* <span className="text-accent-foreground text-xs font-black">
-                P
-              </span> */}
-
+            <div className="hidden md:flex w-10 h-10 rounded-lg items-center justify-center shrink-0">
               <Image
                 src="/proyekto.png"
                 alt="Logo"
@@ -77,8 +75,8 @@ export default function Navbar() {
               />
             </div>
             {/* Wordmark */}
-            <span className="text-foreground font-bold text-base tracking-tight">
-              pro<span className="text-accent">yekto</span>
+            <span className="hidden md:block text-foreground font-bold text-base tracking-tight">
+              ro<span className="text-accent">yekto</span>
             </span>
           </Link>
 
@@ -108,19 +106,6 @@ export default function Navbar() {
 
         {/*  Right: Avatar + Settings  */}
         <div className="flex items-center gap-3">
-          {/* Username */}
-          <span className="hidden md:block text-sm text-muted-foreground">
-            {username.toUpperCase()}
-          </span>
-
-          {/* Avatar placeholder */}
-          <div
-            className="w-8 h-8 rounded-full bg-accent/20 border border-accent/30
-                          flex items-center justify-center shrink-0"
-          >
-            <span className="text-accent text-xs font-bold">{initials}</span>
-          </div>
-
           {/* Settings trigger */}
           <div className="relative" ref={settingsRef}>
             <button
@@ -153,7 +138,15 @@ export default function Navbar() {
                               rounded-xl shadow-lift z-50 overflow-hidden"
               >
                 {/* User info header */}
-                <div className="px-4 py-3 border-b border-border">
+                <div className="flex flex-col px-4 py-3 border-b border-border items-center">
+                  <div
+                    className="flex  w-8 h-8 rounded-full bg-accent/20 border border-accent/30
+                            items-center justify-center shrink-0"
+                  >
+                    <span className="text-accent text-xs font-bold sm:text-sm">
+                      {initials}
+                    </span>
+                  </div>
                   <p className="text-xs text-muted-foreground">Signed in as</p>
                   <p className="text-sm font-medium text-foreground truncate">
                     {username.toUpperCase()}
@@ -229,6 +222,17 @@ export default function Navbar() {
               </div>
             )}
           </div>
+          {/* Username */}
+          {/* Avatar placeholder */}
+          <div
+            className="hidden sm:flex w-8 h-8 rounded-full bg-accent/20 border border-accent/30
+                            items-center justify-center shrink-0"
+          >
+            <span className="text-accent text-xs font-bold">{initials}</span>
+          </div>
+          {/* <span className="hidden md:block text-sm text-muted-foreground">
+            {username.toUpperCase()}
+          </span> */}
         </div>
       </div>
     </header>

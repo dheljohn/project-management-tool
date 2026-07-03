@@ -102,15 +102,18 @@ export default function ProjectsPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/*  Workspace Header  */}
-      <div className="px-8 pt-8 pb-6 border-b border-border shrink-0">
+      <div className="px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8 pb-4 sm:pb-6 border-b border-border shrink-0">
         <div className="max-w-6xl mx-auto">
+          {/*  Header  */}
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium text-accent uppercase tracking-widest mb-1">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-medium text-accent uppercase tracking-widest mb-1">
                 Workspace
               </p>
-              <h1 className="text-3xl font-bold text-foreground">Projects</h1>
-              <p className="text-muted-foreground text-sm mt-1.5">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+                Projects
+              </h1>
+              <p className="text-muted-foreground text-xs sm:text-sm mt-1.5">
                 {list.length === 0
                   ? "No projects yet. Get started by creating your first one!"
                   : `${list.length} project${list.length !== 1 ? "s" : ""} in your workspace`}
@@ -119,78 +122,78 @@ export default function ProjectsPage() {
           </div>
 
           {list.length > 0 && (
-            <div className="flex items-center gap-6 mt-5">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-foreground">
-                  {list.length}
-                </span>
-                <span className="text-xs text-muted-foreground leading-tight">
-                  Total
-                  <br />
-                  Projects
-                </span>
-              </div>
-              <div className="w-px h-8 bg-border" />
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-foreground">
-                  {
-                    list.filter((p) => {
-                      const d = new Date(p.updatedAt);
-                      const now = new Date();
-                      return (
-                        now.getTime() - d.getTime() < 7 * 24 * 60 * 60 * 1000
-                      );
-                    }).length
-                  }
-                </span>
-                <span className="text-xs text-muted-foreground leading-tight">
-                  Active this
-                  <br />
-                  week
-                </span>
-              </div>
-              {recentProject && (
-                <>
-                  <div className="w-px h-8 bg-border" />
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:gap-6 mt-4 sm:mt-5 justify-between">
+              {/*  Stats  */}
+              <div className="flex  flex-wrap items-center gap-2 flex-1 min-w-0">
+                <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      Last updated
+                    <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+                      {list.length}
                     </span>
-                    <span className="text-xs font-medium text-foreground bg-muted px-2 py-1 rounded-md">
-                      {recentProject.name}
+                    <span className="text-[10px] sm:text-[11px] lg:text-xs text-muted-foreground leading-tight">
+                      Total
+                      <br />
+                      Projects
                     </span>
                   </div>
-                </>
-              )}
 
-              <button
-                onClick={openCreateModal}
-                className="shrink-0 flex items-center gap-2 bg-accent hover:opacity-90 text-accent-foreground text-sm font-medium px-4 py-2.5 rounded-lg transition-opacity my-auto ml-auto"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                New Project
-              </button>
+                  <div className="w-px h-7 sm:h-8 bg-border" />
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+                      {
+                        list.filter((p) => {
+                          const d = new Date(p.updatedAt);
+                          const now = new Date();
+                          return (
+                            now.getTime() - d.getTime() <
+                            7 * 24 * 60 * 60 * 1000
+                          );
+                        }).length
+                      }
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] lg:text-xs text-muted-foreground leading-tight">
+                      Active this
+                      <br />
+                      week
+                    </span>
+                  </div>
+                </div>
+
+                {recentProject && (
+                  <>
+                    <div className="w-px h-7 sm:h-8 bg-border hidden md:block" />
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 basis-full md:basis-auto md:w-auto order-3 md:order-0">
+                      <span className="text-[10px] sm:text-[11px] lg:text-xs text-muted-foreground whitespace-nowrap">
+                        Last updated
+                      </span>
+                      <span className="text-[10px] sm:text-[11px] lg:text-xs font-medium text-foreground bg-muted px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md truncate max-w-[2000px] md:max-w-75 lg:max-w-none">
+                        {recentProject.name}
+                      </span>
+                      {/* <Button variant="pill"> UI </Button> */}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <Button variant="add" onClick={openCreateModal}>
+                <span className="sm:hidden">New</span>
+
+                {/* Desktop (sm+): Shows "New Project" */}
+                <span className="hidden sm:inline">New Project</span>
+              </Button>
             </div>
           )}
         </div>
       </div>
 
       {/*  Content Area  */}
-      <div className="flex-1 overflow-y-auto px-8 py-6">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 sm:mb-6">
             {list.length > 0 && (
               <>
-                <div className="relative max-w-sm my-auto">
+                <div className="relative sm:max-w-sm sm:my-auto">
                   <svg
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                     width="14"
@@ -211,13 +214,12 @@ export default function ProjectsPage() {
                     className="w-full bg-muted border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
                   />
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 overflow-x-auto sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 pb-1 sm:pb-0 justify-end">
                   <Button
                     variant="cancel"
                     onClick={() =>
                       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
                     }
-                    // className="ml-2 px-3 py-2 rounded-full border border-border bg-muted hover:bg-muted/70 flex items-center gap-2 text-sm"
                   >
                     {sortOrder === "asc" ? (
                       <>
@@ -235,10 +237,10 @@ export default function ProjectsPage() {
                     { label: "Name", value: "name" },
                   ].map((item) => (
                     <Button
-                      variant="save"
+                      variant="pill"
                       key={item.value}
                       onClick={() => setSortBy(item.value as typeof sortBy)}
-                      className={`px-3 py-2 rounded-full text-sm transition-colors border
+                      className={`shrink-0 px-3 py-2 rounded-full text-xs sm:text-sm transition-colors border
                         ${
                           sortBy === item.value
                             ? "bg-accent text-accent-foreground border-accent"

@@ -2,12 +2,11 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-type ActiveView = "kanban" | "activity" | "both";
+type ActiveView = "kanban" | "activity";
 
 interface ViewContextType {
   activeView: ActiveView;
   setActiveView: (view: ActiveView) => void;
-  isSplit: boolean;
 }
 
 const ViewContext = createContext<ViewContextType | undefined>(undefined);
@@ -30,10 +29,8 @@ export function ViewProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("kanban_active_view", newView);
   };
 
-  const isSplit = activeView === "both";
-
   return (
-    <ViewContext.Provider value={{ activeView, setActiveView, isSplit }}>
+    <ViewContext.Provider value={{ activeView, setActiveView }}>
       {children}
     </ViewContext.Provider>
   );

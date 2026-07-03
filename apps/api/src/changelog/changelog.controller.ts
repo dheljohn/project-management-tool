@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -47,9 +48,18 @@ export class ChangelogController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
   @Get('get_change_log_by_project')
-  findByProjectId(@Query('projectId') projectId: string) {
-    return this.changelogService.findByProjectId(Number(projectId));
+  getChangeLogByProject(
+    @Query('projectId', ParseIntPipe) projectId: number,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+    @Query('field') field?: string,
+  ) {
+    return this.changelogService.findByProjectId(
+      projectId,
+      cursor ? Number(cursor) : undefined,
+      limit ? Number(limit) : 10,
+      field,
+    );
   }
 }

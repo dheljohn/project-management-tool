@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Project } from "../../../types/types";
 import { useProjectTasks } from "../hooks/useProjectTasks";
 import { Button } from "../../../components/ui/Button";
+import { TruncatedText } from "../../../components/ui/TruncatedText";
 
 interface ProjectCardProps {
   project: Project;
@@ -28,16 +29,29 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
       ? Math.round((counts.done / counts.total) * 100)
       : 0;
   const isComplete = (counts?.total ?? 0) > 0 && donePercent === 100;
+  const isEmpty = counts !== null && counts.total === 0;
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-accent transition-all duration-200 group hover:shadow-lift flex flex-col relative">
+      {/* Status accent bar */}
+      <div
+        className={`h-1 w-full transition-colors ${
+          isComplete
+            ? "bg-status-done"
+            : isEmpty
+              ? "bg-border"
+              : "bg-status-progress"
+        }`}
+      />
+
       <div
         onClick={() => router.push(`/projects/${project.id}`)}
-        className="cursor-pointer p-5 flex flex-col gap-3 flex-1"
+        className="cursor-pointer p-4 sm:p-5 flex flex-col gap-2.5 sm:gap-3 flex-1"
       >
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-foreground font-semibold text-base leading-snug group-hover:text-accent transition-colors line-clamp-1 flex-1 align-middle">
-            {project.name}
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
+          <h2 className="text-foreground font-semibold text-sm sm:text-base leading-snug group-hover:text-accent transition-colors line-clamp-1 flex-1 min-w-0">
+            <TruncatedText text={project.name} maxLength={25} />
           </h2>
           <Button
             variant="xs"
@@ -45,37 +59,59 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
               e.stopPropagation();
               onEdit(project);
             }}
-            className="shrink-0 text-muted-foreground hover:text-accent text-xs px-2 py-1 hover:border-accent transition-colors"
+            className="shrink-0 text-muted-foreground cursor-pointer hover:text-accent text-[11px] sm:text-xs p-0 hover:border-accent transition-colors"
           >
             Edit
           </Button>
         </div>
 
-        <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2 min-h-[2rem]">
-          {project.description ?? "No description provided."}
+        {/* Description */}
+        <p className="text-muted-foreground text-[11px] sm:text-xs leading-relaxed line-clamp-2 min-h-[1.75rem] sm:min-h-[2rem]">
+          {project.description || "No description yet."}
         </p>
 
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        {/* Task breakdown */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs text-muted-foreground">
           <span>
             <span className="font-mono text-foreground">
               {counts?.total ?? "—"}
             </span>{" "}
             tasks
           </span>
-          <span className="h-3 w-px bg-border" />
-          <span>
-            <span className="font-mono text-foreground">
-              {counts?.inProgress ?? "—"}
-            </span>{" "}
-            in progress
-          </span>
+          {counts !== null && counts.total > 0 && (
+            <>
+              <span className="h-3 w-px bg-border hidden xs:inline-block" />
+              <span className="flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-status-progress shrink-0" />
+                <span className="font-mono text-foreground">
+                  {counts.inProgress}
+                </span>{" "}
+                in progress
+              </span>
+              {counts.todo > 0 && (
+                <>
+                  <span className="h-3 w-px bg-border hidden xs:inline-block" />
+                  <span className="flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-status-todo shrink-0" />
+                    <span className="font-mono text-foreground">
+                      {counts.todo}
+                    </span>{" "}
+                    todo
+                  </span>
+                </>
+              )}
+            </>
+          )}
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        {/* Progress */}
+        <div className="flex flex-col gap-1.5 mt-auto pt-1">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Progress</span>
+            <span className="text-[11px] sm:text-xs text-muted-foreground">
+              Progress
+            </span>
             <span
-              className={`text-xs font-semibold tabular-nums transition-colors ${
+              className={`text-[11px] sm:text-xs font-semibold tabular-nums transition-colors ${
                 isComplete ? "text-status-done" : "text-foreground"
               }`}
             >
@@ -86,6 +122,8 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
           <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden flex gap-0.5">
             {counts === null ? (
               <div className="h-full w-1/3 rounded-full bg-border animate-pulse" />
+            ) : counts.total === 0 ? (
+              <div className="h-full w-full rounded-full bg-border" />
             ) : (
               <>
                 {counts.done > 0 && (
@@ -114,8 +152,9 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
         </div>
       </div>
 
-      <div className="px-5 py-3 border-t border-border flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">
+      {/* Footer */}
+      <div className="px-4 sm:px-5 py-2.5 sm:py-3 border-t border-border flex items-center justify-between gap-2">
+        <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
           Updated{" "}
           {new Date(project.updatedAt).toLocaleDateString("en-PH", {
             month: "short",
@@ -125,7 +164,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
         </span>
 
         {isComplete && (
-          <span className="text-xs font-medium text-status-done flex items-center gap-1">
+          <span className="text-[10px] sm:text-xs font-medium text-status-done flex items-center gap-1 shrink-0">
             <svg
               width="11"
               height="11"

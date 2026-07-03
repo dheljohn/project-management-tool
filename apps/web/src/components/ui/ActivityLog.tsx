@@ -92,7 +92,7 @@ function formatAction(log: ChangeLog): {
 export default function ActivityLog({ logs, loading }: ActivityLogProps) {
   if (loading) {
     return (
-      <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto">
+      <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto ">
         {[...Array(3)].map((_, i) => (
           <div key={i} className="flex gap-4 py-2">
             <div className="w-8 h-8 rounded-full bg-muted animate-pulse shrink-0 mt-1" />
@@ -146,14 +146,14 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
                       ${
                         isCreation
                           ? "border-status-done/40 bg-status-done/10 text-status-done"
-                          : "border-border bg-card text-muted-foreground"
+                          : "border-border bg-background text-muted-foreground"
                       }`}
             >
               {getInitials(actor)}
             </span>
 
             {/*  Entry card  */}
-            <div className="flex-1 rounded-xl border border-border bg-background p-4 min-w-0">
+            <div className="flex-1 rounded-xl border border-border bg-card p-4 min-w-0">
               {/* Top row: message + timestamp */}
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="text-sm leading-snug">

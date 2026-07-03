@@ -10,6 +10,7 @@ import { Button } from "../../../components/ui/Button";
 import { useTaskStatusMutation } from "../hooks/useTaskStatusMutation";
 import TaskModal from "./TaskModal";
 import { celebrateProject } from "../../../../lib/confetti";
+import ViewToggle from "../../../components/ui/ViewToggle";
 
 interface Project {
   id: number;
@@ -18,13 +19,12 @@ interface Project {
 }
 
 interface KanbanBoardProps {
-  project: Project;
   projectId: number;
   tasks: Task[];
 }
 
 const COLUMNS = [
-  { label: "Todo", status: "Todo", color: "border-status-todo" },
+  { label: "To do", status: "Todo", color: "border-status-todo" },
   {
     label: "In Progress",
     status: "In_Progress",
@@ -33,16 +33,11 @@ const COLUMNS = [
   { label: "Done", status: "Done", color: "border-status-done" },
 ] satisfies { label: string; status: TaskStatus; color: string }[];
 
-export default function KanbanBoard({
-  project,
-  projectId,
-  tasks,
-}: KanbanBoardProps) {
+export default function KanbanBoard({ projectId, tasks }: KanbanBoardProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "update">("create");
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [completedTaskId, setCompletedTaskId] = useState<number | null>(null);
-  const { isSplit } = useView();
   const { wipLimit } = useWip();
   const isFiringRef = useRef(false);
 
@@ -64,15 +59,15 @@ export default function KanbanBoard({
     return tasks.filter((t) => t.status === status);
   }
 
-  const total = tasks.length;
-  const doneCount = getTasksByStatus("Done").length;
-  const donePercent = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+  // const total = tasks.length;
+  // const doneCount = getTasksByStatus("Done").length;
+  // const donePercent = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
-  function openCreateModal() {
-    setSelectedTask(undefined);
-    setModalMode("create");
-    setModalOpen(true);
-  }
+  // function openCreateModal() {
+  //   setSelectedTask(undefined);
+  //   setModalMode("create");
+  //   setModalOpen(true);
+  // }
 
   function openUpdateModal(task: Task) {
     setSelectedTask(task);
@@ -128,41 +123,8 @@ export default function KanbanBoard({
       }}
     >
       <div className="h-full flex flex-col gap-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-foreground truncate">
-                {project.name}
-              </h1>
-              {donePercent === 100 && total > 0 && (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-status-done bg-status-done/10 px-2 py-0.5 rounded-full">
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                  Complete
-                </span>
-              )}
-            </div>
-            {project.description && (
-              <p className="text-xs text-muted-foreground line-clamp-1">
-                {project.description}
-              </p>
-            )}
-          </div>
-          <Button onClick={openCreateModal} variant="add">
-            Add Task
-          </Button>
-        </div>
-
         <div
-          className={`grid grid-cols-3 gap-4 flex-1 overflow-hidden ${isSplit ? "mb-10" : "mb-18"}`}
+          className={`grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 overflow-hidden `}
         >
           {COLUMNS.map((column) => (
             <KanbanColumn

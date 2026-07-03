@@ -2,6 +2,7 @@
 
 @theme {
   /* Colors */
+  --color-card-background: var(--card-background);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -44,10 +45,14 @@
   --radius: 0.75rem;
 
   --background: oklch(0.985 0.008 95);
+
+  /* --card-background: #fcfaf4; */
+  /* --card-background: oklch(0.965 0.012 90); */
   --foreground: oklch(0.18 0.02 60);
   --surface: oklch(0.965 0.012 90);
-  --card: oklch(1 0 0);
   /* --card: oklch(1 0 0); */
+  /* --card: #f9f6ef; */
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.02 60);
 
   --border: oklch(0.9 0.012 80);
@@ -55,6 +60,8 @@
   --ring: oklch(0.7 0.18 45);
   --muted: oklch(0.94 0.015 90);
   --muted-foreground: oklch(0.5 0.02 60);
+  --newtest: #fcfaf4;
+  --test: #f9f6ef;
 
   --primary: oklch(0.22 0.03 50);
   --primary-foreground: oklch(0.985 0.008 95);

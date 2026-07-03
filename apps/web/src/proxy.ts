@@ -37,10 +37,9 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname === "/") {
-    if (isTokenValid) {
-      return NextResponse.redirect(new URL("/projects", request.url));
-    }
-    return NextResponse.redirect(new URL("/landing", request.url));
+    return NextResponse.redirect(
+      new URL(isTokenValid ? "/projects" : "/landing", request.url),
+    );
   }
 
   if (isPublicPage && isTokenValid) {
@@ -51,7 +50,28 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  // Ensure a CSRF token cookie exists before the app renders
+  if (!request.cookies.has("csrf_token")) {
+    try {
+      const csrfRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/testlogin/csrf-token`,
+        { headers: { cookie: request.headers.get("cookie") ?? "" } },
+      );
+      const setCookie = csrfRes.headers.get("set-cookie");
+      if (setCookie) {
+        response.headers.append("set-cookie", setCookie);
+      }
+    } catch (error) {
+      console.warn(
+        "CSRF token fetch failed in proxy:",
+        (error as Error).message,
+      );
+    }
+  }
+
+  return response;
 }
 
 export const config = {

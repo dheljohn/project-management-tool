@@ -44,19 +44,24 @@ export default function ProjectModal({
   const onSubmit = (values: ProjectFormValues) => mutate(values);
 
   const inputClass =
-    "w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors";
+    "w-full bg-muted border border-border rounded-lg px-3.5 py-2.5 sm:px-4 sm:py-2 text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors";
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 sm:p-4"
       onClick={onClose}
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-card border border-border rounded-xl w-full max-w-md p-6 shadow-lift"
+        className="bg-card border border-border w-full sm:max-w-md
+          rounded-t-2xl sm:rounded-xl
+          p-5 sm:p-6
+          max-h-[90vh] sm:max-h-[85vh]
+          overflow-y-auto
+          shadow-lift"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-foreground text-lg font-semibold mb-5">
+        <h2 className="text-foreground text-base sm:text-lg font-semibold mb-4 sm:mb-5">
           {mode === "create" ? "Create Project" : "Edit Project"}
         </h2>
 
@@ -96,11 +101,19 @@ export default function ProjectModal({
           </p>
         )}
 
-        <div className="flex justify-end gap-3">
-          <Button onClick={onClose} variant="cancel" type="button">
+        <div
+          className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3
+          sticky bottom-0 bg-card pt-2 sm:pt-0 sm:static"
+        >
+          <Button
+            onClick={onClose}
+            variant="cancel"
+            type="button"
+            className="w-full sm:w-auto"
+          >
             Cancel
           </Button>
-          <Button type="submit" variant="save">
+          <Button type="submit" variant="save" className="w-full sm:w-auto">
             {isPending
               ? mode === "create"
                 ? "Creating..."

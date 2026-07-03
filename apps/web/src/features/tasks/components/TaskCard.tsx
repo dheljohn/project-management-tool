@@ -80,8 +80,9 @@ export function TaskCard({ task, onClick, isJustCompleted }: TaskCardProps) {
   return (
     <Draggable id={String(task.id)}>
       <div
-        className={`bg-card border ${config.border} border-l-2 rounded-lg p-4  transition-colors cursor-pointer group w-full text-left 
-          ${isJustCompleted ? "animate-task-complete opacity-50 cursor-default pointer-events-none border-2 border-destructive/40 rounded-xl " : "hover:border-accent "}`}
+        className={`
+          bg-card border  border-l-2 rounded-lg p-4  transition-colors cursor-grab group w-full text-left 
+          ${isJustCompleted ? "animate-task-complete opacity-50 cursor-default pointer-events-none border-2 border-destructive/40 rounded-xl " : " "} `}
         onClick={() => onClick(task)}
       >
         {/* <div

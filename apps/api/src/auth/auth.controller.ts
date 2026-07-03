@@ -12,6 +12,8 @@ import { LoginUserDto } from './dto/login-user.dto';
 import type { Response, Request } from 'express';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
+import { SkipCsrf } from './decorators/skip-csrf.decorator';
+import { randomBytes } from 'crypto';
 
 @Controller('testlogin')
 export class AuthController {
@@ -23,6 +25,7 @@ export class AuthController {
     return req.user;
   }
 
+  @SkipCsrf()
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post()
   login(
@@ -32,9 +35,34 @@ export class AuthController {
     return this.authService.login(loginUserDto, res);
   }
 
+  @SkipCsrf()
+  @Get('csrf-token')
+  getCsrfToken(@Res({ passthrough: true }) res: Response) {
+    const csrfToken = randomBytes(32).toString('hex');
+
+    res.cookie('csrf_token', csrfToken, {
+      httpOnly: false,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    return { success: true };
+  }
+
+  @SkipCsrf()
   @Post('/logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('auth_token');
+    res.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+    res.clearCookie('csrf_token', {
+      httpOnly: false,
+      secure: true,
+      sameSite: 'none',
+    });
     return { success: true };
   }
 }
