@@ -112,4 +112,22 @@ export class ProjectsService {
     );
     return updated;
   }
+
+  // Any member can view the member list (needed for task assignment dropdown).
+  async listMembers(userId: number, projectId: number) {
+    const membership = await this.prisma.projectMember.findUnique({
+      where: { projectId_memberId: { projectId, memberId: userId } },
+    });
+    if (!membership) throw new NotFoundException('Project not found');
+
+    return this.prisma.projectMember.findMany({
+      where: { projectId },
+      include: {
+        member: {
+          select: { id: true, user_id: true, username: true, email: true },
+        },
+      },
+      orderBy: { joinedAt: 'asc' },
+    });
+  }
 }

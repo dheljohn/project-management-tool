@@ -226,6 +226,7 @@ function KanbanPageContent() {
 
         {modalOpen && (
           <TaskModal
+            assigneeId={selectedTask?.assigneeId ?? null}
             mode={modalMode}
             task={selectedTask}
             projectId={projectId}

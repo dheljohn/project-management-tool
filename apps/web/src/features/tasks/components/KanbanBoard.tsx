@@ -146,6 +146,7 @@ export default function KanbanBoard({
             task={selectedTask}
             projectId={projectId}
             onClose={() => setModalOpen(false)}
+            assigneeId={null}
           />
         )}
       </div>

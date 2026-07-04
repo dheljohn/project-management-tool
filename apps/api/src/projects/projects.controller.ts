@@ -51,4 +51,13 @@ export class ProjectsController {
   update(@Body() updateDto: UpdateProjectDto, @Req() req: RequestWithUser) {
     return this.projectsService.update(req.user.id, updateDto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('get_project_members')
+  listMembers(
+    @Query('projectId', ParseIntPipe) projectId: number,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.projectsService.listMembers(req.user.id, projectId);
+  }
 }

@@ -32,6 +32,11 @@ export class TaskService {
     return this.cacheHelper.getOrSet(`tasks_project_${projsID}`, async () => {
       const projectTasks = await this.prisma.task.findMany({
         where: { projectId: projsID },
+        include: {
+          assignee: {
+            select: { id: true, user_id: true, username: true },
+          },
+        },
       });
       if (!projectTasks)
         throw new NotFoundException('Task will be displayed here');
@@ -73,6 +78,11 @@ export class TaskService {
         oldValue: existing.priority,
         newValue: updateDto.priority,
       },
+      {
+        field: 'assignee',
+        oldValue: existing.assigneeId,
+        newValue: updateDto.assigneeId,
+      },
     ];
 
     const logs = userId
@@ -104,6 +114,14 @@ export class TaskService {
           ...(updateDto.priority && {
             priority: updateDto.priority as Priority,
           }),
+          ...(updateDto.assigneeId !== undefined && {
+            assigneeId: updateDto.assigneeId,
+          }),
+        },
+        include: {
+          assignee: {
+            select: { id: true, user_id: true, username: true },
+          },
         },
       }),
       ...logs.map((log) => this.prisma.changeLog.create({ data: log })),

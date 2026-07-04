@@ -1,6 +1,7 @@
 // src/tasks/dto/create-task.dto.ts
 import {
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -37,4 +38,8 @@ export class CreateTaskDto {
   @IsString()
   @IsOptional()
   remark?: string;
+
+  @IsOptional()
+  @IsInt()
+  assigneeId?: number | null;
 }

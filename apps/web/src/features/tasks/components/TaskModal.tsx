@@ -10,19 +10,21 @@ import { Button } from "../../../components/ui/Button";
 
 import { PRIORITY_CONFIG } from "../../../../lib/priority";
 import { Priority } from "../../../types/types";
+import { useProjectMembers } from "../hooks/useProjectMembers";
 
 interface TaskModalProps {
   mode: "create" | "update";
   task?: Task;
   projectId: number;
   onClose: () => void;
+  assigneeId: number | null;
 }
 
-const STATUS_OPTIONS: { label: string; value: TaskStatus }[] = [
-  { label: "Todo", value: "Todo" },
-  { label: "In Progress", value: "In_Progress" },
-  { label: "Done", value: "Done" },
-];
+// const STATUS_OPTIONS: { label: string; value: TaskStatus }[] = [
+//   { label: "Todo", value: "Todo" },
+//   { label: "In Progress", value: "In_Progress" },
+//   { label: "Done", value: "Done" },
+// ];
 
 export default function TaskModal({
   mode,
@@ -34,7 +36,9 @@ export default function TaskModal({
 
   const {
     register,
+    setValue,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -43,14 +47,18 @@ export default function TaskModal({
       description: task?.description ?? "",
       remark: "",
       priority: task?.priority ?? "Medium",
+      assigneeId: task?.assigneeId ?? null,
     },
   });
+
+  const { data: members = [] } = useProjectMembers(projectId);
 
   const { mutate, isPending, error } = useTaskMutation({
     mode,
     projectId,
     taskId: task?.id,
     onSuccess: onClose,
+    assigneeId: watch("assigneeId"),
   });
 
   const onSubmit = (values: TaskFormValues) =>
@@ -114,6 +122,35 @@ export default function TaskModal({
               {PRIORITY_CONFIG[p as Priority].label}
             </option>
           ))}
+        </select>
+
+        <label className="text-muted-foreground text-xs block mb-1">
+          Assignee
+        </label>
+
+        <select
+          title="assignee"
+          value={watch("assigneeId") ?? ""}
+          onChange={(e) => {
+            const raw = e.target.value;
+            setValue("assigneeId", raw === "" ? null : Number(raw));
+          }}
+          className={`${inputClass} mb-4`}
+        >
+          <option value="">Unassigned</option>
+          {/* {members.map((m) => (
+            <option key={m.member.id} value={m.member.id}>
+              {m.member.username ?? m.member.user_id}
+            </option>
+          ))} */}
+          {members.map((m) => {
+            console.log("member option:", m.member.id, m.member.username);
+            return (
+              <option key={m.member.id} value={m.member.id}>
+                {m.member.username ?? m.member.user_id}
+              </option>
+            );
+          })}
         </select>
 
         {/* {mode === "update" && (

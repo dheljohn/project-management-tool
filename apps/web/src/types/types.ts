@@ -17,6 +17,12 @@ export interface Task {
   projectId: number;
   createdAt: string;
   updatedAt: string;
+  assigneeId: number | null;
+  assignee: {
+    id: number;
+    user_id: string;
+    username: string | null;
+  } | null;
 }
 export type Priority = "Critical" | "High" | "Medium" | "Low";
 export type TaskStatus = "Todo" | "In_Progress" | "Done";
