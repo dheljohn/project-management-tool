@@ -20,6 +20,7 @@ import { getProjectInitials } from "../../../utils/string";
 import ActivityLogs from "../../../../components/ui/ActivityLogs";
 import { useWip, WipProvider } from "../../../../context/WipContext";
 import { useTaskStatusMutation } from "../../../../features/tasks/hooks/useTaskStatusMutation";
+import { GenerateInviteModal } from "../../../../features/invite/components/GenerateInviteModal";
 export default function KanbanPage() {
   return (
     <ViewProvider>
@@ -55,6 +56,8 @@ function KanbanPageContent() {
 
   const { mutate: updateTaskStatus } = useTaskStatusMutation(projectId);
 
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+
   const isProjectCompleted =
     tasks.length > 0 && tasks.every((task) => task.status === "Done");
   const wasCompleted = useRef(false);
@@ -85,6 +88,11 @@ function KanbanPageContent() {
     setSelectedTask(task);
     setModalMode("update");
     setModalOpen(true);
+  }
+
+  function closeModal() {
+    setSelectedTask(undefined);
+    setModalOpen(false);
   }
 
   useEffect(() => {
@@ -171,6 +179,19 @@ function KanbanPageContent() {
             >
               Add Task
             </Button>
+            <Button
+              onClick={() => setInviteModalOpen(true)}
+              variant="add"
+              className="hidden sm:inline-flex shrink-0 justify-center whitespace-nowrap"
+            >
+              Invite
+            </Button>
+            {inviteModalOpen && (
+              <GenerateInviteModal
+                projectId={project.id}
+                onClose={() => setInviteModalOpen(false)}
+              />
+            )}
           </div>
 
           <div className="mt-4 flex items-center justify-between border-b border-border w-full">

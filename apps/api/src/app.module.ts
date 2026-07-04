@@ -22,6 +22,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { CacheHelperModule } from './common/cache/cache.module';
 
 import { CsrfGuard } from './common/guards/csrf.guard';
+import { InviteModule } from './invite/invite.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { CsrfGuard } from './common/guards/csrf.guard';
     TaskModule,
     ChangelogModule,
     SeedModule,
+    InviteModule,
   ],
   controllers: [AppController, MemberController],
 

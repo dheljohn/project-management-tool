@@ -7,6 +7,7 @@ import { useBreadcrumbs } from "../../../context/BreadcrumbContext";
 import { useProjects } from "../../../features/projects/hooks/useProjects";
 import { Project } from "../../../types/types";
 import { Button } from "../../../components/ui/Button";
+import { JoinProjectForm } from "../../../features/invite/components/JoinProjectForm";
 
 export default function ProjectsPage() {
   const { data: projects, isLoading, isError, refetch } = useProjects();
@@ -113,6 +114,7 @@ export default function ProjectsPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Projects
               </h1>
+              <JoinProjectForm />
               <p className="text-muted-foreground text-xs sm:text-sm mt-1.5">
                 {list.length === 0
                   ? "No projects yet. Get started by creating your first one!"

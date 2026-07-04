@@ -5,3 +5,7 @@ export const projectKeys = {
   tasks: (projectId: number) => ["projects", projectId, "tasks"] as const,
   logs: (projectId: number) => ["projects", projectId, "logs"] as const,
 };
+
+export const inviteKeys = {
+  byProject: (projectId: number) => ["invites", "project", projectId] as const,
+};

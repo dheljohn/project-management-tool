@@ -5,11 +5,15 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class SeedService {
   constructor(private readonly prisma: PrismaService) {}
+
   async seed() {
-    // Wipe existing data in correct order (FK safe)
     const hashedPassword = await bcrypt.hash('password123', 10);
+
+    // Wipe existing data in FK-safe order (children before parents)
     await this.prisma.changeLog.deleteMany();
     await this.prisma.task.deleteMany();
+    await this.prisma.inviteCode.deleteMany();
+    await this.prisma.projectMember.deleteMany();
     await this.prisma.project.deleteMany();
     await this.prisma.member.deleteMany();
 
@@ -28,6 +32,16 @@ export class SeedService {
         name: 'ProjectFlow Demo',
         description: 'Sample project for testing',
         ownerId: member1.id,
+      },
+    });
+
+    // Seed the owner's ProjectMember row — required for membership-based
+    // access checks (findAllByUser, findOne, invite generation, etc.)
+    await this.prisma.projectMember.create({
+      data: {
+        projectId: project1.id,
+        memberId: member1.id,
+        role: 'OWNER',
       },
     });
 
