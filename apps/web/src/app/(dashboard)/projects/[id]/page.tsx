@@ -21,6 +21,7 @@ import ActivityLogs from "../../../../components/ui/ActivityLogs";
 import { useWip, WipProvider } from "../../../../context/WipContext";
 import { useTaskStatusMutation } from "../../../../features/tasks/hooks/useTaskStatusMutation";
 import { GenerateInviteModal } from "../../../../features/invite/components/GenerateInviteModal";
+import { useProjectSocket } from "../../../../features/tasks/hooks/useProjectSocket";
 export default function KanbanPage() {
   return (
     <ViewProvider>
@@ -46,6 +47,7 @@ function KanbanPageContent() {
   const { data: logs = [], isLoading: logsLoading } = useChangeLogs(projectId);
 
   const { setBreadcrumbs } = useBreadcrumbs();
+  useProjectSocket(projectId);
 
   // const showKanban = activeView === "kanban" || activeView === "both";
   // const showActivity = activeView === "activity" || activeView === "both";

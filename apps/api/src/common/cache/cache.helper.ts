@@ -15,10 +15,10 @@ export class CacheHelper {
   ): Promise<T> {
     const cached = await this.cache.get<T>(key);
     if (cached !== undefined && cached !== null) {
-      this.logger.log(`✅ Cache HIT: ${key}`);
+      // this.logger.log(`✅ Cache HIT: ${key}`);
       return cached;
     }
-    this.logger.log(`❌ Cache MISS: ${key}`);
+    // this.logger.log(`❌ Cache MISS: ${key}`);
     const fresh = await fetchFn();
     await this.cache.set(key, fresh, ttl);
     return fresh;

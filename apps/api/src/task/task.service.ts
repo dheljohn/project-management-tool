@@ -8,12 +8,14 @@ import { Priority, TaskStatus } from 'generated/prisma/enums';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CacheHelper } from 'src/common/cache/cache.helper';
+import { ProjectGateway } from 'src/gateway/project.gateway';
 
 @Injectable()
 export class TaskService {
   constructor(
     private prisma: PrismaService,
     private cacheHelper: CacheHelper,
+    private projectGateway: ProjectGateway,
   ) {}
 
   async getTaskHistory(taskId: number) {
@@ -111,11 +113,23 @@ export class TaskService {
       'all_tasks',
       `tasks_project_${updated.projectId}`,
       `task_history_${taskId}`,
-      // `changelog_project_${updated.projectId}_start_all`,
     );
     await this.cacheHelper.invalidatePattern(
       `changelog_project_${updated.projectId}_*`,
     );
+
+    // Broadcast to everyone else viewing this project's board so their
+    // TanStack Query cache updates without waiting for a refetch.
+    this.projectGateway.emitToProject(updated.projectId, 'task:updated', {
+      task: updated,
+      updatedBy: userId,
+    });
+
+    if (logs.length > 0) {
+      this.projectGateway.emitToProject(updated.projectId, 'log:created', {
+        projectId: updated.projectId,
+      });
+    }
 
     return updated;
   }
@@ -180,7 +194,7 @@ export class TaskService {
         },
       });
 
-      const newLog = await tx.changeLog.create({
+      await tx.changeLog.create({
         data: {
           taskId: task.id,
           username: userId,
@@ -190,7 +204,7 @@ export class TaskService {
           remark: dto.remark ?? 'Initial creation log',
         },
       });
-      console.log('TASK PAYLOAD', newLog);
+
       return task;
     });
 
@@ -201,6 +215,15 @@ export class TaskService {
     await this.cacheHelper.invalidatePattern(
       `changelog_project_${newTask.projectId}_*`,
     );
+
+    // Broadcast the new task to everyone else viewing this project's board.
+    this.projectGateway.emitToProject(newTask.projectId, 'task:created', {
+      task: newTask,
+      createdBy: userId,
+    });
+    this.projectGateway.emitToProject(newTask.projectId, 'log:created', {
+      projectId: newTask.projectId,
+    });
 
     return newTask;
   }

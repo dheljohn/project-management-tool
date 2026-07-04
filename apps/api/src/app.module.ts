@@ -23,9 +23,11 @@ import { CacheHelperModule } from './common/cache/cache.module';
 
 import { CsrfGuard } from './common/guards/csrf.guard';
 import { InviteModule } from './invite/invite.module';
+import { ProjectGatewayModule } from './gateway/project-gateway.module';
 
 @Module({
   imports: [
+    ProjectGatewayModule,
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => ({
