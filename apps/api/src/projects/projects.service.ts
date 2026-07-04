@@ -17,6 +17,7 @@ export class ProjectsService {
       data: {
         name: createDto.name,
         description: createDto.description,
+        wipLimit: createDto.wipLimit,
         ownerId: userId,
       },
     });

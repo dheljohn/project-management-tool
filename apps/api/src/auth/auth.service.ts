@@ -5,6 +5,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import * as bcrypt from 'bcrypt';
 import type { Response } from 'express';
 import { randomBytes } from 'crypto';
+import { getAuthCookieOptions } from './cookie-options.util';
 
 @Injectable()
 export class AuthService {
@@ -21,28 +22,40 @@ export class AuthService {
 
     if (!member) throw new UnauthorizedException('Invalid credentials');
 
-    const isMatch = await bcrypt.compare(loginDto.password, member.password);
-    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+    const isMatch = member
+      ? await bcrypt.compare(loginDto.password, member.password)
+      : await bcrypt.compare(
+          loginDto.password,
+          '$2b$10$invalidsaltinvalidsaltinvalidsalt',
+        );
 
-    const payload = { sub: member.id, email: member.email };
+    if (!isMatch || !member)
+      throw new UnauthorizedException('Invalid credentials');
+
+    const payload = {
+      sub: member.id,
+      email: member.email,
+      user_id: member.user_id,
+    };
     const token = await this.jwtService.signAsync(payload);
     const csrfToken = randomBytes(32).toString('hex');
     const isProd = process.env.NODE_ENV === 'production';
 
+    const { secure, sameSite } = getAuthCookieOptions();
+
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      secure,
+      sameSite,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
     res.cookie('csrf_token', csrfToken, {
       httpOnly: false,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      secure,
+      sameSite,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
-
     return { user_id: member.user_id };
   }
 }

@@ -14,14 +14,33 @@ export class MemberService {
   constructor(private prisma: PrismaService) {}
 
   async create(createDto: CreateMemberDto) {
-    const existing = await this.prisma.member.findUnique({
-      where: { email: createDto.email },
+    const normalizedEmail = createDto.email.toLowerCase();
+    const normalizedUserId = createDto.user_id.toLowerCase();
+
+    const existing = await this.prisma.member.findFirst({
+      where: {
+        OR: [{ email: normalizedEmail }, { user_id: normalizedUserId }],
+      },
     });
-    if (existing) throw new ConflictException('Email already in use');
+
+    if (existing) {
+      if (existing.email === normalizedEmail) {
+        throw new ConflictException('Email already in use');
+      }
+      if (existing.user_id === normalizedUserId) {
+        throw new ConflictException('User ID already taken');
+      }
+    }
 
     const hashed = await bcrypt.hash(createDto.password, 10);
+
     return this.prisma.member.create({
-      data: { ...createDto, password: hashed },
+      data: {
+        ...createDto,
+        email: normalizedEmail,
+        user_id: normalizedUserId,
+        password: hashed,
+      },
     });
   }
 

@@ -4,13 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import { DragDropProvider } from "@dnd-kit/react";
 import { Task, TaskStatus } from "../../../types/types";
 import { KanbanColumn } from "./KanbanColumn";
-import { useView } from "../../../context/ViewContext";
-import { useWip } from "../../../context/WipContext";
-import { Button } from "../../../components/ui/Button";
 import { useTaskStatusMutation } from "../hooks/useTaskStatusMutation";
 import TaskModal from "./TaskModal";
 import { celebrateProject } from "../../../../lib/confetti";
-import ViewToggle from "../../../components/ui/ViewToggle";
+// import ViewToggle from "../../../components/ui/ViewToggle";
 
 interface Project {
   id: number;
@@ -21,6 +18,7 @@ interface Project {
 interface KanbanBoardProps {
   projectId: number;
   tasks: Task[];
+  wipLimit: number | null;
 }
 
 const COLUMNS = [
@@ -33,12 +31,15 @@ const COLUMNS = [
   { label: "Done", status: "Done", color: "border-status-done" },
 ] satisfies { label: string; status: TaskStatus; color: string }[];
 
-export default function KanbanBoard({ projectId, tasks }: KanbanBoardProps) {
+export default function KanbanBoard({
+  projectId,
+  tasks,
+  wipLimit,
+}: KanbanBoardProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "update">("create");
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [completedTaskId, setCompletedTaskId] = useState<number | null>(null);
-  const { wipLimit } = useWip();
   const isFiringRef = useRef(false);
 
   const { mutate: updateTaskStatus } = useTaskStatusMutation(projectId);
@@ -118,7 +119,7 @@ export default function KanbanBoard({ projectId, tasks }: KanbanBoardProps) {
         updateTaskStatus({
           task_id: Number(draggedId),
           status: targetStatus === "In_Progress" ? "In Progress" : targetStatus,
-          user_id: localStorage.getItem("user_id"),
+          // user_id: localStorage.getItem("user_id"),
         });
       }}
     >
@@ -133,6 +134,8 @@ export default function KanbanBoard({ projectId, tasks }: KanbanBoardProps) {
               tasks={getTasksByStatus(column.status)}
               onTaskClick={openUpdateModal}
               completedTaskId={completedTaskId}
+              projectId={projectId}
+              wipLimit={wipLimit}
             />
           ))}
         </div>

@@ -3,7 +3,12 @@ import { z } from "zod";
 export const projectSchema = z.object({
   name: z.string().min(2, "Project name is required").max(50),
   description: z.string().optional(),
-  // description: z.string().min(1),
+  wipLimit: z.coerce
+    .number()
+    .min(0, "WIP limit cannot be negative")
+    .max(100, "WIP limit cannot be greater than 100")
+    .optional(),
 });
 
-export type ProjectFormValues = z.input<typeof projectSchema>;
+export type ProjectFormInput = z.input<typeof projectSchema>;
+export type ProjectFormOutput = z.infer<typeof projectSchema>;

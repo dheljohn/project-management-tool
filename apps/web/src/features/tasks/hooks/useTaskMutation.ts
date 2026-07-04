@@ -21,7 +21,6 @@ export const useTaskMutation = ({
   onSuccess,
 }: UseTaskMutationArgs) => {
   const queryClient = useQueryClient();
-  const userId = localStorage.getItem("user_id");
 
   return useMutation({
     mutationFn: (values: {
@@ -31,11 +30,9 @@ export const useTaskMutation = ({
       priority: Priority;
       remark: string;
     }) => {
-      console.log("payload values:", values);
       if (mode === "create") {
         return createTask({
           project_id: projectId,
-          user_id: userId,
           title: values.title,
           description: values.description,
           status: values.status,
@@ -45,7 +42,6 @@ export const useTaskMutation = ({
       } else {
         return updateTask({
           task_id: taskId!,
-          user_id: userId,
           title: values.title,
           description: values.description,
           status: toApiStatus(values.status),

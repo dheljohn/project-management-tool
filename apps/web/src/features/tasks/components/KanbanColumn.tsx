@@ -4,7 +4,6 @@ import React from "react";
 import Droppable from "../../../components/DND/Droppable";
 import { TaskCard } from "./TaskCard";
 import { Column, Task } from "../../../types/types";
-import { useWip } from "../../../context/WipContext";
 import { WipControl } from "../../../components/ui/WipControl";
 import { sortByPriority } from "../../../../lib/priority";
 
@@ -13,6 +12,8 @@ interface KanbanColumnProps {
   tasks: Task[];
   onTaskClick: (task: Task) => void;
   completedTaskId: number | null;
+  projectId: number;
+  wipLimit: number | null;
 }
 
 export function KanbanColumn({
@@ -20,8 +21,9 @@ export function KanbanColumn({
   tasks,
   onTaskClick,
   completedTaskId,
+  projectId,
+  wipLimit,
 }: KanbanColumnProps) {
-  const { wipLimit } = useWip();
   const isInProgress = column.status === "In_Progress";
 
   const isAtLimit =
@@ -50,16 +52,16 @@ export function KanbanColumn({
                   className={`flex items-center justify-between ${column.color}`}
                 >
                   <div className="flex items-center gap-2 ">
-                    {/* <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                      {tasks.length}
-                    </span> */}
-
                     <h2 className="text-lg font-semibold text-foreground">
                       {column.label}
                     </h2>
                   </div>
                   {isInProgress ? (
-                    <WipControl inProgressCount={tasks.length} />
+                    <WipControl
+                      projectId={projectId}
+                      wipLimit={wipLimit}
+                      inProgressCount={tasks.length}
+                    />
                   ) : null}
                 </div>
               </header>

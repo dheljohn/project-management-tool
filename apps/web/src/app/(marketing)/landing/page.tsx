@@ -107,11 +107,7 @@ export default function LandingPage() {
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-status-todo" />
-                      Todo
-                    </span>
-                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                      3
+                      To do
                     </span>
                   </div>
                   {[
@@ -133,11 +129,7 @@ export default function LandingPage() {
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-status-progress" />
                       In Progress
-                    </span>
-                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                      2
                     </span>
                   </div>
                   {["Build Kanban board", "Auth with httpOnly"].map((t) => (
@@ -157,11 +149,7 @@ export default function LandingPage() {
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-status-done" />
                       Done
-                    </span>
-                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                      4
                     </span>
                   </div>
                   {[
@@ -196,7 +184,7 @@ export default function LandingPage() {
                 Everything your team needs
               </h2>
               <p className="text-muted-foreground mt-3 max-w-lg mx-auto">
-                Built with the tools developers actually use — no bloat, no
+                Built with the tools developers actually use, no bloat, no
                 lock-in.
               </p>
             </div>

@@ -14,6 +14,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
 import { SkipCsrf } from './decorators/skip-csrf.decorator';
 import { randomBytes } from 'crypto';
+import { getAuthCookieOptions } from './cookie-options.util';
 
 @Controller('testlogin')
 export class AuthController {
@@ -40,12 +41,8 @@ export class AuthController {
   getCsrfToken(@Res({ passthrough: true }) res: Response) {
     const csrfToken = randomBytes(32).toString('hex');
 
-    res.cookie('csrf_token', csrfToken, {
-      httpOnly: false,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    });
+    const { secure, sameSite } = getAuthCookieOptions();
+    res.cookie('csrf_token', csrfToken, { httpOnly: false, secure, sameSite });
 
     return { success: true };
   }
@@ -53,16 +50,11 @@ export class AuthController {
   @SkipCsrf()
   @Post('/logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('auth_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-    });
-    res.clearCookie('csrf_token', {
-      httpOnly: false,
-      secure: true,
-      sameSite: 'none',
-    });
+    const { secure, sameSite } = getAuthCookieOptions();
+
+    res.clearCookie('auth_token', { httpOnly: true, secure, sameSite });
+    res.clearCookie('csrf_token', { httpOnly: false, secure, sameSite });
+
     return { success: true };
   }
 }

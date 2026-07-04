@@ -37,7 +37,7 @@ export class TaskService {
     });
   }
 
-  async update(updateDto: UpdateTaskDto) {
+  async update(updateDto: UpdateTaskDto, userId: string) {
     if (!updateDto.task_id) {
       throw new BadRequestException('Task ID is required');
     }
@@ -48,42 +48,7 @@ export class TaskService {
     });
     if (!existing) throw new NotFoundException('Task not found');
 
-    const fieldsToTrack = [
-      { field: 'title', oldValue: existing.title, newValue: updateDto.title },
-      {
-        field: 'description',
-        oldValue: existing.description,
-        newValue: updateDto.description,
-      },
-      {
-        field: 'status',
-        oldValue: existing.status,
-        newValue: updateDto.status,
-      },
-      {
-        field: 'priority',
-        oldValue: existing.priority,
-        newValue: updateDto.priority,
-      },
-    ];
-
-    const logs = updateDto.user_id
-      ? fieldsToTrack
-          .filter(({ newValue }) => newValue !== undefined)
-          .filter(
-            ({ oldValue, newValue }) =>
-              String(oldValue ?? '') !== String(newValue ?? ''),
-          )
-          .map(({ field, oldValue, newValue }) => ({
-            taskId,
-            username: updateDto.user_id!,
-            field,
-            oldValue: String(oldValue ?? ''),
-            newValue: String(newValue ?? ''),
-            remark: updateDto.remark ?? null,
-          }))
-      : [];
-
+    // Normalize status FIRST, before building the diff list
     let formattedStatus: TaskStatus | undefined;
     if (updateDto.status) {
       const normalized = updateDto.status.replace(/\s+/g, '_').toLowerCase();
@@ -92,6 +57,38 @@ export class TaskService {
       else if (normalized === 'todo') formattedStatus = TaskStatus.Todo;
       else if (normalized === 'done') formattedStatus = TaskStatus.Done;
     }
+
+    const fieldsToTrack = [
+      { field: 'title', oldValue: existing.title, newValue: updateDto.title },
+      {
+        field: 'description',
+        oldValue: existing.description,
+        newValue: updateDto.description,
+      },
+      { field: 'status', oldValue: existing.status, newValue: formattedStatus }, // <-- use normalized enum
+      {
+        field: 'priority',
+        oldValue: existing.priority,
+        newValue: updateDto.priority,
+      },
+    ];
+
+    const logs = userId
+      ? fieldsToTrack
+          .filter(({ newValue }) => newValue !== undefined)
+          .filter(
+            ({ oldValue, newValue }) =>
+              String(oldValue ?? '') !== String(newValue ?? ''),
+          )
+          .map(({ field, oldValue, newValue }) => ({
+            taskId,
+            username: userId,
+            field,
+            oldValue: String(oldValue ?? ''),
+            newValue: String(newValue ?? ''),
+            remark: updateDto.remark ?? null,
+          }))
+      : [];
 
     const [updated] = await this.prisma.$transaction([
       this.prisma.task.update({
@@ -114,6 +111,10 @@ export class TaskService {
       'all_tasks',
       `tasks_project_${updated.projectId}`,
       `task_history_${taskId}`,
+      // `changelog_project_${updated.projectId}_start_all`,
+    );
+    await this.cacheHelper.invalidatePattern(
+      `changelog_project_${updated.projectId}_*`,
     );
 
     return updated;
@@ -133,7 +134,7 @@ export class TaskService {
     });
   }
 
-  async create(dto: CreateTaskDto) {
+  async create(dto: CreateTaskDto, userId: string) {
     let dbStatus: TaskStatus;
     let dbPriority: Priority;
 
@@ -182,7 +183,7 @@ export class TaskService {
       const newLog = await tx.changeLog.create({
         data: {
           taskId: task.id,
-          username: dto.user_id,
+          username: userId,
           field: 'task creation',
           oldValue: '',
           newValue: task.title,
@@ -196,6 +197,9 @@ export class TaskService {
     await this.cacheHelper.invalidate(
       'all_tasks',
       `tasks_project_${newTask.projectId}`,
+    );
+    await this.cacheHelper.invalidatePattern(
+      `changelog_project_${newTask.projectId}_*`,
     );
 
     return newTask;

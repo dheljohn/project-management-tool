@@ -26,6 +26,7 @@ model Project {
   ownerId     Int
   owner       Member   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   tasks       Task[]
+  wipLimit    Int?
 }
 
 model Task {

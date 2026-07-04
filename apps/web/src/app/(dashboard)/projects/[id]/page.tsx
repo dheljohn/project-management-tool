@@ -10,7 +10,6 @@ import { useChangeLogs } from "../../../../features/logs/hooks/useChangeLogs";
 import KanbanBoard from "../../../../features/tasks/components/KanbanBoard";
 import ActivityLog from "../../../../components/ui/ActivityLog";
 // import BoardToggle from "../../../../components/ui/FloatingButton";
-import { useWip, WipProvider } from "../../../../context/WipContext";
 import axios from "axios";
 import ViewToggle from "../../../../components/ui/ViewToggle";
 import { Task, TaskStatus } from "../../../../types/types";
@@ -19,12 +18,12 @@ import { Button } from "../../../../components/ui/Button";
 import TaskModal from "../../../../features/tasks/components/TaskModal";
 import { getProjectInitials } from "../../../utils/string";
 import ActivityLogs from "../../../../components/ui/ActivityLogs";
+import { useWip, WipProvider } from "../../../../context/WipContext";
+import { useTaskStatusMutation } from "../../../../features/tasks/hooks/useTaskStatusMutation";
 export default function KanbanPage() {
   return (
     <ViewProvider>
-      <WipProvider>
-        <KanbanPageContent />
-      </WipProvider>
+      <KanbanPageContent />
     </ViewProvider>
   );
 }
@@ -53,14 +52,8 @@ function KanbanPageContent() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "update">("create");
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
-  // const [completedTaskId, setCompletedTaskId] = useState<number | null>(null);
-  // const { isSplit } = useView();
-  const { wipLimit } = useWip();
-  const isFiringRef = useRef(false);
 
-  // const [view, setView] = useState<>("");
-
-  // const { mutate: updateTaskStatus } = useTaskStatusMutation(projectId);
+  const { mutate: updateTaskStatus } = useTaskStatusMutation(projectId);
 
   const isProjectCompleted =
     tasks.length > 0 && tasks.every((task) => task.status === "Done");
@@ -198,7 +191,11 @@ function KanbanPageContent() {
           </div>
         </div>
         {activeView === "kanban" ? (
-          <KanbanBoard projectId={project.id} tasks={tasks} />
+          <KanbanBoard
+            wipLimit={project.wipLimit}
+            projectId={project.id}
+            tasks={tasks}
+          />
         ) : (
           <ActivityLogs projectId={project.id} />
           // <ActivityLog logs={logs} loading={logsLoading} />
@@ -219,6 +216,7 @@ function KanbanPageContent() {
 
 {
   /* <div className={`h-full flex flex-col p-0 items-center`}>
+  dead code just old backup
      
       <div className="flex flex-col justify-between  gap-2 px-4 py-3 bg-card max-w-[1400px] w-full ">
         <div className="flex flex-col items-start justify-between gap-1 min-w-0">

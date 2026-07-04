@@ -19,7 +19,7 @@ export const useRegister = () => {
       });
     },
     onSuccess: (_, variables) => {
-      localStorage.setItem("user_id", variables.user_id);
+      // localStorage.setItem("user_id", variables.user_id);
       router.push("/projects");
     },
   });

@@ -9,8 +9,9 @@ export const getTasksByProject = async (projectId: number): Promise<Task[]> => {
 };
 
 export interface ProjectPayload {
-  name: string;
+  name?: string;
   description?: string;
+  wipLimit?: number | null;
 }
 
 export const getProjects = async (): Promise<Project[]> => {

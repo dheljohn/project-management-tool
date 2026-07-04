@@ -21,12 +21,13 @@ export const useProjectMutation = ({
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: ProjectPayload) =>
+    mutationFn: (payload: Partial<ProjectPayload>) =>
       mode === "create"
-        ? createProject(payload)
+        ? createProject(payload as ProjectPayload)
         : updateProject(projectId!, payload),
     onSuccess: (project) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.list() });
+      queryClient.setQueryData(projectKeys.detail(project.id), project);
       onSuccess(project);
     },
   });

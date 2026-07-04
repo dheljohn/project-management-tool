@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { loginSchema, LoginFormValues } from "../schemas/login.schema";
 import { useLogin } from "../hooks/useLogin";
+import axios from "axios";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,11 +23,15 @@ export default function LoginForm() {
     "block w-full rounded-lg border border-border bg-muted px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent text-sm transition-colors";
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       {error && (
-        <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
-          {(error as any)?.response?.data?.message ??
-            "Network error. Cannot reach the authentication server."}
+        <div
+          role="alert"
+          className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive"
+        >
+          {axios.isAxiosError(error)
+            ? (error.response?.data?.message ?? "Invalid credentials.")
+            : "Network error. Cannot reach the authentication server."}
         </div>
       )}
 

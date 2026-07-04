@@ -16,10 +16,6 @@ export class CreateTaskDto {
 
   @IsString()
   @IsNotEmpty()
-  user_id!: string;
-
-  @IsString()
-  @IsNotEmpty()
   title!: string;
 
   @IsEnum(TaskStatusPayload, {

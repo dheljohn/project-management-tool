@@ -28,4 +28,36 @@ export class CacheHelper {
     await Promise.all(keys.map((key) => this.cache.del(key)));
     this.logger.log(`🗑️ Cache invalidated: ${keys.join(', ')}`);
   }
+  async invalidatePattern(pattern: string): Promise<void> {
+    const stores = this.cache.stores as any;
+    const store = Array.isArray(stores) ? stores[0] : stores;
+
+    if (store && typeof store.iterator === 'function') {
+      const prefix = pattern.replace(/\*$/, ''); // strip trailing wildcard
+      const matchedKeys: string[] = [];
+
+      for await (const [key] of store.iterator(store._namespace ?? undefined)) {
+        // Keyv prefixes keys internally with "keyv:" — strip it for comparison
+        const rawKey = key.startsWith('keyv:') ? key.slice(5) : key;
+        if (rawKey.startsWith(prefix)) {
+          matchedKeys.push(rawKey);
+        }
+      }
+
+      if (matchedKeys.length) {
+        await Promise.all(matchedKeys.map((key) => this.cache.del(key)));
+        this.logger.log(
+          `🗑️ Cache invalidated (pattern): ${pattern} → ${matchedKeys.length} keys`,
+        );
+      } else {
+        this.logger.log(
+          `🗑️ Cache invalidate pattern matched 0 keys: ${pattern}`,
+        );
+      }
+    } else {
+      this.logger.warn(
+        `Store does not support iterator() — cannot pattern-invalidate: ${pattern}`,
+      );
+    }
+  }
 }

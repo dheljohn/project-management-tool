@@ -5,6 +5,7 @@ export interface Project {
   ownerId: number;
   createdAt: string;
   updatedAt: string;
+  wipLimit: number;
 }
 
 export interface Task {

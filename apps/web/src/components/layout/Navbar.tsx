@@ -7,16 +7,21 @@ import { useBreadcrumbs } from "../../context/BreadcrumbContext";
 import Image from "next/image";
 import api from "../../../lib/api";
 import { ChevronLeft } from "lucide-react";
+import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { breadcrumbs } = useBreadcrumbs();
-  const username = localStorage.getItem("user_id") ?? "User";
+  const { data: currentUser } = useCurrentUser();
+  const username = currentUser?.user_id ?? "User";
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
+  const isKanban = pathname.startsWith("/projects/");
+
+  const isProjectPage = pathname === "/projects";
 
   // Sync isDark with <html> class on mount
   useEffect(() => {
@@ -59,25 +64,52 @@ export default function Navbar() {
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
         {/*  Left: Logo + Breadcrumbs  */}
         <div className="flex items-center gap-3">
+          {/* <Link href="/projects" className="block sm:hidden">
+            <ChevronLeft />
+          </Link> */}
           <Link
             href="/projects"
             className="flex items-center gap-0 select-none"
           >
-            <ChevronLeft className="block md:hidden" />
-            {/* Icon mark */}
-            <div className="hidden md:flex w-10 h-10 rounded-lg items-center justify-center shrink-0">
-              <Image
-                src="/proyekto.png"
-                alt="Logo"
-                width={30}
-                height={30}
-                priority
-              />
-            </div>
-            {/* Wordmark */}
-            <span className="hidden md:block text-foreground font-bold text-base tracking-tight">
-              ro<span className="text-accent">yekto</span>
-            </span>
+            {isKanban && <ChevronLeft className="block md:hidden" />}
+
+            {isProjectPage && (
+              <div className="flex items-center ">
+                {/* Icon mark */}
+                <div className="flex w-10 h-10 rounded-lg items-center justify-center shrink-0">
+                  <Image
+                    src="/proyekto.png"
+                    alt="Logo"
+                    width={30}
+                    height={30}
+                    priority
+                  />
+                </div>
+                {/* Wordmark */}
+                <span className="block text-foreground font-bold text-base tracking-tight">
+                  ro<span className="text-accent">yekto</span>
+                </span>
+              </div>
+            )}
+
+            {isKanban && (
+              <div className="flex items-center ">
+                {/* Icon mark */}
+                <div className="hidden md:flex w-10 h-10 rounded-lg items-center justify-center shrink-0">
+                  <Image
+                    src="/proyekto.png"
+                    alt="Logo"
+                    width={30}
+                    height={30}
+                    priority
+                  />
+                </div>
+                {/* Wordmark */}
+                <span className="hidden md:block text-foreground font-bold text-base tracking-tight">
+                  ro<span className="text-accent">yekto</span>
+                </span>
+              </div>
+            )}
           </Link>
 
           {/* Breadcrumbs */}

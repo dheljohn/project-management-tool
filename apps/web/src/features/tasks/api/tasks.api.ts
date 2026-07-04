@@ -11,7 +11,6 @@ export const getTasksByProject = async (projectId: number): Promise<Task[]> => {
 export const patchTaskStatus = async (payload: {
   task_id: number;
   status: string;
-  user_id: string | null;
 }): Promise<Task> => {
   const { data } = await api.patch("/test03/patch_task", payload);
   return data;
@@ -19,7 +18,6 @@ export const patchTaskStatus = async (payload: {
 
 export interface CreateTaskPayload {
   project_id: number;
-  user_id: string | null;
   title: string;
   description: string;
   status: TaskStatus;
@@ -29,7 +27,6 @@ export interface CreateTaskPayload {
 
 export interface UpdateTaskPayload {
   task_id: number;
-  user_id: string | null;
   title: string;
   description: string;
   status: string;

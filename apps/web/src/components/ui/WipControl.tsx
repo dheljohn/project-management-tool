@@ -1,32 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { useWip } from "../../context/WipContext";
+import { useProjectMutation } from "../../features/projects/hooks/useProjectMutation";
+// import { Project } from "../../types/types";
 
-export function WipControl({ inProgressCount }: { inProgressCount: number }) {
-  const { wipLimit, setWipLimit } = useWip();
+export function WipControl({
+  projectId,
+  wipLimit,
+  inProgressCount,
+}: {
+  projectId: number;
+  wipLimit: number | null;
+  inProgressCount: number;
+}) {
   const [editing, setEditing] = useState(false);
   const [input, setInput] = useState(String(wipLimit ?? ""));
+
+  const { mutate: saveWipLimit } = useProjectMutation({
+    mode: "edit",
+    projectId,
+    onSuccess: () => {}, // cache already updated via invalidateQueries in the hook
+  });
 
   const isExceeded = wipLimit !== null && inProgressCount > wipLimit;
   const isAtLimit = wipLimit !== null && inProgressCount === wipLimit;
 
   function handleSave() {
-    const parsed = parseInt(input);
-    setWipLimit(!isNaN(parsed) && parsed > 0 ? parsed : null);
+    const trimmed = input.trim();
+    const parsed = parseInt(trimmed, 10);
+    const isValidLimit = trimmed !== "" && !isNaN(parsed) && parsed > 0;
+    saveWipLimit({ wipLimit: isValidLimit ? parsed : null });
     setEditing(false);
   }
 
   return (
-    // Added justify-center to keep the entire block centered in its parent
-    <div className="flex items-center justify-center gap-1.5 ">
+    <div className="flex items-center justify-center gap-1.5">
       {editing ? (
-        // Added h-full and items-center to make sure input, buttons, and badge align perfectly
         <div className="flex items-center justify-center gap-1.5">
           <input
             placeholder="WIP"
             type="number"
-            min={1}
+            min={0}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSave()}
@@ -41,7 +55,7 @@ export function WipControl({ inProgressCount }: { inProgressCount: number }) {
           </button>
           <button
             onClick={() => {
-              setWipLimit(null);
+              saveWipLimit({ wipLimit: null });
               setEditing(false);
             }}
             className="text-[10px] text-muted-foreground hover:text-foreground leading-none"
@@ -50,7 +64,6 @@ export function WipControl({ inProgressCount }: { inProgressCount: number }) {
           </button>
         </div>
       ) : (
-        // Changed button to an inline-flex box so text and badge line up center horizontally
         <button
           onClick={() => {
             setInput(String(wipLimit ?? ""));
@@ -70,7 +83,7 @@ export function WipControl({ inProgressCount }: { inProgressCount: number }) {
               : "text-muted-foreground bg-muted border-border"
         }`}
       >
-        {inProgressCount}/{wipLimit ?? 0}
+        {inProgressCount}/{wipLimit ?? "∞"}
       </span>
     </div>
   );

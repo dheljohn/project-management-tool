@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, RegisterFormValues } from "../schemas/register.schema";
 import { useRegister } from "../hooks/useRegister";
+import axios from "axios";
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -31,8 +32,9 @@ export default function RegisterForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
         <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
-          {(error as any)?.response?.data?.message ??
-            "An unexpected error occurred."}
+          {axios.isAxiosError(error)
+            ? (error.response?.data?.message ?? "Registration failed.")
+            : "An unexpected error occurred."}
         </div>
       )}
 
@@ -45,6 +47,7 @@ export default function RegisterForm() {
         </label>
         <input
           id="user_id"
+          autoComplete="username"
           disabled={isPending}
           placeholder="e.g. john_doe"
           className={inputClass}
@@ -67,6 +70,7 @@ export default function RegisterForm() {
         <input
           id="email"
           type="email"
+          autoComplete="email"
           disabled={isPending}
           placeholder="you@example.com"
           className={inputClass}
@@ -89,6 +93,7 @@ export default function RegisterForm() {
         <div className="relative">
           <input
             id="password"
+            autoComplete="new-password"
             type={showPassword ? "text" : "password"}
             disabled={isPending}
             placeholder="••••••••"
@@ -120,6 +125,7 @@ export default function RegisterForm() {
         <div className="relative">
           <input
             id="confirmPassword"
+            autoComplete="new-password"
             type={showConfirmPassword ? "text" : "password"}
             disabled={isPending}
             placeholder="••••••••"

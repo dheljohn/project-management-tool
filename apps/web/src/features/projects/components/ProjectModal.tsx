@@ -2,7 +2,11 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { projectSchema, ProjectFormValues } from "../schemas/project.schema";
+import {
+  projectSchema,
+  ProjectFormInput,
+  ProjectFormOutput,
+} from "../schemas/project.schema";
 import { useProjectMutation } from "../hooks/useProjectMutation";
 import { Project } from "../../../types/types";
 import { Button } from "../../../components/ui/Button";
@@ -24,11 +28,12 @@ export default function ProjectModal({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ProjectFormValues>({
+  } = useForm<ProjectFormInput, any, ProjectFormOutput>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       name: project?.name ?? "",
       description: project?.description ?? "",
+      wipLimit: project?.wipLimit ?? 0,
     },
   });
 
@@ -41,7 +46,7 @@ export default function ProjectModal({
     },
   });
 
-  const onSubmit = (values: ProjectFormValues) => mutate(values);
+  const onSubmit = (values: ProjectFormOutput) => mutate(values);
 
   const inputClass =
     "w-full bg-muted border border-border rounded-lg px-3.5 py-2.5 sm:px-4 sm:py-2 text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors";
@@ -93,6 +98,24 @@ export default function ProjectModal({
             className={`${inputClass} resize-none`}
             {...register("description")}
           />
+        </div>
+
+        <div className="mb-5">
+          <label className="block text-sm text-muted-foreground mb-1">
+            WIP Limit{" "}
+            <span className="text-muted-foreground text-xs">(optional)</span>
+          </label>
+          <input
+            type="number"
+            placeholder="0"
+            className={inputClass}
+            {...register("wipLimit")}
+          />
+          {errors.wipLimit && (
+            <p className="text-destructive text-xs mt-1">
+              {errors.wipLimit.message}
+            </p>
+          )}
         </div>
 
         {error && (
