@@ -230,7 +230,7 @@ export default function ProjectsPage() {
                   variant="add"
                   onClick={openCreateModal}
                   // /* Changed flex-col flex to a centered row layout */
-                  className="flex items-center "
+                  className="flex items-center gap-1.5 bg-accent text-accent-foreground text-sm font-medium px-4 py-2 rounded-full cursor-pointer transform transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0"
                 >
                   <span className="sm:hidden">New</span>
                   <span className="hidden sm:inline">New Project</span>
@@ -322,22 +322,33 @@ export default function ProjectsPage() {
               <p className="text-muted-foreground text-xs mt-1 mb-4">
                 Create a project to start managing tasks.
               </p>
-              <button
-                onClick={openCreateModal}
-                className="flex items-center gap-1.5 bg-accent hover:opacity-90 text-accent-foreground text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
-              >
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
+              <div className="flex flex-col sm:flex-col items-center gap-4 w-full justify-center">
+                <button
+                  onClick={openCreateModal}
+                  className="flex items-center gap-1.5 bg-accent hover:opacity-90 text-accent-foreground text-sm font-medium px-4 py-2 rounded-lg transition-opacity cursor-pointer"
                 >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                Create your first project
-              </button>
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Create your first project
+                </button>
+
+                {/* Better Divider */}
+                <div className="flex items-center w-full sm:w-auto gap-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <div className="h-px bg-border flex-1 sm:w-8"></div>
+                  <span>or</span>
+                  <div className="h-px bg-border flex-1 sm:w-8"></div>
+                </div>
+
+                <JoinProjectButton />
+              </div>
             </div>
           )}
 

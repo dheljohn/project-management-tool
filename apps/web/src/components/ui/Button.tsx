@@ -17,7 +17,7 @@ export const Button = ({
     "text-sm rounded-full border  px-4 py-2 transition-colors cursor-pointer";
 
   const variantStyles = {
-    add: "bg-accent text-card hover:bg-card hover:text-accent",
+    add: "bg-accent text-card ",
     save: "bg-accent text-accent-foreground hover:bg-muted disabled:opacity-50",
     cancel: "bg-transparent text-muted-foreground hover:bg-muted border-none",
     pill: "   hover:text-foreground hover:bg-muted/60",

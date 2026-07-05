@@ -33,7 +33,7 @@ export default function ProjectModal({
     defaultValues: {
       name: project?.name ?? "",
       description: project?.description ?? "",
-      wipLimit: project?.wipLimit ?? null,
+      wipLimit: project?.wipLimit ?? undefined,
     },
   });
 

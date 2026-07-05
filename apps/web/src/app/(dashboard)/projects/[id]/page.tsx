@@ -229,12 +229,11 @@ function KanbanPageContent() {
               </div>
             </div>
 
-            {/* ⬇️ CLEANED UP: Merged duplicate nested flex wrapper divs into one clean action strip */}
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
               <OwnerOnly projectId={project.id}>
                 <button
                   onClick={() => setInviteModalOpen(true)}
-                  className="text-sm rounded-full border border-input bg-card px-4 py-2 text-accent transition-all duration-200 cursor-pointer hover:bg-accent hover:text-card hover:border-white!"
+                  className="flex items-center gap-1.5 border border-input bg-background hover:bg-muted text-foreground text-sm font-medium px-4 py-2 rounded-full cursor-pointer transition-colors duration-200 ease-in-out"
                 >
                   <div className="flex items-center gap-2">
                     <MoveUpRight className="h-4 w-4" />
@@ -252,7 +251,7 @@ function KanbanPageContent() {
               <Button
                 onClick={openCreateModal}
                 variant="add"
-                className="flex items-center"
+                className="flex items-center gap-1.5 bg-accent text-accent-foreground text-sm font-medium px-4 py-2 rounded-full cursor-pointer transform transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0"
               >
                 <span className="sm:hidden">Task</span>
                 <span className="hidden sm:inline">Add Task</span>
