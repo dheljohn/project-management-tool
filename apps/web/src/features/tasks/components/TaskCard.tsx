@@ -40,8 +40,6 @@ export function TaskCard({ task, onClick, isJustCompleted }: TaskCardProps) {
         )}
 
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">#{task.id}</span>
-
           <div className="flex items-center gap-2">
             {(task.assignees ?? []).length > 0 && (
               <div className="flex -space-x-1">
@@ -56,13 +54,13 @@ export function TaskCard({ task, onClick, isJustCompleted }: TaskCardProps) {
                 ))}
               </div>
             )}
-            <span className="text-xs text-muted-foreground">
-              {new Date(task.updatedAt).toLocaleDateString("en-PH", {
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
           </div>
+          <span className="text-xs text-muted-foreground">
+            {new Date(task.updatedAt).toLocaleDateString("en-PH", {
+              month: "short",
+              day: "numeric",
+            })}
+          </span>
         </div>
       </div>
     </Draggable>

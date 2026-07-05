@@ -91,6 +91,7 @@ model TaskAssignee {
 model ChangeLog {
   id        Int      @id @default(autoincrement())
   taskId    Int
+  taskTitle String   @default("")  
   field     String
   oldValue  String?
   newValue  String?

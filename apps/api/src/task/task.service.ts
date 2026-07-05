@@ -82,6 +82,10 @@ export class TaskService {
       },
     ];
 
+    // Snapshot the title as it was BEFORE this update, so renaming a task
+    // later never rewrites what earlier log entries display.
+    const taskTitleSnapshot = updateDto.title ?? existing.title;
+
     const logs = userId
       ? fieldsToTrack
           .filter(({ newValue }) => newValue !== undefined)
@@ -91,13 +95,44 @@ export class TaskService {
           )
           .map(({ field, oldValue, newValue }) => ({
             taskId,
+            taskTitle: taskTitleSnapshot,
             username: userId,
             field,
             oldValue: String(oldValue ?? ''),
             newValue: String(newValue ?? ''),
-            remark: updateDto.remark ?? null,
+            // Remark only ever makes sense attached to a description
+            // change — a status move or priority bump getting a stray
+            // "Updated via UI modal" note was confusing and wrong.
+            remark: field === 'description' ? (updateDto.remark ?? null) : null,
           }))
       : [];
+
+    // Assignee changes get their own diff, logged separately, since they
+    // don't fit the simple old/new string comparison the fields above use.
+    if (userId && updateDto.assigneeIds !== undefined) {
+      const existingAssignees = await this.prisma.taskAssignee.findMany({
+        where: { taskId },
+        select: { memberId: true },
+      });
+      const oldIds = existingAssignees.map((a) => a.memberId).sort();
+      const newIds = [...updateDto.assigneeIds].sort();
+
+      const changed =
+        oldIds.length !== newIds.length ||
+        oldIds.some((id, i) => id !== newIds[i]);
+
+      if (changed) {
+        logs.push({
+          taskId,
+          taskTitle: taskTitleSnapshot,
+          username: userId,
+          field: 'assignees',
+          oldValue: oldIds.join(','),
+          newValue: newIds.join(','),
+          remark: null,
+        });
+      }
+    }
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const task = await tx.task.update({
@@ -240,14 +275,17 @@ export class TaskService {
       await tx.changeLog.create({
         data: {
           taskId: task.id,
+          taskTitle: task.title,
           username: userId,
           field: 'task creation',
           oldValue: '',
           newValue: task.title,
-          remark: dto.remark ?? 'Initial creation log',
+          remark: dto.remark ?? null,
         },
       });
 
+      // Refetch with assignees included so the response/broadcast has
+      // the full member data, not just raw IDs.
       return tx.task.findUniqueOrThrow({
         where: { id: task.id },
         include: {

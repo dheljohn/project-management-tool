@@ -45,25 +45,31 @@ export interface Task {
 
 export interface ChangeLog {
   id: number;
+  taskId: number;
+  taskTitle: string;
   field: string;
   oldValue: string | null;
   newValue: string | null;
   remark: string | null;
   createdAt: string;
-  task: { id: number; title: string };
-  member: {
+  username: string;
+  member?: {
     user_id: string;
+    username: string | null;
   };
+  task?: {
+    id: number;
+    title: string;
+  };
+}
+export interface ActivityLogProps {
+  logs: ChangeLog[];
+  loading: boolean;
 }
 
 export interface Breadcrumb {
   label: string;
   href?: string;
-}
-
-export interface ActivityLogProps {
-  logs: ChangeLog[];
-  loading: boolean;
 }
 
 export interface Column {

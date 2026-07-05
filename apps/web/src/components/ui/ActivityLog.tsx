@@ -1,89 +1,154 @@
 "use client";
 
 import { ChangeLog, ActivityLogProps } from "../../types/types";
+import { getUserInitials } from "../../app/utils/getUserInitials";
 
-function formatRelative(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-
-  return new Date(dateStr).toLocaleDateString("en-PH", {
-    month: "short",
-    day: "numeric",
+function formatTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleTimeString("en-PH", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
   });
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
+function formatDateHeader(dateStr: string): string {
+  const date = new Date(dateStr);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+
+  if (isSameDay(date, today)) return "TODAY";
+  if (isSameDay(date, yesterday)) return "YESTERDAY";
+
+  return date
+    .toLocaleDateString("en-PH", {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    })
     .toUpperCase();
 }
+
 function formatStatus(val: string | null | undefined): string {
   if (!val) return "—";
   return val.replace(/_/g, " ");
 }
 
+function groupLogsByDay(
+  logs: ChangeLog[],
+): { dateKey: string; logs: ChangeLog[] }[] {
+  const groups: { dateKey: string; logs: ChangeLog[] }[] = [];
+
+  for (const log of logs) {
+    const dateKey = new Date(log.createdAt).toDateString();
+    const existing = groups.find((g) => g.dateKey === dateKey);
+    if (existing) {
+      existing.logs.push(log);
+    } else {
+      groups.push({ dateKey, logs: [log] });
+    }
+  }
+
+  return groups;
+}
+
 function formatAction(log: ChangeLog): {
   actor: string;
-  action: string;
-  target: string;
+  sentence: React.ReactNode;
   detail?: string;
 } {
-  const actor = log.member?.user_id ?? "Someone";
-  // Use id only — never the live title join
-  const taskRef = `Task #${log.task?.id ?? log.id}`;
+  const actor = log.member?.username ?? log.member?.user_id ?? "Someone";
+
+  const taskTitle = log.taskTitle || `Task #${log.taskId}`;
 
   switch (log.field) {
     case "task creation":
       return {
         actor,
-        action: "created",
-        target: log.newValue ?? taskRef, // newValue now holds the title snapshot
+        sentence: (
+          <>
+            created{" "}
+            <span className="font-semibold text-foreground">"{taskTitle}"</span>
+          </>
+        ),
       };
 
     case "status":
       return {
         actor,
-        action: "moved",
-        target: taskRef,
-        detail: `${formatStatus(log.oldValue)} → ${formatStatus(log.newValue)}`,
+        sentence: (
+          <>
+            moved{" "}
+            <span className="font-semibold text-foreground">"{taskTitle}"</span>{" "}
+            to{" "}
+            <span className="font-semibold text-foreground">
+              {formatStatus(log.newValue)}
+            </span>
+          </>
+        ),
       };
 
     case "title":
       return {
         actor,
-        action: "renamed task to",
-        target: log.newValue ?? taskRef, // newValue is the new title
+        sentence: (
+          <>
+            renamed a task to{" "}
+            <span className="font-semibold text-foreground">
+              "{log.newValue}"
+            </span>
+          </>
+        ),
       };
 
     case "description":
       return {
         actor,
-        action: "updated description on",
-        target: taskRef,
+        sentence: (
+          <>
+            updated the description on{" "}
+            <span className="font-semibold text-foreground">"{taskTitle}"</span>
+          </>
+        ),
         detail: log.newValue ?? undefined,
       };
+
     case "priority":
       return {
         actor,
-        action: "changed priority to",
-        target: taskRef,
-        detail: `${formatStatus(log.oldValue)} → ${formatStatus(log.newValue)}`,
+        sentence: (
+          <>
+            changed priority on{" "}
+            <span className="font-semibold text-foreground">"{taskTitle}"</span>{" "}
+            to{" "}
+            <span className="font-semibold text-foreground">
+              {formatStatus(log.newValue)}
+            </span>
+          </>
+        ),
       };
+    case "assignees":
+      return {
+        actor,
+        sentence: (
+          <>
+            updated assignees on{" "}
+            <span className="font-semibold text-foreground">"{taskTitle}"</span>
+          </>
+        ),
+      };
+
     default:
       return {
         actor,
-        action: `changed ${log.field} on`,
-        target: taskRef,
+        sentence: (
+          <>
+            changed {log.field} on{" "}
+            <span className="font-semibold text-foreground">"{taskTitle}"</span>
+          </>
+        ),
         detail: `${log.oldValue ?? "—"} → ${log.newValue ?? "—"}`,
       };
   }
@@ -131,73 +196,71 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
     );
   }
 
+  const groups = groupLogsByDay(logs);
+
   return (
-    <ol className="relative w-full max-w-2xl mx-auto before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-px before:bg-border">
-      {logs.map((log) => {
-        const { actor, action, target, detail } = formatAction(log);
-        const isCreation = log.field === "task creation";
-
-        return (
-          <li key={log.id} className="relative flex gap-4 py-3">
-            {/*  Avatar bubble  */}
-            <span
-              className={`relative z-10 mt-1 grid h-8 w-8 shrink-0 place-items-center
-                      rounded-full border text-[10px] font-bold
-                      ${
-                        isCreation
-                          ? "border-status-done/40 bg-status-done/10 text-status-done"
-                          : "border-border bg-background text-muted-foreground"
-                      }`}
-            >
-              {getInitials(actor)}
+    <div className="w-full max-w-2xl mx-auto flex flex-col gap-6">
+      {groups.map((group) => (
+        <div key={group.dateKey}>
+          {/* Date divider */}
+          <div className="flex items-center gap-3 mb-3 px-1">
+            <span className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
+              {group.logs[0] ? formatDateHeader(group.logs[0].createdAt) : ""}
             </span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
 
-            {/*  Entry card  */}
-            <div className="flex-1 rounded-xl border border-border bg-card p-4 min-w-0">
-              {/* Top row: message + timestamp */}
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <p className="text-sm leading-snug">
-                  <span className="font-semibold text-foreground">{actor}</span>{" "}
-                  <span className="text-muted-foreground">{action}</span>{" "}
+          <ol className="relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-px before:bg-border">
+            {group.logs.map((log) => {
+              const { actor, sentence, detail } = formatAction(log);
+              const isCreation = log.field === "task creation";
+
+              return (
+                <li key={log.id} className="relative flex gap-4 py-1.5">
+                  {/* Avatar bubble */}
                   <span
-                    className={`font-medium ${
-                      isCreation ? "text-status-done" : "text-foreground"
-                    }`}
+                    className={`relative z-10 mt-1 grid h-8 w-8 shrink-0 place-items-center
+                            rounded-full border text-[10px] font-bold
+                            ${
+                              isCreation
+                                ? "border-status-done/40 bg-status-done/10 text-status-done"
+                                : "border-border bg-background text-muted-foreground"
+                            }`}
                   >
-                    {target}
+                    {getUserInitials(actor)}
                   </span>
-                </p>
-                <time
-                  className="font-mono text-[11px] text-muted-foreground shrink-0"
-                  title={new Date(log.createdAt).toLocaleString("en-PH")}
-                >
-                  {formatRelative(log.createdAt)}
-                </time>
-              </div>
 
-              {/* Task reference pill */}
-              {log.task && (
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  on{" "}
-                  <span className="text-foreground bg-muted px-1.5 py-0.5 rounded font-mono">
-                    #{log.task.id}
-                  </span>
-                </p>
-              )}
+                  {/* Entry card */}
+                  <div className="flex-1 rounded-xl border border-border bg-card p-4 min-w-0 mb-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-sm leading-snug flex-1">
+                        <span className="font-semibold text-foreground">
+                          {actor}
+                        </span>{" "}
+                        <span className="text-muted-foreground">
+                          {sentence}
+                        </span>
+                      </p>
+                      <time
+                        className="font-mono text-[11px] text-muted-foreground shrink-0 pt-0.5"
+                        title={new Date(log.createdAt).toLocaleString("en-PH")}
+                      >
+                        {formatTime(log.createdAt)}
+                      </time>
+                    </div>
 
-              {/* Detail / remark block */}
-              {(detail || log.remark) && (
-                <p
-                  className="mt-2.5 rounded-md border-l-2 border-accent/60
-                          bg-surface px-3 py-2 text-xs text-muted-foreground italic"
-                >
-                  "{log.remark || detail}"
-                </p>
-              )}
-            </div>
-          </li>
-        );
-      })}
-    </ol>
+                    {detail && (
+                      <p className="mt-2.5 rounded-md border-l-2 border-accent/60 bg-surface px-3 py-2 text-xs text-muted-foreground italic">
+                        "{detail}"
+                      </p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ))}
+    </div>
   );
 }

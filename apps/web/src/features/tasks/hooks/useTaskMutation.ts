@@ -40,7 +40,7 @@ export const useTaskMutation = ({
           status: values.status,
           priority: values.priority,
           assigneeIds: values.assigneeIds,
-          remark: values.remark || "Created via UI modal",
+          remark: values.remark?.trim() || undefined,
         });
       } else {
         return updateTask({
@@ -49,7 +49,7 @@ export const useTaskMutation = ({
           description: values.description,
           status: toApiStatus(values.status),
           priority: values.priority,
-          remark: values.remark || "Updated via UI modal",
+          remark: values.remark || undefined,
           assigneeIds: values.assigneeIds,
         });
       }

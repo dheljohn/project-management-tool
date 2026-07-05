@@ -22,7 +22,7 @@ export interface CreateTaskPayload {
   description: string;
   status: TaskStatus;
   priority: Priority;
-  remark: string;
+  remark?: string;
   assigneeIds: number[];
 }
 
@@ -32,7 +32,7 @@ export interface UpdateTaskPayload {
   description: string;
   status: string;
   priority: Priority;
-  remark: string;
+  remark?: string;
   assigneeIds: number[];
 }
 
