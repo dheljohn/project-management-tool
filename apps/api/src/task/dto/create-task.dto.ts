@@ -1,6 +1,15 @@
 // src/tasks/dto/create-task.dto.ts
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { TaskStatusPayload } from '../enums/status.enum';
+import { TaskPriorityPayload } from '../enums/priority.enum';
 
 export class CreateTaskDto {
   @IsNumber()
@@ -9,7 +18,7 @@ export class CreateTaskDto {
 
   @IsString()
   @IsNotEmpty()
-  name!: string;
+  title!: string;
 
   @IsEnum(TaskStatusPayload, {
     message: 'status must be exactly: Todo, In Progress, or Done',
@@ -17,7 +26,22 @@ export class CreateTaskDto {
   @IsNotEmpty()
   status!: TaskStatusPayload;
 
-  @IsString()
+  @IsEnum(TaskPriorityPayload, {
+    message: 'priority must be exactly: Critical, High, Medium, or Low',
+  })
   @IsNotEmpty()
-  contents!: string;
+  priority!: TaskPriorityPayload;
+
+  @IsString()
+  @IsOptional()
+  description!: string;
+
+  @IsString()
+  @IsOptional()
+  remark?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  assigneeIds?: number[];
 }

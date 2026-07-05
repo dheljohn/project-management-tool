@@ -11,9 +11,32 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TaskModule } from './task/task.module';
+import { ChangelogModule } from './changelog/changelog.module';
+import { SeedModule } from './seed/seed.module';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
+
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
+import { CacheHelperModule } from './common/cache/cache.module';
+
+import { CsrfGuard } from './common/guards/csrf.guard';
+import { InviteModule } from './invite/invite.module';
+import { ProjectGatewayModule } from './gateway/project-gateway.module';
 
 @Module({
   imports: [
+    ProjectGatewayModule,
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => ({
+        store: await redisStore({ url: process.env.REDIS_URL }),
+        ttl: 30000, // 30s default
+      }),
+    }),
+    CacheHelperModule,
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -21,8 +44,18 @@ import { TaskModule } from './task/task.module';
     AuthModule,
     ProjectsModule,
     TaskModule,
+    ChangelogModule,
+    SeedModule,
+    InviteModule,
   ],
   controllers: [AppController, MemberController],
-  providers: [AppService, PrismaService, MemberService],
+
+  providers: [
+    AppService,
+    PrismaService,
+    MemberService,
+    { provide: APP_GUARD, useClass: CustomThrottlerGuard },
+    { provide: APP_GUARD, useClass: CsrfGuard },
+  ],
 })
 export class AppModule {}

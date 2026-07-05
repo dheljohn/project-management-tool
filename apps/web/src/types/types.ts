@@ -1,0 +1,79 @@
+export interface Project {
+  id: number;
+  name: string;
+  description: string | null;
+  ownerId: number;
+  createdAt: string;
+  updatedAt: string;
+  wipLimit: number;
+}
+
+export interface Task {
+  id: number;
+  title: string;
+  description?: string | null;
+  status: TaskStatus;
+  priority: Priority;
+  projectId: number;
+  createdAt: string;
+  updatedAt: string;
+  assignees: TaskAssignee[];
+}
+
+export interface TaskAssignee {
+  id: number;
+  taskId: number;
+  memberId: number;
+  member: {
+    id: number;
+    user_id: string;
+    username: string | null;
+  };
+}
+export type Priority = "Critical" | "High" | "Medium" | "Low";
+export type TaskStatus = "Todo" | "In_Progress" | "Done";
+
+export interface Task {
+  id: number;
+  title: string;
+  description?: string | null;
+  status: TaskStatus;
+  projectId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChangeLog {
+  id: number;
+  taskId: number;
+  taskTitle: string;
+  field: string;
+  oldValue: string | null;
+  newValue: string | null;
+  remark: string | null;
+  createdAt: string;
+  username: string;
+  member?: {
+    user_id: string;
+    username: string | null;
+  };
+  task?: {
+    id: number;
+    title: string;
+  };
+}
+export interface ActivityLogProps {
+  logs: ChangeLog[];
+  loading: boolean;
+}
+
+export interface Breadcrumb {
+  label: string;
+  href?: string;
+}
+
+export interface Column {
+  status: string;
+  color: string;
+  label: string;
+}

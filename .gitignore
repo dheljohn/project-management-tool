@@ -15,6 +15,13 @@ node_modules
 # Testing
 coverage
 
+# Playwright test artifacts
+test-results/
+playwright-report/
+blob-report/
+.playwright-artifacts/
+
+
 # Turbo
 .turbo
 
@@ -36,3 +43,5 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+.backup/

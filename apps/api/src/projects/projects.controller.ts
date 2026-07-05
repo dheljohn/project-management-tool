@@ -2,7 +2,8 @@ import {
   Body,
   Controller,
   Get,
-  Param,
+  HttpCode,
+  HttpStatus,
   ParseIntPipe,
   Patch,
   Post,
@@ -21,6 +22,7 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
   @Post('create_project')
   create(@Body() createDto: CreateProjectDto, @Req() req: RequestWithUser) {
     return this.projectsService.create(req.user.id, createDto);
@@ -35,7 +37,6 @@ export class ProjectsController {
   @UseGuards(JwtAuthGuard)
   @Get('get_user_projects')
   findAllByUser(@Req() req: RequestWithUser) {
-    console.log('USER ID:', req.user); //!
     return this.projectsService.findAllByUser(req.user.id);
   }
 
@@ -49,5 +50,14 @@ export class ProjectsController {
   @Patch('patch_project')
   update(@Body() updateDto: UpdateProjectDto, @Req() req: RequestWithUser) {
     return this.projectsService.update(req.user.id, updateDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('get_project_members')
+  listMembers(
+    @Query('projectId', ParseIntPipe) projectId: number,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.projectsService.listMembers(req.user.id, projectId);
   }
 }

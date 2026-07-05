@@ -9,6 +9,7 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "prettier": "^3.7.4",
     "turbo": "^2.9.18",
     "typescript": "5.9.2"
@@ -27,6 +28,7 @@
     "@emnapi/wasi-threads": "2.0.0",
     "@tailwindcss/postcss": "^4.3.1",
     "postcss": "^8.5.15",
+    "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.3.1"
   }
 }

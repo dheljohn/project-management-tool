@@ -1,8 +1,8 @@
-// Wrapper
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import api from "../../../lib/api";
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -13,23 +13,39 @@ export default function ProtectedRoute({ children }: RouteGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Check your auth state storage (Cookie, LocalStorage, Context, or Redux)
-    const token = localStorage.getItem("auth_token");
-    console.log(token);
+    api
+      .get("/testlogin/me")
+      .then(() => {
+        setIsAuthenticated(true);
+      })
+      .catch((error) => {
+        if (error.response?.status === 401) {
+          console.log("Not authenticated");
+          setIsAuthenticated(false);
+          router.push("/login");
+          return;
+        }
 
-    if (!token) {
-      setIsAuthenticated(false);
-      router.push("/login"); // Redirect to login if token is missing
-    } else {
-      setIsAuthenticated(true);
-    }
+        if (error.response?.status === 429) {
+          console.log(
+            "Too many requests in a short period of time, please try again later.",
+          );
+        }
+
+        console.log(
+          "Auth check inconclusive (rate limited or network issue) — proceeding optimistically.",
+        );
+        setIsAuthenticated(true);
+      });
   }, [router]);
 
-  // Show a loading state while checking credentials to prevent visual flash
   if (isAuthenticated === null) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p className="text-lg font-medium">Loading...</p>
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-6 h-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+          <p className="text-sm text-muted-foreground">Verifying session...</p>
+        </div>
       </div>
     );
   }

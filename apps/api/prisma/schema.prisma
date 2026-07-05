@@ -1,12 +1,105 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-  moduleFormat    = "cjs"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
-  
+}
+
+model Member {
+  id             Int             @id @default(autoincrement())
+  user_id        String          @unique
+  username       String?
+  email          String          @unique
+  password       String
+  changeLogs     ChangeLog[]
+  projects       Project[] // owned projects
+  memberships    ProjectMember[] // projects joined (including own, via seed on creation)
+  createdInvites InviteCode[]
+  taskAssignees  TaskAssignee[]
+}
+
+model Project {
+  id          Int             @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  ownerId     Int
+  owner       Member          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  wipLimit    Int?
+  members     ProjectMember[]
+  inviteCodes InviteCode[]
+}
+
+model ProjectMember {
+  id        Int         @id @default(autoincrement())
+  projectId Int
+  memberId  Int
+  role      ProjectRole @default(MEMBER)
+  joinedAt  DateTime    @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, memberId])
+}
+
+model InviteCode {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  projectId   Int
+  createdById Int
+  expiresAt   DateTime
+  maxUses     Int      @default(10)
+  useCount    Int      @default(0)
+  isRevoked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy Member  @relation(fields: [createdById], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String?
+  status      TaskStatus     @default(Todo)
+  projectId   Int
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  priority    Priority       @default(Medium)
+  version     Int            @default(0)
+  changelogs  ChangeLog[]
+  assignees   TaskAssignee[]
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model TaskAssignee {
+  id       Int    @id @default(autoincrement())
+  taskId   Int
+  memberId Int
+  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, memberId])
+}
+
+model ChangeLog {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  taskTitle String   @default("")  
+  field     String
+  oldValue  String?
+  newValue  String?
+  remark    String?
+  createdAt DateTime @default(now())
+  username  String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  member    Member   @relation(fields: [username], references: [user_id], onDelete: Cascade)
 }
 
 enum TaskStatus {
@@ -15,42 +108,14 @@ enum TaskStatus {
   Done
 }
 
-model Member {
-  id       Int     @id @default(autoincrement())
-  user_id  String  @unique
-  email    String  @unique
-  password String
-
-  projects Project[]
+enum Priority {
+  Critical
+  High
+  Medium
+  Low
 }
 
-model Project {
-  id          Int      @id @default(autoincrement())
-
-  name        String
-  description String?
-
-  ownerId     Int
-
-  owner       Member   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-
-  tasks       Task[] 
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+enum ProjectRole {
+  OWNER
+  MEMBER
 }
-
-model Task {
-  id          Int        @id @default(autoincrement())
-
-  title       String
-  description String?
-  status      TaskStatus @default(Todo)
-
-  projectId   Int
-  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
-

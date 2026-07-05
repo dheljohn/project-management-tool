@@ -11,6 +11,13 @@
 *.key
 secrets.txt
 
+# Playwright test artifacts
+test-results/
+playwright-report/
+blob-report/
+.playwright-artifacts/
+
+
 # Package Manager Caches & Local Dependencies
 node_modules/
 .npm/
@@ -48,3 +55,4 @@ yarn-error.log*
 *.njsproj
 .DS_Store
 Thumbs.db
+out/
