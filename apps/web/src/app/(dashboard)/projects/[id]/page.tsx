@@ -22,6 +22,9 @@ import { useWip, WipProvider } from "../../../../context/WipContext";
 import { useTaskStatusMutation } from "../../../../features/tasks/hooks/useTaskStatusMutation";
 import { GenerateInviteModal } from "../../../../features/invite/components/GenerateInviteModal";
 import { useProjectSocket } from "../../../../features/tasks/hooks/useProjectSocket";
+import { useIsProjectOwner } from "../../../../features/tasks/hooks/useIsProjectOwner";
+import { MoveUpRight } from "lucide-react";
+
 export default function KanbanPage() {
   return (
     <ViewProvider>
@@ -86,6 +89,18 @@ function KanbanPageContent() {
     setModalOpen(true);
   }
 
+  function OwnerOnly({
+    projectId,
+    children,
+  }: {
+    projectId: number;
+    children: React.ReactNode;
+  }) {
+    const isOwner = useIsProjectOwner(projectId);
+    if (!isOwner) return null;
+    return <>{children}</>;
+  }
+
   function openUpdateModal(task: Task) {
     setSelectedTask(task);
     setModalMode("update");
@@ -114,40 +129,79 @@ function KanbanPageContent() {
   }
 
   if (projectError || !project) {
-    const isRateLimited =
-      axios.isAxiosError(projectErr) && projectErr.response?.status === 429;
+    const isAxiosError = axios.isAxiosError(projectErr);
+    const status = isAxiosError ? projectErr.response?.status : null;
+
+    // 1. Handle Rate Limiting (429)
+    if (status === 429) {
+      return (
+        <div className="w-full flex flex-col items-center justify-center gap-3 text-center min-h-[calc(100vh-64px)]">
+          <p className="text-destructive font-medium">
+            Too many requests. Please wait a moment.
+          </p>
+          <Button
+            variant="save"
+            onClick={() => refetchProject()}
+            className="text-accent text-sm hover:underline"
+          >
+            Try again
+          </Button>
+        </div>
+      );
+    }
+
+    // 2. Handle Unauthorized / Not Your Project (403 or 404)
+    if (status === 403 || status === 404) {
+      return (
+        <div className="w-full flex flex-col items-center justify-center gap-4 text-center min-h-[calc(100vh-64px)] px-6">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            🔒
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-lg font-semibold text-foreground">
+              Access Denied
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-[250]">
+              You do not have permission to view this project, or it may not
+              exist.
+            </p>
+          </div>
+          <a
+            href="/projects"
+            className="mt-2 px-4 py-2 text-sm rounded-md bg-accent text-accent-foreground font-medium hover:opacity-90"
+          >
+            Back to Projects
+          </a>
+        </div>
+      );
+    }
+
+    // 3. Handle General Failure (Fallback)
     return (
       <div className="w-full flex flex-col items-center justify-center gap-3 text-center min-h-[calc(100vh-64px)]">
-        <p className="text-destructive font-medium">
-          {isRateLimited
-            ? "Too many requests. Please wait a moment."
-            : "Failed to load project."}
-        </p>
-        <button
+        <p className="text-destructive font-medium">Failed to load project.</p>
+        <Button
+          variant="save"
           onClick={() => refetchProject()}
           className="text-accent text-sm hover:underline"
         >
           Try again
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <div>
-      {/* 1. Added max-h-screen or h-screen wrapper context to ensure scrolling cuts off properly */}
-      <div className="h-screen-[calc(100vh-64px] w-full max-w-350 mx-auto flex flex-col gap-5 p-6 items-stretch overflow-hidden bg-background">
-        {/* 2. Simplified Header Wrapper - removed conflicting alignment rules */}
+      <div className="h-screen-[calc(100vh-64px] w-full max-w-300 mx-auto flex flex-col gap-5 p-6 items-stretch overflow-hidden bg-background">
         <div className="flex flex-col gap-1 w-full shrink-0">
-          <div className="flex flex-row w-full justify-between items-start gap-4">
+          <div className="flex flex-col sm:flex-row w-full justify-between items-start sm:items-center gap-4">
             <div className="flex flex-row items-center gap-2">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-primary-foreground text-sm font-bold tracking-wider uppercase select-none">
                 {getProjectInitials(project.name)}
               </div>
               <div className="flex flex-col gap-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap align-baseline">
-                  {" "}
-                  {/* flex-wrap stops badge from jumping breaking text */}
+                <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl font-bold text-foreground truncate">
                     {project.name}
                   </h1>
@@ -174,26 +228,36 @@ function KanbanPageContent() {
                 )}
               </div>
             </div>
-            <Button
-              onClick={openCreateModal}
-              variant="add"
-              className="hidden sm:inline-flex shrink-0 justify-center whitespace-nowrap"
-            >
-              Add Task
-            </Button>
-            <Button
-              onClick={() => setInviteModalOpen(true)}
-              variant="add"
-              className="hidden sm:inline-flex shrink-0 justify-center whitespace-nowrap"
-            >
-              Invite
-            </Button>
-            {inviteModalOpen && (
-              <GenerateInviteModal
-                projectId={project.id}
-                onClose={() => setInviteModalOpen(false)}
-              />
-            )}
+
+            {/* ⬇️ CLEANED UP: Merged duplicate nested flex wrapper divs into one clean action strip */}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <OwnerOnly projectId={project.id}>
+                <button
+                  onClick={() => setInviteModalOpen(true)}
+                  className="text-sm rounded-full border border-input bg-card px-4 py-2 text-accent transition-all duration-200 cursor-pointer hover:bg-accent hover:text-card hover:border-white!"
+                >
+                  <div className="flex items-center gap-2">
+                    <MoveUpRight className="h-4 w-4" />
+                    <span>Invite</span>
+                  </div>
+                </button>
+
+                {inviteModalOpen && (
+                  <GenerateInviteModal
+                    projectId={project.id}
+                    onClose={() => setInviteModalOpen(false)}
+                  />
+                )}
+              </OwnerOnly>
+              <Button
+                onClick={openCreateModal}
+                variant="add"
+                className="flex items-center"
+              >
+                <span className="sm:hidden">Task</span>
+                <span className="hidden sm:inline">Add Task</span>
+              </Button>
+            </div>
           </div>
 
           <div className="mt-4 flex items-center justify-between border-b border-border w-full">
@@ -203,14 +267,6 @@ function KanbanPageContent() {
                 ? "Drag cards between columns to update status"
                 : "Most recent changes first"}
             </div>
-            <Button
-              onClick={openCreateModal}
-              variant="add"
-              className="block sm:hidden shrink-0 "
-            >
-              <span className="hidden sm:block">Add Task</span>
-              <span className="sm:hidden">Add</span>
-            </Button>
           </div>
         </div>
         {activeView === "kanban" ? (
@@ -235,73 +291,4 @@ function KanbanPageContent() {
       </div>
     </div>
   );
-}
-
-{
-  /* <div className={`h-full flex flex-col p-0 items-center`}>
-  dead code just old backup
-     
-      <div className="flex flex-col justify-between  gap-2 px-4 py-3 bg-card max-w-[1400px] w-full ">
-        <div className="flex flex-col items-start justify-between gap-1 min-w-0">
-          <div className="flex flex-row w-full flex-1 justify-between">
-            <div className="flex flex-col gap-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <svg
-                  width="25"
-                  height="25"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--accent)"
-                  strokeWidth="2"
-                >
-                  <rect x="3" y="3" width="7" height="18" rx="1" />
-                  <rect x="14" y="3" width="7" height="11" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-                <h1 className="text-xl font-bold text-foreground truncate">
-                  {project.name}
-                </h1>
-                {donePercent === 100 && total > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-status-done bg-status-done/10 px-2 py-0.5 rounded-full">
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                    >
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                    Complete
-                  </span>
-                )}
-              </div>
-              {project.description && (
-                <p className="text-xs text-muted-foreground line-clamp-1">
-                  {project.description}
-                </p>
-              )}
-            </div>
-            <Button onClick={openCreateModal} variant="add">
-              Add Task
-            </Button>
-          </div>
-          <div className="mt-8 flex items-center justify-between border-b border-border w-full">
-            <ViewToggle
-              view={view}
-              setView={setView}
-              counts={{
-                board: tasks.length,
-                activity: 0,
-              }}
-            />
-            <div className="hidden text-xs text-muted-foreground sm:block">
-              {view === "board"
-                ? "Drag cards between columns to update status"
-                : "Most recent changes first"}
-            </div>
-          </div>
-        </div>
-      </div> */
 }

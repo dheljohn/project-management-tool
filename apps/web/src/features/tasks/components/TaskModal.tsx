@@ -93,7 +93,7 @@ export default function TaskModal({
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-black/60 sm:p-4"
+      className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-black/60 sm:p-4 backdrop-blur-[2px]"
       onClick={onClose}
     >
       <form

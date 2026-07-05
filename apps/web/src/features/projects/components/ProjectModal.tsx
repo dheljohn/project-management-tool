@@ -33,7 +33,7 @@ export default function ProjectModal({
     defaultValues: {
       name: project?.name ?? "",
       description: project?.description ?? "",
-      wipLimit: project?.wipLimit ?? 0,
+      wipLimit: project?.wipLimit ?? null,
     },
   });
 
@@ -53,7 +53,7 @@ export default function ProjectModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 sm:p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 sm:p-4 backdrop-blur-[2px]"
       onClick={onClose}
     >
       <form

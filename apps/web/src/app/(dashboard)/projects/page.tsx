@@ -7,7 +7,15 @@ import { useBreadcrumbs } from "../../../context/BreadcrumbContext";
 import { useProjects } from "../../../features/projects/hooks/useProjects";
 import { Project } from "../../../types/types";
 import { Button } from "../../../components/ui/Button";
-import { JoinProjectForm } from "../../../features/invite/components/JoinProjectForm";
+import { JoinProjectButton } from "../../../features/invite/components/JoinProjectModal";
+import {
+  ArrowDownZA,
+  ArrowUpAZ,
+  ClockArrowDown,
+  ClockArrowUp,
+  CalendarArrowDown,
+  CalendarArrowUp,
+} from "lucide-react";
 
 export default function ProjectsPage() {
   const { data: projects, isLoading, isError, refetch } = useProjects();
@@ -18,6 +26,9 @@ export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<Project | undefined>(
     undefined,
   );
+
+  <ArrowDownZA />;
+  <ArrowUpAZ />;
 
   const [sortBy, setSortBy] = useState<"updatedAt" | "createdAt" | "name">(
     "updatedAt",
@@ -71,6 +82,41 @@ export default function ProjectsPage() {
     return new Date(p.updatedAt) > new Date(latest.updatedAt) ? p : latest;
   }, null);
 
+  const getSortIcon = (value: string, order: "asc" | "desc") => {
+    const iconSize = 14;
+    if (value === "name") {
+      return order === "asc" ? (
+        <ArrowUpAZ size={iconSize} />
+      ) : (
+        <ArrowDownZA size={iconSize} />
+      );
+    }
+    if (value === "updatedAt") {
+      return order === "asc" ? (
+        <ClockArrowUp size={iconSize} />
+      ) : (
+        <ClockArrowDown size={iconSize} />
+      );
+    }
+    // Default to createdAt / Calendar
+    return order === "asc" ? (
+      <CalendarArrowUp size={iconSize} />
+    ) : (
+      <CalendarArrowDown size={iconSize} />
+    );
+  };
+
+  // Logic to switch order if pill is already active, otherwise switch the sorting category
+  const handleSortClick = (value: typeof sortBy) => {
+    if (sortBy === value) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(value);
+      // Optional: Set intuitive default directions when clicking a new pill
+      setSortOrder(value === "name" ? "asc" : "desc");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -114,7 +160,7 @@ export default function ProjectsPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Projects
               </h1>
-              <JoinProjectForm />
+
               <p className="text-muted-foreground text-xs sm:text-sm mt-1.5">
                 {list.length === 0
                   ? "No projects yet. Get started by creating your first one!"
@@ -124,9 +170,9 @@ export default function ProjectsPage() {
           </div>
 
           {list.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:gap-6 mt-4 sm:mt-5 justify-between">
+            <div className="flex flex-row items-center gap-3 sm:gap-4 lg:gap-6 mt-4 sm:mt-5 justify-between ">
               {/*  Stats  */}
-              <div className="flex  flex-wrap items-center gap-2 flex-1 min-w-0">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1 min-w-0 w-full justify-between md:justify-start">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
@@ -177,13 +223,19 @@ export default function ProjectsPage() {
                   </>
                 )}
               </div>
+              <div className="flex items-end gap-2 flex-col sm:flex-row ">
+                <JoinProjectButton />
 
-              <Button variant="add" onClick={openCreateModal}>
-                <span className="sm:hidden">New</span>
-
-                {/* Desktop (sm+): Shows "New Project" */}
-                <span className="hidden sm:inline">New Project</span>
-              </Button>
+                <Button
+                  variant="add"
+                  onClick={openCreateModal}
+                  // /* Changed flex-col flex to a centered row layout */
+                  className="flex items-center "
+                >
+                  <span className="sm:hidden">New</span>
+                  <span className="hidden sm:inline">New Project</span>
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -216,42 +268,33 @@ export default function ProjectsPage() {
                     className="w-full bg-muted border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
                   />
                 </div>
+
                 <div className="flex flex-wrap items-center gap-2 overflow-x-auto sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 pb-1 sm:pb-0 justify-end">
-                  <Button
-                    variant="cancel"
-                    onClick={() =>
-                      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
-                    }
-                  >
-                    {sortOrder === "asc" ? (
-                      <>
-                        ↑ <span>Asc</span>
-                      </>
-                    ) : (
-                      <>
-                        ↓ <span>Desc</span>
-                      </>
-                    )}
-                  </Button>
                   {[
+                    { label: "Name", value: "name" },
                     { label: "Updated", value: "updatedAt" },
                     { label: "Created", value: "createdAt" },
-                    { label: "Name", value: "name" },
-                  ].map((item) => (
-                    <Button
-                      variant="pill"
-                      key={item.value}
-                      onClick={() => setSortBy(item.value as typeof sortBy)}
-                      className={`shrink-0 px-3 py-2 rounded-full text-xs sm:text-sm transition-colors border
-                        ${
-                          sortBy === item.value
-                            ? "bg-accent text-accent-foreground border-accent"
-                            : "bg-muted text-muted-foreground border-border hover:bg-muted/70"
-                        }`}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
+                  ].map((item) => {
+                    const isActive = sortBy === item.value;
+                    return (
+                      <Button
+                        variant="pill"
+                        key={item.value}
+                        onClick={() =>
+                          handleSortClick(item.value as typeof sortBy)
+                        }
+                        className={`shrink-0 text-xs sm:text-sm flex items-center gap-1.5 transition-colors cursor-pointer
+                      ${
+                        isActive
+                          ? "text-accent border-accent bg-accent/5 "
+                          : "text-muted-foreground border-border hover:text-foreground hover:border-accent"
+                      }`}
+                      >
+                        <span>{item.label}</span>
+                        {isActive && getSortIcon(item.value, sortOrder)}
+                      </Button>
+                    );
+                  })}
                 </div>
               </>
             )}

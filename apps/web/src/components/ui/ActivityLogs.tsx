@@ -38,8 +38,8 @@ export default function ActivityLogs({ projectId }: { projectId: number }) {
   }, [handleObserver]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="flex gap-2 mb-4 px-1">
+    <div className="w-full max-w-2xl mx-auto ">
+      <div className="flex gap-2 mb-4 px-1 ">
         {FILTERS.map((f) => (
           <button
             key={f.value}

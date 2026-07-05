@@ -71,20 +71,22 @@ export function WipControl({
           }}
           className="inline-flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground hover:text-accent transition-colors"
         >
-          <span>{wipLimit ? "WIP" : "Edit WIP"}</span>
+          <span>{wipLimit ? "Edit WIP" : "Set WIP"}</span>
         </button>
       )}
-      <span
-        className={`text-xs font-mono px-1.5 py-0.5 rounded-full border inline-flex items-center justify-center ${
-          isExceeded
-            ? "text-destructive bg-destructive/10 border-destructive/30"
-            : isAtLimit
-              ? "text-orange-400 bg-orange-400/10 border-orange-400/30"
-              : "text-muted-foreground bg-muted border-border"
-        }`}
-      >
-        {inProgressCount}/{wipLimit ?? "∞"}
-      </span>
+      {wipLimit !== null && wipLimit !== undefined && (
+        <span
+          className={`text-xs font-mono px-1.5 py-0.5 rounded-full border inline-flex items-center justify-center ${
+            isExceeded
+              ? "text-destructive bg-destructive/10 border-destructive/30"
+              : isAtLimit
+                ? "text-orange-400 bg-orange-400/10 border-orange-400/30"
+                : "text-muted-foreground bg-muted border-border"
+          }`}
+        >
+          {inProgressCount}/{wipLimit}
+        </span>
+      )}
     </div>
   );
 }

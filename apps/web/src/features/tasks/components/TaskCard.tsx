@@ -23,7 +23,7 @@ export function TaskCard({ task, onClick, isJustCompleted }: TaskCardProps) {
           ${isJustCompleted ? "animate-task-complete opacity-50 cursor-default pointer-events-none border-2 border-destructive/40 rounded-xl " : " "} `}
         onClick={() => onClick(task)}
       >
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between gap-2 ">
           <p
             className={`text-foreground text-sm font-medium group-hover:text-accent transition-colors flex-1 ${isInDone ? "line-through  opacity-50" : " "}
               `}
@@ -43,7 +43,7 @@ export function TaskCard({ task, onClick, isJustCompleted }: TaskCardProps) {
           <span className="text-xs text-muted-foreground">#{task.id}</span>
 
           <div className="flex items-center gap-2">
-            {task.assignees.length > 0 && (
+            {(task.assignees ?? []).length > 0 && (
               <div className="flex -space-x-1">
                 {task.assignees.map(({ member }) => (
                   <div

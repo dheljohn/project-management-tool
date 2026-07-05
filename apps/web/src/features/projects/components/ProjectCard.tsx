@@ -5,15 +5,20 @@ import { Project } from "../../../types/types";
 import { useProjectTasks } from "../hooks/useProjectTasks";
 import { Button } from "../../../components/ui/Button";
 import { TruncatedText } from "../../../components/ui/TruncatedText";
+import { getUserInitials } from "../../../app/utils/getUserInitials";
+import { useProjectMembers } from "../../tasks/hooks/useProjectMembers";
 
 interface ProjectCardProps {
   project: Project;
   onEdit: (project: Project) => void;
 }
 
+const MAX_VISIBLE_AVATARS = 3;
+
 export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const router = useRouter();
   const { data: tasks } = useProjectTasks(project.id);
+  const { data: members = [] } = useProjectMembers(project.id);
 
   const counts = tasks
     ? {
@@ -30,6 +35,9 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
       : 0;
   const isComplete = (counts?.total ?? 0) > 0 && donePercent === 100;
   const isEmpty = counts !== null && counts.total === 0;
+
+  const visibleMembers = members.slice(0, MAX_VISIBLE_AVATARS);
+  const extraCount = members.length - visibleMembers.length;
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-accent transition-all duration-200 group hover:shadow-lift flex flex-col relative">
@@ -70,7 +78,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
           {project.description || "No description yet."}
         </p>
 
-        {/* Task breakdown */}
+        {/* Task breakdown — task count | in progress | updated date, vertical dividers only */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs text-muted-foreground">
           <span>
             <span className="font-mono text-foreground">
@@ -78,37 +86,34 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
             </span>{" "}
             tasks
           </span>
+
           {counts !== null && counts.total > 0 && (
             <>
-              <span className="h-3 w-px bg-border hidden xs:inline-block" />
-              <span className="flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-status-progress shrink-0" />
+              <span className="h-3 w-px bg-border" />
+              <span>
                 <span className="font-mono text-foreground">
                   {counts.inProgress}
                 </span>{" "}
                 in progress
               </span>
-              {counts.todo > 0 && (
-                <>
-                  <span className="h-3 w-px bg-border hidden xs:inline-block" />
-                  <span className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-status-todo shrink-0" />
-                    <span className="font-mono text-foreground">
-                      {counts.todo}
-                    </span>{" "}
-                    todo
-                  </span>
-                </>
-              )}
             </>
           )}
+
+          <span className="h-3 w-px bg-border" />
+          <span className="whitespace-nowrap">
+            Updated{" "}
+            {new Date(project.updatedAt).toLocaleDateString("en-PH", {
+              month: "short",
+              day: "numeric",
+            })}
+          </span>
         </div>
 
         {/* Progress */}
         <div className="flex flex-col gap-1.5 mt-auto pt-1">
           <div className="flex items-center justify-between">
             <span className="text-[11px] sm:text-xs text-muted-foreground">
-              Progress
+              Completion
             </span>
             <span
               className={`text-[11px] sm:text-xs font-semibold tabular-nums transition-colors ${
@@ -152,18 +157,26 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer — member avatars on the left, Open/Complete on the right */}
       <div className="px-4 sm:px-5 py-2.5 sm:py-3 border-t border-border flex items-center justify-between gap-2">
-        <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
-          Updated{" "}
-          {new Date(project.updatedAt).toLocaleDateString("en-PH", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </span>
+        <div className="flex items-center -space-x-2">
+          {visibleMembers.map((m) => (
+            <div
+              key={m.member.id}
+              title={m.member.username ?? m.member.user_id}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-foreground text-[10px] font-semibold uppercase select-none ring-2 ring-card"
+            >
+              {getUserInitials(m.member.username ?? m.member.user_id)}
+            </div>
+          ))}
+          {extraCount > 0 && (
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-border text-muted-foreground text-[10px] font-semibold select-none ring-2 ring-card">
+              +{extraCount}
+            </div>
+          )}
+        </div>
 
-        {isComplete && (
+        {isComplete ? (
           <span className="text-[10px] sm:text-xs font-medium text-status-done flex items-center gap-1 shrink-0">
             <svg
               width="11"
@@ -176,6 +189,20 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
               <path d="M20 6 9 17l-5-5" />
             </svg>
             Complete
+          </span>
+        ) : (
+          <span className="text-[10px] sm:text-xs font-medium text-accent flex items-center gap-1 shrink-0">
+            Open
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
           </span>
         )}
       </div>

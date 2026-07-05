@@ -228,6 +228,15 @@ export class TaskService {
         },
       });
 
+      if (dto.assigneeIds && dto.assigneeIds.length > 0) {
+        await tx.taskAssignee.createMany({
+          data: dto.assigneeIds.map((memberId) => ({
+            taskId: task.id,
+            memberId,
+          })),
+        });
+      }
+
       await tx.changeLog.create({
         data: {
           taskId: task.id,
@@ -239,7 +248,16 @@ export class TaskService {
         },
       });
 
-      return task;
+      return tx.task.findUniqueOrThrow({
+        where: { id: task.id },
+        include: {
+          assignees: {
+            include: {
+              member: { select: { id: true, user_id: true, username: true } },
+            },
+          },
+        },
+      });
     });
 
     await this.cacheHelper.invalidate(

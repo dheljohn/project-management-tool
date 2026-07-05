@@ -1,6 +1,7 @@
 import axios from "axios";
 import { toast } from "sonner";
 import { getCsrfToken } from "./csrf";
+import { setGlobalOfflineHandler } from "./offlineSignal";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
@@ -22,10 +23,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle errors globally
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    setGlobalOfflineHandler(false);
+    return response;
+  },
   (error) => {
+    if (!error.response) {
+      setGlobalOfflineHandler(true);
+      return Promise.reject(error);
+    }
     const status = error.response?.status;
 
     if (status === 401 && !error.config?.url?.includes("testlogin")) {

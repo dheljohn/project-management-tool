@@ -16,7 +16,6 @@ export default function ProtectedRoute({ children }: RouteGuardProps) {
     api
       .get("/testlogin/me")
       .then(() => {
-        console.log("Authenticated");
         setIsAuthenticated(true);
       })
       .catch((error) => {

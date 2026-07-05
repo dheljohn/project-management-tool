@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "sonner";
+import { ServerStatusProvider } from "../context/ServerStatusContext";
+import { ServerOfflineOverlay } from "../components/layout/ServerOfflineOverlay";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,10 +36,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable}`}
         suppressHydrationWarning
       >
-        <Providers>
-          {children}
-          <Toaster position="top-right" theme="dark" />
-        </Providers>
+        <ServerStatusProvider>
+          <ServerOfflineOverlay />
+          <Providers>
+            {children}
+            <Toaster position="top-right" theme="dark" />
+          </Providers>
+        </ServerStatusProvider>
       </body>
     </html>
   );

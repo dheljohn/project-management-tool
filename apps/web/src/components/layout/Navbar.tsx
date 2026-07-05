@@ -8,6 +8,7 @@ import Image from "next/image";
 import api from "../../../lib/api";
 import { ChevronLeft } from "lucide-react";
 import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser";
+import { getUserInitials } from "../../app/utils/getUserInitials";
 
 export default function Navbar() {
   const router = useRouter();
@@ -55,9 +56,6 @@ export default function Navbar() {
     localStorage.removeItem("user_id");
     router.push("/login");
   }
-
-  // Initials for avatar
-  const initials = username.slice(0, 2).toUpperCase();
 
   return (
     <header className="h-16 border-b border-border bg-background shrink-0 shadow-sm z-20">
@@ -138,6 +136,7 @@ export default function Navbar() {
 
         {/*  Right: Avatar + Settings  */}
         <div className="flex items-center gap-3">
+          {/* <JoinProjectForm /> */}
           {/* Settings trigger */}
           <div className="relative" ref={settingsRef}>
             <button
@@ -176,7 +175,7 @@ export default function Navbar() {
                             items-center justify-center shrink-0"
                   >
                     <span className="text-accent text-xs font-bold sm:text-sm">
-                      {initials}
+                      {getUserInitials(username)}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">Signed in as</p>
@@ -254,17 +253,15 @@ export default function Navbar() {
               </div>
             )}
           </div>
-          {/* Username */}
-          {/* Avatar placeholder */}
+
           <div
             className="hidden sm:flex w-8 h-8 rounded-full bg-accent/20 border border-accent/30
                             items-center justify-center shrink-0"
           >
-            <span className="text-accent text-xs font-bold">{initials}</span>
+            <span className="text-accent text-xs font-bold">
+              {getUserInitials(username)}
+            </span>
           </div>
-          {/* <span className="hidden md:block text-sm text-muted-foreground">
-            {username.toUpperCase()}
-          </span> */}
         </div>
       </div>
     </header>
