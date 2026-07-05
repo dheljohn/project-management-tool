@@ -43,14 +43,17 @@ export function TaskCard({ task, onClick, isJustCompleted }: TaskCardProps) {
           <span className="text-xs text-muted-foreground">#{task.id}</span>
 
           <div className="flex items-center gap-2">
-            {task.assignee && (
-              <div
-                title={task.assignee.username ?? task.assignee.user_id}
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent text-[10px] font-semibold uppercase select-none"
-              >
-                {getUserInitials(
-                  task.assignee.username ?? task.assignee.user_id,
-                )}
+            {task.assignees.length > 0 && (
+              <div className="flex -space-x-1">
+                {task.assignees.map(({ member }) => (
+                  <div
+                    key={member.id}
+                    title={member.username ?? member.user_id}
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent text-[10px] font-semibold uppercase select-none ring-2 ring-card"
+                  >
+                    {getUserInitials(member.username ?? member.user_id)}
+                  </div>
+                ))}
               </div>
             )}
             <span className="text-xs text-muted-foreground">

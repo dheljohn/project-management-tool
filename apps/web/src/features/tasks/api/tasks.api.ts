@@ -23,7 +23,7 @@ export interface CreateTaskPayload {
   status: TaskStatus;
   priority: Priority;
   remark: string;
-  assigneeId: number | null;
+  assigneeIds: number[];
 }
 
 export interface UpdateTaskPayload {
@@ -33,7 +33,7 @@ export interface UpdateTaskPayload {
   status: string;
   priority: Priority;
   remark: string;
-  assigneeId: number | null;
+  assigneeIds: number[];
 }
 
 export const createTask = async (payload: CreateTaskPayload): Promise<Task> => {

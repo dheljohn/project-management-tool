@@ -5,6 +5,7 @@ import {
   IsString,
   IsOptional,
   IsInt,
+  IsArray,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateTaskDto } from './create-task.dto';
@@ -47,6 +48,7 @@ export class UpdateTaskDto extends PartialType(CreateTaskDto) {
   remark?: string;
 
   @IsOptional()
-  @IsInt()
-  assigneeId?: number | null;
+  @IsArray()
+  @IsInt({ each: true })
+  assigneeIds?: number[];
 }

@@ -12,7 +12,7 @@ interface UseTaskMutationArgs {
   projectId: number;
   taskId?: number;
   onSuccess: () => void;
-  assigneeId: number | null;
+  assigneeIds: number[];
 }
 
 export const useTaskMutation = ({
@@ -30,7 +30,7 @@ export const useTaskMutation = ({
       status: TaskStatus;
       priority: Priority;
       remark: string;
-      assigneeId: number | null;
+      assigneeIds: number[];
     }) => {
       if (mode === "create") {
         return createTask({
@@ -39,7 +39,7 @@ export const useTaskMutation = ({
           description: values.description,
           status: values.status,
           priority: values.priority,
-          assigneeId: values.assigneeId,
+          assigneeIds: values.assigneeIds,
           remark: values.remark || "Created via UI modal",
         });
       } else {
@@ -50,7 +50,7 @@ export const useTaskMutation = ({
           status: toApiStatus(values.status),
           priority: values.priority,
           remark: values.remark || "Updated via UI modal",
-          assigneeId: values.assigneeId,
+          assigneeIds: values.assigneeIds,
         });
       }
     },

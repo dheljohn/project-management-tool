@@ -49,6 +49,8 @@ export class AuthService {
       sameSite,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
+    console.log('!!!!!!!!!! LOGIN METHOD HIT !!!!!!!!!!');
+    console.log('cookie options:', getAuthCookieOptions());
 
     res.cookie('csrf_token', csrfToken, {
       httpOnly: false,
@@ -56,6 +58,7 @@ export class AuthService {
       sameSite,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
+    console.log('cookie options:', getAuthCookieOptions());
     return { user_id: member.user_id };
   }
 }

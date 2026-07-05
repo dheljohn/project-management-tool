@@ -33,8 +33,10 @@ export class TaskService {
       const projectTasks = await this.prisma.task.findMany({
         where: { projectId: projsID },
         include: {
-          assignee: {
-            select: { id: true, user_id: true, username: true },
+          assignees: {
+            include: {
+              member: { select: { id: true, user_id: true, username: true } },
+            },
           },
         },
       });
@@ -78,11 +80,6 @@ export class TaskService {
         oldValue: existing.priority,
         newValue: updateDto.priority,
       },
-      {
-        field: 'assignee',
-        oldValue: existing.assigneeId,
-        newValue: updateDto.assigneeId,
-      },
     ];
 
     const logs = userId
@@ -102,8 +99,8 @@ export class TaskService {
           }))
       : [];
 
-    const [updated] = await this.prisma.$transaction([
-      this.prisma.task.update({
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const task = await tx.task.update({
         where: { id: taskId },
         data: {
           ...(updateDto.title && { title: updateDto.title }),
@@ -114,18 +111,37 @@ export class TaskService {
           ...(updateDto.priority && {
             priority: updateDto.priority as Priority,
           }),
-          ...(updateDto.assigneeId !== undefined && {
-            assigneeId: updateDto.assigneeId,
-          }),
         },
+      });
+
+      if (updateDto.assigneeIds !== undefined) {
+        await tx.taskAssignee.deleteMany({ where: { taskId } });
+        if (updateDto.assigneeIds.length > 0) {
+          await tx.taskAssignee.createMany({
+            data: updateDto.assigneeIds.map((memberId) => ({
+              taskId,
+              memberId,
+            })),
+          });
+        }
+      }
+
+      for (const log of logs) {
+        await tx.changeLog.create({ data: log });
+      }
+
+      // Refetch with the now-current assignee list included.
+      return tx.task.findUniqueOrThrow({
+        where: { id: taskId },
         include: {
-          assignee: {
-            select: { id: true, user_id: true, username: true },
+          assignees: {
+            include: {
+              member: { select: { id: true, user_id: true, username: true } },
+            },
           },
         },
-      }),
-      ...logs.map((log) => this.prisma.changeLog.create({ data: log })),
-    ]);
+      });
+    });
 
     await this.cacheHelper.invalidate(
       'all_tasks',

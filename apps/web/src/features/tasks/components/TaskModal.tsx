@@ -17,14 +17,7 @@ interface TaskModalProps {
   task?: Task;
   projectId: number;
   onClose: () => void;
-  assigneeId: number | null;
 }
-
-// const STATUS_OPTIONS: { label: string; value: TaskStatus }[] = [
-//   { label: "Todo", value: "Todo" },
-//   { label: "In Progress", value: "In_Progress" },
-//   { label: "Done", value: "Done" },
-// ];
 
 export default function TaskModal({
   mode,
@@ -47,7 +40,7 @@ export default function TaskModal({
       description: task?.description ?? "",
       remark: "",
       priority: task?.priority ?? "Medium",
-      assigneeId: task?.assigneeId ?? null,
+      assigneeIds: task?.assignees.map((a) => a.member.id) ?? [],
     },
   });
 
@@ -58,14 +51,45 @@ export default function TaskModal({
     projectId,
     taskId: task?.id,
     onSuccess: onClose,
-    assigneeId: watch("assigneeId"),
+    assigneeIds: watch("assigneeIds"),
   });
 
   const onSubmit = (values: TaskFormValues) =>
-    mutate({ ...values, status, priority: values.priority as Priority });
+    mutate({
+      ...values,
+      status,
+      priority: values.priority as Priority,
+      assigneeIds: values.assigneeIds as number[],
+    });
 
   const inputClass =
     "bg-muted border border-border rounded-md px-3.5 py-2.5 sm:px-4 sm:py-2 w-full text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors";
+
+  const assigneeIds = watch("assigneeIds") ?? [];
+
+  const addAssigneeRow = () => {
+    setValue("assigneeIds", [...assigneeIds, NaN]);
+  };
+
+  const updateAssigneeAt = (index: number, memberId: number) => {
+    const next = [...assigneeIds];
+    next[index] = memberId;
+    setValue("assigneeIds", next);
+  };
+
+  const removeAssigneeAt = (index: number) => {
+    setValue(
+      "assigneeIds",
+      assigneeIds.filter((_, i) => i !== index),
+    );
+  };
+
+  // A member already chosen in another row shouldn't appear again,
+  // except in their own row (so switching selections still works).
+  const optionsFor = (currentValue: number) =>
+    members.filter(
+      (m) => m.member.id === currentValue || !assigneeIds.includes(m.member.id),
+    );
 
   return (
     <div
@@ -125,53 +149,44 @@ export default function TaskModal({
         </select>
 
         <label className="text-muted-foreground text-xs block mb-1">
-          Assignee
+          Assignees
         </label>
 
-        <select
-          title="assignee"
-          value={watch("assigneeId") ?? ""}
-          onChange={(e) => {
-            const raw = e.target.value;
-            setValue("assigneeId", raw === "" ? null : Number(raw));
-          }}
-          className={`${inputClass} mb-4`}
-        >
-          <option value="">Unassigned</option>
-          {/* {members.map((m) => (
-            <option key={m.member.id} value={m.member.id}>
-              {m.member.username ?? m.member.user_id}
-            </option>
-          ))} */}
-          {members.map((m) => {
-            console.log("member option:", m.member.id, m.member.username);
-            return (
-              <option key={m.member.id} value={m.member.id}>
-                {m.member.username ?? m.member.user_id}
-              </option>
-            );
-          })}
-        </select>
-
-        {/* {mode === "update" && (
-          <>
-            <label className="text-muted-foreground text-xs block mb-1">
-              Status
-            </label>
+        {assigneeIds.map((val, index) => (
+          <div key={index} className="flex items-center gap-2 mb-2">
             <select
-              title="task"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className={`${inputClass} mb-4`}
+              title={`assignee-${index}`}
+              value={Number.isNaN(val) ? "" : val}
+              onChange={(e) => updateAssigneeAt(index, Number(e.target.value))}
+              className={`${inputClass} flex-1`}
             >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
+              <option value="" disabled>
+                Select a member
+              </option>
+              {optionsFor(val).map((m) => (
+                <option key={m.member.id} value={m.member.id}>
+                  {m.member.username ?? m.member.user_id}
                 </option>
               ))}
             </select>
-          </>
-        )} */}
+            <button
+              type="button"
+              onClick={() => removeAssigneeAt(index)}
+              className="text-destructive text-sm px-2"
+              aria-label="Remove assignee"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={addAssigneeRow}
+          className="text-accent text-xs mb-4 hover:underline"
+        >
+          + Add assignee
+        </button>
 
         {error && (
           <p className="text-destructive text-sm mb-4">
