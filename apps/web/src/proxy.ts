@@ -15,19 +15,20 @@ export async function proxy(request: NextRequest) {
   );
 
   let isTokenValid = false;
+  let hasToken = false;
 
   if (token) {
+    hasToken = true;
     try {
-      // Verify the short-lived access token only.
-      // If it's expired, middleware lets the request through — the Axios
-      // interceptor will transparently refresh it on the first 401.
       const secret = process.env.JWT_ACCESS_SECRET;
       if (secret) {
         jwt.verify(token, secret);
         isTokenValid = true;
       }
-    } catch {
-      isTokenValid = false;
+    } catch (err: any) {
+      // Expired (but present) — let it through; client-side refresh will handle it.
+      // Only a missing token or an invalid signature counts as "not logged in".
+      isTokenValid = err?.name === "TokenExpiredError";
     }
   }
 
