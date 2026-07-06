@@ -38,6 +38,8 @@ COPY --from=pruner /app/out/full/ ./
 COPY --from=pruner /app/out/package-lock.json ./
 COPY --from=installer /app/node_modules ./node_modules
 
+RUN cd apps/api && npx prisma generate
+
 RUN npx turbo run build --filter=api
 
 # =========================
@@ -55,6 +57,7 @@ RUN addgroup --system --gid 1001 nodejs \
 
 # Copy everything as root first, so we can chmod before dropping privileges
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/generated ./apps/api/generated
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
