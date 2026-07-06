@@ -34,7 +34,7 @@ export class MemberService {
 
     const hashed = await bcrypt.hash(createDto.password, 10);
 
-    return this.prisma.member.create({
+    const created = await this.prisma.member.create({
       data: {
         ...createDto,
         email: normalizedEmail,
@@ -42,16 +42,24 @@ export class MemberService {
         password: hashed,
       },
     });
+
+    const { password: _pw, ...safe } = created;
+    return safe;
   }
 
   findAll() {
-    const member = this.prisma.member.findMany();
+    const member = this.prisma.member.findMany({
+      omit: { password: true },
+    });
     if (!member) throw new NotFoundException('No members found');
     return member;
   }
 
   async findOne(id: number) {
-    const member = await this.prisma.member.findUnique({ where: { id } });
+    const member = await this.prisma.member.findUnique({
+      where: { id },
+      omit: { password: true },
+    });
     if (!member) throw new NotFoundException('Member not found');
     return member;
   }
@@ -76,17 +84,18 @@ export class MemberService {
       );
     }
 
-    //  Hash new pass
     const hashedNewPassword = await bcrypt.hash(updateDto.new_password, 10);
 
-    // Update database record
-    return this.prisma.member.update({
+    const updated = await this.prisma.member.update({
       where: { user_id: updateDto.user_id },
       data: {
         email: updateDto.email,
         password: hashedNewPassword,
       },
     });
+
+    const { password: _pw, ...safe } = updated;
+    return safe;
   }
   async deleteByUserId(user_id: string) {
     return this.prisma.member.deleteMany({

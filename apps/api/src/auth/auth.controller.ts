@@ -37,7 +37,8 @@ export class AuthController {
   @ApiCookieAuth('auth_token')
   @ApiResponse({
     status: 200,
-    description: 'Returns the authenticated user payload from the access token.',
+    description:
+      'Returns the authenticated user payload from the access token.',
   })
   @ApiResponse({ status: 401, description: 'Access token missing or invalid.' })
   @UseGuards(JwtAuthGuard)
@@ -63,7 +64,7 @@ export class AuthController {
     description: 'Rate limit exceeded (max 5 login attempts per minute).',
   })
   @SkipCsrf()
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle({ default: { limit: 100, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @Post()
   login(
@@ -106,14 +107,12 @@ export class AuthController {
   })
   @ApiResponse({
     status: 403,
-    description: 'CSRF validation failed — x-csrf-token header missing or does not match cookie.',
+    description:
+      'CSRF validation failed — x-csrf-token header missing or does not match cookie.',
   })
   @HttpCode(HttpStatus.OK)
   @Post('/refresh')
-  refresh(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.authService.refresh(req, res);
   }
 
@@ -134,10 +133,7 @@ export class AuthController {
   @SkipCsrf()
   @HttpCode(HttpStatus.OK)
   @Post('/logout')
-  logout(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.authService.logout(req, res);
   }
 

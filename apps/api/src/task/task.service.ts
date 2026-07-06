@@ -24,7 +24,10 @@ export class TaskService {
       this.prisma.changeLog.findMany({
         where: { taskId },
         orderBy: { createdAt: 'desc' },
-        include: { task: true, member: true },
+        include: {
+          task: true,
+          member: { select: { id: true, user_id: true, username: true } },
+        },
       }),
     );
   }

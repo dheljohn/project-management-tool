@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -21,8 +18,6 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
   ) {}
-
-  // ─── Login ───────────────────────────────────────────────────────────────────
 
   async login(loginDto: LoginUserDto, res: Response) {
     const member = await this.prisma.member.findUnique({
@@ -44,8 +39,6 @@ export class AuthService {
 
     return { user_id: member.user_id };
   }
-
-  // ─── Refresh ──────────────────────────────────────────────────────────────────
 
   async refresh(req: Request, res: Response) {
     const rawToken: string | undefined = req.cookies?.['refresh_token'];
@@ -90,8 +83,6 @@ export class AuthService {
     return { success: true };
   }
 
-  // ─── Logout ───────────────────────────────────────────────────────────────────
-
   async logout(req: Request, res: Response) {
     const rawToken: string | undefined = req.cookies?.['refresh_token'];
 
@@ -118,13 +109,7 @@ export class AuthService {
     return { success: true };
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-  private async issueTokenPair(
-    userId: number,
-    user_id: string,
-    res: Response,
-  ) {
+  private async issueTokenPair(userId: number, user_id: string, res: Response) {
     const { secure, sameSite } = getAuthCookieOptions();
     const csrfToken = randomBytes(32).toString('hex');
     const jti = randomBytes(16).toString('hex');
@@ -162,7 +147,7 @@ export class AuthService {
       secure,
       sameSite,
       maxAge: REFRESH_TOKEN_TTL_MS,
-      path: '/testlogin/refresh', // scoped — only sent to the refresh endpoint
+      path: '/testlogin/refresh',
     });
 
     res.cookie('csrf_token', csrfToken, {
