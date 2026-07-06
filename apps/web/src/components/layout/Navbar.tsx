@@ -10,26 +10,25 @@ import { ChevronLeft } from "lucide-react";
 import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser";
 import { getUserInitials } from "../../app/utils/getUserInitials";
 import { useLogout } from "../../features/auth/hooks/useLogout";
+import { useTheme } from "next-themes";
+import SettingsSheet from "./SettingSheet";
 
 export default function Navbar() {
-  const router = useRouter();
   const pathname = usePathname();
   const { breadcrumbs } = useBreadcrumbs();
   const { data: currentUser } = useCurrentUser();
   const username = currentUser?.user_id ?? "User";
 
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
+
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+
   const settingsRef = useRef<HTMLDivElement>(null);
   const isKanban = pathname.startsWith("/projects/");
 
   const isProjectPage = pathname === "/projects";
   const { mutate, isPending, error } = useLogout();
-
-  // Sync isDark with <html> class on mount
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains("dark"));
-  }, []);
 
   // Close settings when clicking outside
   useEffect(() => {
@@ -46,11 +45,7 @@ export default function Navbar() {
   }, []);
 
   function toggleTheme() {
-    const html = document.documentElement;
-    const next = !isDark;
-    html.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-    setIsDark(next);
+    setTheme(isDark ? "light" : "dark");
   }
 
   function handleLogout() {
@@ -160,95 +155,14 @@ export default function Navbar() {
             </button>
 
             {/*  Settings Popup  */}
-            {settingsOpen && (
-              <div
-                className="absolute right-0 top-full mt-2 w-52 bg-card border border-border
-                              rounded-xl shadow-lift z-50 overflow-hidden"
-              >
-                {/* User info header */}
-                <div className="flex flex-col px-4 py-3 border-b border-border items-center">
-                  <div
-                    className="flex  w-8 h-8 rounded-full bg-accent/20 border border-accent/30
-                            items-center justify-center shrink-0"
-                  >
-                    <span className="text-accent text-xs font-bold sm:text-sm">
-                      {getUserInitials(username)}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Signed in as</p>
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {username.toUpperCase()}
-                  </p>
-                </div>
-
-                {/* Theme toggle */}
-                <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-foreground">
-                    {isDark ? (
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-                      </svg>
-                    ) : (
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <circle cx="12" cy="12" r="4" />
-                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-                      </svg>
-                    )}
-                    {isDark ? "Dark" : "Light"} mode
-                  </div>
-
-                  {/* Toggle switch */}
-                  <button
-                    type="button"
-                    aria-label="Toggle dark mode"
-                    onClick={toggleTheme}
-                    className={`relative w-9 h-5 rounded-full transition-colors duration-200
-                      ${isDark ? "bg-accent" : "bg-muted"}`}
-                  >
-                    <span
-                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-card
-                                  shadow transition-transform duration-200
-                                  ${isDark ? "translate-x-4" : "translate-x-0"}`}
-                    />
-                  </button>
-                </div>
-
-                {/* Logout */}
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-sm
-                             text-destructive hover:bg-destructive/10 transition-colors text-left"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                  Log out
-                </button>
-              </div>
-            )}
+            <SettingsSheet
+              open={settingsOpen}
+              onClose={() => setSettingsOpen(false)}
+              username={username}
+              isDark={isDark}
+              toggleTheme={toggleTheme}
+              onLogout={handleLogout}
+            />
           </div>
 
           <div

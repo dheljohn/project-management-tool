@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { Toaster } from "sonner";
 import { ServerStatusProvider } from "../context/ServerStatusContext";
 import { ServerOfflineOverlay } from "../components/layout/ServerOfflineOverlay";
+import { ThemeProvider } from "next-themes";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -38,10 +39,16 @@ export default function RootLayout({
       >
         <ServerStatusProvider>
           <ServerOfflineOverlay />
-          <Providers>
-            {children}
-            <Toaster position="top-right" theme="dark" />
-          </Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+          >
+            <Providers>
+              {children}
+              <Toaster position="top-right" theme="dark" />
+            </Providers>
+          </ThemeProvider>
         </ServerStatusProvider>
       </body>
     </html>
