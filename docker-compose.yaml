@@ -1,14 +1,36 @@
 services:
   api:
-    build: { context: ., dockerfile: apps/api/Dockerfile }
-    ports: ["8000:8000"]
-    env_file:
-      - apps/api/.env.local
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      args:
+        # DATABASE_URL is needed at build time for `prisma generate`.
+        # It is read from your .env.local file (see apps/api/.env.local.example).
+        DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "8000:8000"
+    environment:
+      # All runtime env vars are injected here directly.
+      # Copy apps/api/.env.local.example to apps/api/.env.local and fill in values.
+      NODE_ENV: production
+      PORT: "8000"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      TEST_SECRET: ${TEST_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
 
   web:
-    build: { context: ., dockerfile: apps/web/Dockerfile }
-    ports: ["3000:3000"]
-    env_file:
-      - apps/web/.env.local
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
     depends_on:
       - api
