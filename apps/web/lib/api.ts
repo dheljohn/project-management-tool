@@ -4,7 +4,8 @@ import { getCsrfToken } from "./csrf";
 import { setGlobalOfflineHandler } from "./offlineSignal";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
+  // baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
+  baseURL: "/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -55,9 +56,8 @@ api.interceptors.response.use(
     // Skip retry for the auth endpoints themselves to avoid infinite loops.
     const isAuthEndpoint =
       originalRequest?.url?.includes("/testlogin/refresh") ||
-      originalRequest?.url?.includes("/testlogin/logout") ||
-      (originalRequest?.url?.includes("/testlogin") &&
-        !originalRequest?.url?.includes("/testlogin/me"));
+      originalRequest?.url?.includes("/testlogin/login") ||
+      originalRequest?.url?.includes("/testlogin/logout");
 
     if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
