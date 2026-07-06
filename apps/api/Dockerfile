@@ -43,6 +43,9 @@ ENV DATABASE_URL=${DATABASE_URL}
 COPY --from=pruner /app/out/full/ ./
 COPY --from=pruner /app/out/package-lock.json ./
 COPY --from=installer /app/node_modules ./node_modules
+# Also copy app-level node_modules — some packages (e.g. @nestjs/cache-manager)
+# are not hoisted to the root by npm workspaces and live only here.
+COPY --from=installer /app/apps/api/node_modules ./apps/api/node_modules
 
 # Generate the Prisma client (writes to apps/api/generated/prisma)
 RUN cd apps/api && npx prisma generate
