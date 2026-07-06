@@ -12,8 +12,11 @@ import {
 import { InvitesService } from './invite.service';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { JoinProjectDto } from './dto/join-project.dto';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard'; // adjust path to your actual guard
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 
+@ApiTags('invites')
+@ApiCookieAuth('auth_token')
 @UseGuards(JwtAuthGuard)
 @Controller('invites')
 export class InvitesController {

@@ -17,8 +17,9 @@ import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { SkipCsrf } from 'src/auth/decorators/skip-csrf.decorator';
-import { ApiHeader } from '@nestjs/swagger';
+import { ApiHeader, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('members')
 @Controller('test01')
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
@@ -30,18 +31,21 @@ export class MemberController {
     return this.memberService.create(createDto);
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_all_member')
   findAll() {
     return this.memberService.findAll();
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_member')
   findOne(@Query('id') id: string) {
     return this.memberService.findOne(Number(id));
   }
 
+  @ApiCookieAuth('auth_token')
   @ApiHeader({
     name: 'X-CSRF-Token',
     description: 'Copy from your csrf_token cookie',

@@ -14,13 +14,15 @@ import { ChangelogService } from './changelog.service';
 import { CreateChangelogDto } from './dto/create-changelog.dto';
 import { UpdateChangelogDto } from './dto/update-changelog.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { ApiHeader, ApiQuery } from '@nestjs/swagger';
+import { ApiHeader, ApiQuery, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
+@ApiTags('changelog')
 @Controller('test04')
 export class ChangelogController {
   constructor(private readonly changelogService: ChangelogService) {}
 
+  @ApiCookieAuth('auth_token')
   @ApiHeader({
     name: 'X-CSRF-Token',
     description: 'Copy from your csrf_token cookie',
@@ -35,6 +37,7 @@ export class ChangelogController {
     return this.changelogService.create(createDto, user.id, user.user_id);
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('get_all_change_log')
@@ -42,6 +45,7 @@ export class ChangelogController {
     return this.changelogService.findAll();
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('get_change_log')
@@ -49,6 +53,7 @@ export class ChangelogController {
     return this.changelogService.findOne(Number(id));
   }
 
+  @ApiCookieAuth('auth_token')
   @ApiHeader({
     name: 'X-CSRF-Token',
     description: 'Copy from your csrf_token cookie',
@@ -60,6 +65,7 @@ export class ChangelogController {
     return this.changelogService.update(updateDto);
   }
 
+  @ApiCookieAuth('auth_token')
   @ApiQuery({ name: 'projectId', type: Number, required: true, example: 30 })
   @ApiQuery({
     name: 'cursor',

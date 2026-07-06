@@ -16,12 +16,14 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import type { RequestWithUser } from 'src/common/interface/request-with-user.interface';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { ApiHeader } from '@nestjs/swagger';
+import { ApiHeader, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('projects')
 @Controller('test02')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
+  @ApiCookieAuth('auth_token')
   @ApiHeader({
     name: 'X-CSRF-Token',
     description: 'Copy from your csrf_token cookie',
@@ -33,24 +35,28 @@ export class ProjectsController {
     return this.projectsService.create(req.user.id, createDto);
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_all_projects')
   findAll(@Req() req: RequestWithUser) {
     return this.projectsService.findAll();
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_user_projects')
   findAllByUser(@Req() req: RequestWithUser) {
     return this.projectsService.findAllByUser(req.user.id);
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_project')
   findOne(@Query('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
     return this.projectsService.findOne(id, req.user.id);
   }
 
+  @ApiCookieAuth('auth_token')
   @ApiHeader({
     name: 'X-CSRF-Token',
     description: 'Copy from your csrf_token cookie',
@@ -61,6 +67,7 @@ export class ProjectsController {
     return this.projectsService.update(req.user.id, updateDto);
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_project_members')
   listMembers(

@@ -11,7 +11,8 @@ const api = axios.create({
   },
 });
 
-// Attach CSRF token to state-changing requests (cookie auth handles the rest)
+// ─── Request interceptor: attach CSRF token to mutating requests ──────────────
+
 api.interceptors.request.use((config) => {
   const method = config.method?.toUpperCase();
   if (method && !["GET", "HEAD", "OPTIONS"].includes(method)) {
@@ -23,24 +24,66 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// ─── Refresh token queue ──────────────────────────────────────────────────────
+// Prevents multiple simultaneous 401s from firing parallel refresh calls.
+
+let isRefreshing = false;
+let refreshQueue: Array<() => void> = [];
+
+function drainQueue() {
+  refreshQueue.forEach((cb) => cb());
+  refreshQueue = [];
+}
+
+// ─── Response interceptor ─────────────────────────────────────────────────────
+
 api.interceptors.response.use(
   (response) => {
     setGlobalOfflineHandler(false);
     return response;
   },
-  (error) => {
+  async (error) => {
     if (!error.response) {
       setGlobalOfflineHandler(true);
       return Promise.reject(error);
     }
+
     const status = error.response?.status;
+    const originalRequest = error.config;
 
-    if (status === 401 && !error.config?.url?.includes("testlogin")) {
-      window.location.href = "/login";
-    }
+    // ── Transparent token refresh on 401 ────────────────────────────────────
+    // Skip retry for the auth endpoints themselves to avoid infinite loops.
+    const isAuthEndpoint =
+      originalRequest?.url?.includes("/testlogin/refresh") ||
+      originalRequest?.url?.includes("/testlogin/logout") ||
+      (originalRequest?.url?.includes("/testlogin") &&
+        !originalRequest?.url?.includes("/testlogin/me"));
 
-    if (status === 400) {
-      // Validation errors are surfaced to the UI via error.response.data
+    if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+      if (isRefreshing) {
+        // Another refresh is already in flight — queue this request.
+        return new Promise((resolve) => {
+          refreshQueue.push(() => resolve(api(originalRequest)));
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // POST /testlogin/refresh — CSRF header is attached by the request
+        // interceptor above since this is a POST.
+        await api.post("/testlogin/refresh");
+        drainQueue();
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Refresh token itself is dead — force a real re-login.
+        refreshQueue = [];
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
 
     if (status === 429) {

@@ -18,13 +18,15 @@ export async function proxy(request: NextRequest) {
 
   if (token) {
     try {
-      const secret = process.env.JWT_SECRET;
+      // Verify the short-lived access token only.
+      // If it's expired, middleware lets the request through — the Axios
+      // interceptor will transparently refresh it on the first 401.
+      const secret = process.env.JWT_ACCESS_SECRET;
       if (secret) {
         jwt.verify(token, secret);
         isTokenValid = true;
       }
     } catch {
-      isTokenValid = false;
       isTokenValid = false;
     }
   }

@@ -19,6 +19,19 @@ model Member {
   memberships    ProjectMember[] // projects joined (including own, via seed on creation)
   createdInvites InviteCode[]
   taskAssignees  TaskAssignee[]
+  refreshTokens  RefreshToken[]
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  jti       String    @unique
+  userId    Int
+  user      Member    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model Project {
