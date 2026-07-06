@@ -8,8 +8,6 @@ import { useProject } from "../../../../features/projects/hooks/useProject";
 import { useProjectTasks } from "../../../../features/projects/hooks/useProjectTasks";
 import { useChangeLogs } from "../../../../features/logs/hooks/useChangeLogs";
 import KanbanBoard from "../../../../features/tasks/components/KanbanBoard";
-import ActivityLog from "../../../../components/ui/ActivityLog";
-// import BoardToggle from "../../../../components/ui/FloatingButton";
 import axios from "axios";
 import ViewToggle from "../../../../components/ui/ViewToggle";
 import { Task, TaskStatus } from "../../../../types/types";
@@ -18,7 +16,6 @@ import { Button } from "../../../../components/ui/Button";
 import TaskModal from "../../../../features/tasks/components/TaskModal";
 import { getProjectInitials } from "../../../utils/string";
 import ActivityLogs from "../../../../components/ui/ActivityLogs";
-import { useWip, WipProvider } from "../../../../context/WipContext";
 import { useTaskStatusMutation } from "../../../../features/tasks/hooks/useTaskStatusMutation";
 import { GenerateInviteModal } from "../../../../features/invite/components/GenerateInviteModal";
 import { useProjectSocket } from "../../../../features/tasks/hooks/useProjectSocket";
@@ -51,9 +48,6 @@ function KanbanPageContent() {
 
   const { setBreadcrumbs } = useBreadcrumbs();
   useProjectSocket(projectId);
-
-  // const showKanban = activeView === "kanban" || activeView === "both";
-  // const showActivity = activeView === "activity" || activeView === "both";
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "update">("create");

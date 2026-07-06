@@ -40,7 +40,7 @@ api.interceptors.response.use(
     }
 
     if (status === 400) {
-      console.error("Backend Validation Error Details:", error.response.data);
+      // Validation errors are surfaced to the UI via error.response.data
     }
 
     if (status === 429) {

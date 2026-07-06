@@ -15,7 +15,7 @@ import { Throttle } from '@nestjs/throttler';
 import { SkipCsrf } from './decorators/skip-csrf.decorator';
 import { randomBytes } from 'crypto';
 import { getAuthCookieOptions } from './cookie-options.util';
-import { NoCsrf } from './decorators/no-csrf.decorator';
+
 
 @Controller('testlogin')
 export class AuthController {
@@ -27,7 +27,6 @@ export class AuthController {
     return req.user;
   }
 
-  // @NoCsrf()
   @SkipCsrf()
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post()

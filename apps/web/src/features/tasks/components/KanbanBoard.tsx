@@ -60,15 +60,6 @@ export default function KanbanBoard({
     return tasks.filter((t) => t.status === status);
   }
 
-  // const total = tasks.length;
-  // const doneCount = getTasksByStatus("Done").length;
-  // const donePercent = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-
-  // function openCreateModal() {
-  //   setSelectedTask(undefined);
-  //   setModalMode("create");
-  //   setModalOpen(true);
-  // }
 
   function openUpdateModal(task: Task) {
     setSelectedTask(task);
