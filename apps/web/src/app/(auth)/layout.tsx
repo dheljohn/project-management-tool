@@ -396,8 +396,8 @@ export default function AuthLayout({
             <Logo />
           </div>
           <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
-            Manage projects, track progress, and build your workflow all in one
-            place.
+            Invite teams, track live progress, and build your workflow together
+            all in one place.
           </p>
         </div>
       </div>

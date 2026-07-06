@@ -14,16 +14,25 @@ import { ChangelogService } from './changelog.service';
 import { CreateChangelogDto } from './dto/create-changelog.dto';
 import { UpdateChangelogDto } from './dto/update-changelog.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { ApiHeader, ApiQuery } from '@nestjs/swagger';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 
 @Controller('test04')
 export class ChangelogController {
   constructor(private readonly changelogService: ChangelogService) {}
 
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('create_changelog')
-  create(@Body() createDto: CreateChangelogDto) {
-    return this.changelogService.create(createDto);
+  create(
+    @Body() createDto: CreateChangelogDto,
+    @CurrentUser() user: { id: number; user_id: string },
+  ) {
+    return this.changelogService.create(createDto, user.id, user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -40,6 +49,10 @@ export class ChangelogController {
     return this.changelogService.findOne(Number(id));
   }
 
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Patch('update_change_log')
@@ -47,6 +60,21 @@ export class ChangelogController {
     return this.changelogService.update(updateDto);
   }
 
+  @ApiQuery({ name: 'projectId', type: Number, required: true, example: 30 })
+  @ApiQuery({
+    name: 'cursor',
+    type: Number,
+    required: false,
+    description: 'ID of the last item from the previous page',
+  })
+  @ApiQuery({ name: 'limit', type: Number, required: false, example: 10 })
+  @ApiQuery({
+    name: 'field',
+    type: String,
+    required: false,
+    example: 'status',
+    description: 'Filter by changelog field type',
+  })
   @UseGuards(JwtAuthGuard)
   @Get('get_change_log_by_project')
   getChangeLogByProject(

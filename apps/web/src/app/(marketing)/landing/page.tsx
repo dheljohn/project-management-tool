@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "../../../components/layout/navbar/Logo";
+import { Users } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -84,89 +85,243 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
         {/* Kanban Preview */}
+
         <section className="px-6 pb-20">
-          <div className="max-w-5xl mx-auto">
-            <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-lift">
-              {/* Mock browser bar */}
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-surface">
+          <div className="max-w-6xl mx-auto">
+            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
+              {/* Browser bar */}
+              <div className="flex items-center gap-3 border-b border-border bg-surface px-4 py-3">
                 <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-destructive/40" />
-                  <div className="w-3 h-3 rounded-full bg-status-progress/40" />
-                  <div className="w-3 h-3 rounded-full bg-status-done/40" />
+                  <div className="h-3 w-3 rounded-full bg-destructive/40" />
+                  <div className="h-3 w-3 rounded-full bg-status-progress/40" />
+                  <div className="h-3 w-3 rounded-full bg-status-done/40" />
                 </div>
-                <div className="flex-1 mx-4 bg-muted rounded-md px-3 py-1 text-xs text-muted-foreground text-center">
+
+                <div className="flex-1 rounded-md bg-muted px-3 py-1 text-center text-xs text-muted-foreground">
                   proyekto.app/projects/1
                 </div>
               </div>
 
-              {/* Mock Kanban board */}
-              <div className="p-6 grid grid-cols-3 gap-4 bg-background min-h-64">
-                {/* Todo column */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                      To do
-                    </span>
-                  </div>
-                  {[
-                    "Design system setup",
-                    "API integration",
-                    "Write unit tests",
-                  ].map((t) => (
-                    <div
-                      key={t}
-                      className="bg-card border border-border rounded-lg p-3"
-                    >
-                      <p className="text-xs font-medium text-foreground">{t}</p>
-                      <div className="mt-2 h-1 w-1/3 rounded-full bg-muted" />
-                    </div>
-                  ))}
-                </div>
-
-                {/* In Progress column */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                      In Progress
-                    </span>
-                  </div>
-                  {["Build Kanban board", "Auth with httpOnly"].map((t) => (
-                    <div
-                      key={t}
-                      className="bg-card border border-border rounded-lg p-3"
-                    >
-                      <p className="text-xs font-medium text-foreground">{t}</p>
-                      <div className="mt-2 h-1 w-2/3 rounded-full bg-status-progress/30">
-                        <div className="h-full w-1/2 rounded-full bg-status-progress" />
+              {/* Board */}
+              <div className="grid grid-cols-1 gap-5 bg-background p-6 md:grid-cols-3">
+                {/* ================= Todo ================= */}
+                <div className="overflow-hidden rounded-xl border border-border bg-surface">
+                  <div className="border-b border-border bg-card-muted px-5 py-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2.5 w-2.5 rounded-full bg-status-todo" />
+                        <h3 className="text-sm font-semibold text-foreground">
+                          To do
+                        </h3>
                       </div>
+
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        3
+                      </span>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="space-y-3 p-4">
+                    {[
+                      {
+                        title: "Design system setup",
+                        desc: "Create reusable UI components.",
+                        priority: "High",
+                        color: "bg-red-500/10 text-red-500",
+                      },
+                      {
+                        title: "API integration",
+                        desc: "Connect backend endpoints.",
+                        priority: "Medium",
+                        color: "bg-yellow-500/10 text-yellow-500",
+                      },
+                      {
+                        title: "Write unit tests",
+                        desc: "Increase code coverage.",
+                        priority: "Low",
+                        color: "bg-green-500/10 text-green-500",
+                      },
+                    ].map((task) => (
+                      <div
+                        key={task.title}
+                        className="rounded-lg border border-l-2 border-border bg-card p-4 transition-transform duration-300 "
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="flex-1 text-sm font-medium text-foreground">
+                            {task.title}
+                          </p>
+
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${task.color}`}
+                          >
+                            {task.priority}
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {task.desc}
+                        </p>
+
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="flex -space-x-1">
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/20 text-[10px] font-semibold text-accent ring-2 ring-card">
+                              JD
+                            </div>
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/20 text-[10px] font-semibold text-accent ring-2 ring-card">
+                              AN
+                            </div>
+                          </div>
+
+                          <span className="text-[10px] text-muted-foreground">
+                            Jul 6
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Done column */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                      Done
-                    </span>
-                  </div>
-                  {[
-                    "Project scaffold",
-                    "Database schema",
-                    "Login page",
-                    "Route guards",
-                  ].map((t) => (
-                    <div
-                      key={t}
-                      className="bg-card border border-border rounded-lg p-3 opacity-70"
-                    >
-                      <p className="text-xs font-medium text-foreground line-through">
-                        {t}
-                      </p>
+                {/* ================= In Progress ================= */}
+                <div className="overflow-hidden rounded-xl border border-border bg-surface">
+                  <div className="border-b border-border bg-card-muted px-5 py-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2.5 w-2.5 rounded-full bg-status-progress" />
+                        <h3 className="text-sm font-semibold text-foreground">
+                          In Progress
+                        </h3>
+                      </div>
+
+                      <span className="rounded-full bg-status-progress/10 px-2 py-0.5 text-[10px] font-medium text-status-progress">
+                        2 / 5
+                      </span>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="space-y-3 p-4">
+                    {[
+                      {
+                        title: "Implement anti-CSRF filters",
+                        desc: "Secure backend request pipes for incoming team actions.",
+                        priority: "High",
+                        color: "bg-red-500/10 text-red-500",
+                      },
+                      {
+                        title: "Test live websocket channels",
+                        desc: "Verify that board updates broadcast across all screens instantly.",
+                        priority: "Medium",
+                        color: "bg-yellow-500/10 text-yellow-500",
+                      },
+                    ].map((task) => (
+                      <div
+                        key={task.title}
+                        className="rounded-lg border border-l-2 border-border bg-card p-4 transition-transform duration-300 "
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="flex-1 text-sm font-medium text-foreground">
+                            {task.title}
+                          </p>
+
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${task.color}`}
+                          >
+                            {task.priority}
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {task.desc}
+                        </p>
+
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="flex -space-x-1">
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/20 text-[10px] font-semibold text-accent ring-2 ring-card">
+                              CO
+                            </div>
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/20 text-[10px] font-semibold text-accent ring-2 ring-card">
+                              DE
+                            </div>
+                          </div>
+
+                          <span className="text-[10px] text-muted-foreground">
+                            Jul 6
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ================= Done ================= */}
+                <div className="overflow-hidden rounded-xl border border-border bg-surface">
+                  <div className="border-b border-border bg-card-muted px-5 py-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2.5 w-2.5 rounded-full bg-status-done" />
+                        <h3 className="text-sm font-semibold text-foreground">
+                          Done
+                        </h3>
+                      </div>
+
+                      <span className="rounded-full bg-status-done/10 px-2 py-0.5 text-[10px] font-medium text-status-done">
+                        2
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 p-4">
+                    {[
+                      {
+                        title: "Database Schema",
+                        desc: "Create a database schema for the application.",
+                        priority: "High",
+                        color: "bg-red-500/10 text-red-500",
+                      },
+                      {
+                        title: "Login Page",
+                        desc: "Create a login page for the application.",
+                        priority: "Medium",
+                        color: "bg-yellow-500/10 text-yellow-500",
+                      },
+                    ].map((task) => (
+                      <div
+                        key={task.title}
+                        className="rounded-lg border border-l-2 border-border bg-card p-4 transition-transform duration-300  "
+                      >
+                        <div className="flex items-start justify-between gap-2 ">
+                          <p className="flex-1 text-sm font-medium text-foreground line-through ">
+                            {task.title}
+                          </p>
+
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${task.color}`}
+                          >
+                            {task.priority}
+                          </span>
+                        </div>
+
+                        <p className="mt-2 text-xs text-muted-foreground line-through">
+                          {task.desc}
+                        </p>
+
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="flex -space-x-1">
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/20 text-[10px] font-semibold text-accent ring-2 ring-card">
+                              SD
+                            </div>
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/20 text-[10px] font-semibold text-accent ring-2 ring-card">
+                              ML
+                            </div>
+                          </div>
+
+                          <span className="text-[10px] text-muted-foreground">
+                            Jul 4
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -240,7 +395,7 @@ export default function LandingPage() {
                     </svg>
                   ),
                   title: "Secure by default",
-                  desc: "JWT stored in httpOnly cookies — never exposed to JavaScript. NestJS guards protect every endpoint.",
+                  desc: "Login details are hidden in tamper-proof cookies with anti-hijack CSRF protection, completely blocked from malicious scripts by secure NestJS walls.",
                 },
                 {
                   icon: (
@@ -261,21 +416,14 @@ export default function LandingPage() {
                 },
                 {
                   icon: (
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <path d="M12 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                      <path d="M15 3h6v6" />
-                      <path d="M10 14L21 3" />
-                    </svg>
+                    <Users
+                      size={20}
+                      strokeWidth={1.5}
+                      className="text-accent"
+                    />
                   ),
-                  title: "Split panel view",
-                  desc: "Toggle between Kanban only, Activity Log only, or a split view — preference saved automatically.",
+                  title: "Real-time collaboration",
+                  desc: "Work seamlessly with multiple team members simultaneously. updates and logs sync automatically.",
                 },
                 {
                   icon: (
@@ -313,7 +461,6 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
         {/*  CTA Banner  */}
         <section className="px-6 py-20" id="cta">
           <div className="max-w-2xl mx-auto text-center bg-card border border-border rounded-2xl p-12">

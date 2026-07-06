@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useBreadcrumbs } from "../../context/BreadcrumbContext";
 import Image from "next/image";
 import api from "../../../lib/api";
 import { ChevronLeft } from "lucide-react";
 import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser";
 import { getUserInitials } from "../../app/utils/getUserInitials";
+import { useLogout } from "../../features/auth/hooks/useLogout";
 
 export default function Navbar() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function Navbar() {
   const isKanban = pathname.startsWith("/projects/");
 
   const isProjectPage = pathname === "/projects";
+  const { mutate, isPending, error } = useLogout();
 
   // Sync isDark with <html> class on mount
   useEffect(() => {
@@ -51,10 +53,8 @@ export default function Navbar() {
     setIsDark(next);
   }
 
-  async function handleLogout() {
-    await api.post("testlogin/logout");
-    localStorage.removeItem("user_id");
-    router.push("/login");
+  function handleLogout() {
+    mutate();
   }
 
   return (
@@ -62,9 +62,6 @@ export default function Navbar() {
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
         {/*  Left: Logo + Breadcrumbs  */}
         <div className="flex items-center gap-3">
-          {/* <Link href="/projects" className="block sm:hidden">
-            <ChevronLeft />
-          </Link> */}
           <Link
             href="/projects"
             className="flex items-center gap-0 select-none"

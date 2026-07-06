@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -46,7 +47,7 @@ export class TaskService {
     });
   }
 
-  async update(updateDto: UpdateTaskDto, userId: string) {
+  async update(updateDto: UpdateTaskDto, userId: string, callerId: number) {
     if (!updateDto.task_id) {
       throw new BadRequestException('Task ID is required');
     }
@@ -56,6 +57,34 @@ export class TaskService {
       where: { id: taskId },
     });
     if (!existing) throw new NotFoundException('Task not found');
+
+    // Only actual members of this task's project can update it.
+    const membership = await this.prisma.projectMember.findUnique({
+      where: {
+        projectId_memberId: {
+          projectId: existing.projectId,
+          memberId: callerId,
+        },
+      },
+    });
+    if (!membership) {
+      throw new ForbiddenException('Not a member of this project');
+    }
+
+    // Anyone being assigned must also actually be a member of this project.
+    if (updateDto.assigneeIds && updateDto.assigneeIds.length > 0) {
+      const validCount = await this.prisma.projectMember.count({
+        where: {
+          projectId: existing.projectId,
+          memberId: { in: updateDto.assigneeIds },
+        },
+      });
+      if (validCount !== updateDto.assigneeIds.length) {
+        throw new BadRequestException(
+          'One or more assignees are not members of this project',
+        );
+      }
+    }
 
     // Normalize status FIRST, before building the diff list
     let formattedStatus: TaskStatus | undefined;
@@ -217,7 +246,17 @@ export class TaskService {
     });
   }
 
-  async create(dto: CreateTaskDto, userId: string) {
+  async create(dto: CreateTaskDto, userId: string, callerId: number) {
+    // Only actual members of this project can create tasks in it.
+    const membership = await this.prisma.projectMember.findUnique({
+      where: {
+        projectId_memberId: { projectId: dto.project_id, memberId: callerId },
+      },
+    });
+    if (!membership) {
+      throw new ForbiddenException('Not a member of this project');
+    }
+
     let dbStatus: TaskStatus;
     let dbPriority: Priority;
 
@@ -250,6 +289,21 @@ export class TaskService {
         break;
       default:
         throw new BadRequestException('Invalid priority value provided');
+    }
+
+    // Anyone being assigned must also actually be a member of this project.
+    if (dto.assigneeIds && dto.assigneeIds.length > 0) {
+      const validCount = await this.prisma.projectMember.count({
+        where: {
+          projectId: dto.project_id,
+          memberId: { in: dto.assigneeIds },
+        },
+      });
+      if (validCount !== dto.assigneeIds.length) {
+        throw new BadRequestException(
+          'One or more assignees are not members of this project',
+        );
+      }
     }
 
     const newTask = await this.prisma.$transaction(async (tx) => {

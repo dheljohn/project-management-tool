@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateChangelogDto } from './dto/create-changelog.dto';
 import { UpdateChangelogDto } from './dto/update-changelog.dto';
@@ -11,18 +15,41 @@ export class ChangelogService {
     private cacheHelper: CacheHelper,
   ) {}
 
-  async create(createDto: CreateChangelogDto) {
-    const changelog = await this.prisma.changeLog.create({
+  // callerId/callerUserId come from the authenticated request (JWT), never
+  // from the body — dto.user_id is still accepted for contract compatibility
+  // but intentionally ignored for the actual write, so a caller can't forge
+  // a changelog entry attributed to someone else.
+  async create(
+    createDto: CreateChangelogDto,
+    callerId: number,
+    callerUserId: string,
+  ) {
+    const task = await this.prisma.task.findUnique({
+      where: { id: createDto.task_id },
+      select: { id: true, title: true, projectId: true },
+    });
+    if (!task) throw new NotFoundException('Task not found');
+
+    const membership = await this.prisma.projectMember.findUnique({
+      where: {
+        projectId_memberId: { projectId: task.projectId, memberId: callerId },
+      },
+    });
+    if (!membership) {
+      throw new ForbiddenException('Not a member of this project');
+    }
+
+    return this.prisma.changeLog.create({
       data: {
         taskId: createDto.task_id,
-        username: createDto.user_id,
+        taskTitle: task.title,
+        username: callerUserId,
         field: 'status',
         oldValue: createDto.old_status,
         newValue: createDto.new_status,
         remark: createDto.remark ?? null,
       },
     });
-    return changelog;
   }
 
   async findAll() {
@@ -72,7 +99,10 @@ export class ChangelogService {
           orderBy: { createdAt: 'desc' },
           take: limit + 1, // fetch one extra to know if there's more
           ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-          include: { task: true, member: true },
+          include: {
+            task: { select: { id: true, title: true } },
+            member: { select: { user_id: true, username: true } },
+          },
         });
 
         const hasMore = logs.length > limit;

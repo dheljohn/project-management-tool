@@ -137,22 +137,25 @@ export class SeedService {
       data: [
         {
           taskId: task1.id,
+          taskTitle: task1.title,
           username: owner.user_id,
           field: 'task creation',
           oldValue: '',
           newValue: task1.title,
-          remark: 'Initial seed log',
+          remark: null,
         },
         {
           taskId: task2.id,
+          taskTitle: task2.title,
           username: memberA.user_id,
           field: 'task creation',
           oldValue: '',
           newValue: task2.title,
-          remark: 'Created via UI modal',
+          remark: null,
         },
         {
           taskId: task2.id,
+          taskTitle: task2.title,
           username: memberA.user_id,
           field: 'status',
           oldValue: 'Todo',
@@ -161,6 +164,7 @@ export class SeedService {
         },
         {
           taskId: task3.id,
+          taskTitle: task3.title,
           username: memberB.user_id,
           field: 'description',
           oldValue: '',
@@ -168,7 +172,17 @@ export class SeedService {
           remark: 'Push the wordmark variants further — try a condensed cut.',
         },
         {
+          taskId: task3.id,
+          taskTitle: task3.title,
+          username: memberA.user_id,
+          field: 'assignees',
+          oldValue: '',
+          newValue: `${memberB.id},${memberA.id}`,
+          remark: null,
+        },
+        {
           taskId: task4.id,
+          taskTitle: task4.title,
           username: owner.user_id,
           field: 'priority',
           oldValue: 'Medium',
@@ -177,6 +191,7 @@ export class SeedService {
         },
         {
           taskId: task4.id,
+          taskTitle: task4.title,
           username: owner.user_id,
           field: 'status',
           oldValue: 'In_Progress',

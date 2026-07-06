@@ -17,6 +17,7 @@ import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { SkipCsrf } from 'src/auth/decorators/skip-csrf.decorator';
+import { ApiHeader } from '@nestjs/swagger';
 
 @Controller('test01')
 export class MemberController {
@@ -36,10 +37,15 @@ export class MemberController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('get_member')
   findOne(@Query('id') id: string) {
     return this.memberService.findOne(Number(id));
   }
 
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
   @UseGuards(JwtAuthGuard)
   @Patch('update_member')
   update(@Body() dto: UpdateMemberDto) {

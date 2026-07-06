@@ -16,11 +16,16 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import type { RequestWithUser } from 'src/common/interface/request-with-user.interface';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { ApiHeader } from '@nestjs/swagger';
 
 @Controller('test02')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('create_project')
@@ -46,6 +51,10 @@ export class ProjectsController {
     return this.projectsService.findOne(id, req.user.id);
   }
 
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
   @UseGuards(JwtAuthGuard)
   @Patch('patch_project')
   update(@Body() updateDto: UpdateProjectDto, @Req() req: RequestWithUser) {
