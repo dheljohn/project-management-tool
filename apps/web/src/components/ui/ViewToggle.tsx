@@ -34,16 +34,7 @@ export default function ViewToggle({}: {}) {
           >
             <span className="flex items-center gap-2">
               {t.label}
-              {/* <span
-                className={[
-                  "rounded-full px-1.5 py-0.5 font-mono text-[10px] transition",
-                  active
-                    ? "bg-foreground text-background"
-                    : "bg-muted text-muted-foreground",
-                ].join(" ")}
-              >
-                {t.count}
-              </span> */}
+              
             </span>
             {active && (
               <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-accent" />

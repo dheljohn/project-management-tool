@@ -29,7 +29,7 @@ export const useTaskMutation = ({
       description: string;
       status: TaskStatus;
       priority: Priority;
-      remark: string;
+      remark?: string | undefined;
       assigneeIds: number[];
     }) => {
       if (mode === "create") {

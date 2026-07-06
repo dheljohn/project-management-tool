@@ -16,11 +16,18 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { ApiHeader, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('tasks')
 @Controller('test03')
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
+  @ApiCookieAuth('auth_token')
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('create_task')
@@ -28,9 +35,10 @@ export class TaskController {
     @Body() dto: CreateTaskDto,
     @CurrentUser() user: { id: number; user_id: string },
   ) {
-    return this.taskService.create(dto, user.user_id);
+    return this.taskService.create(dto, user.user_id, user.id);
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_all_tasks')
   @HttpCode(HttpStatus.OK)
@@ -38,6 +46,7 @@ export class TaskController {
     return this.taskService.findAll();
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_task')
   @HttpCode(HttpStatus.OK)
@@ -45,6 +54,7 @@ export class TaskController {
     return this.taskService.findOne(Number(id));
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_all_tasks_by_project')
   @HttpCode(HttpStatus.OK)
@@ -52,6 +62,11 @@ export class TaskController {
     return this.taskService.findAllByProject(Number(projectId));
   }
 
+  @ApiCookieAuth('auth_token')
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
   @UseGuards(JwtAuthGuard)
   @Patch('patch_task')
   @HttpCode(HttpStatus.OK)
@@ -59,9 +74,10 @@ export class TaskController {
     @Body() dto: UpdateTaskDto,
     @CurrentUser() user: { id: number; user_id: string },
   ) {
-    return this.taskService.update(dto, user.user_id);
+    return this.taskService.update(dto, user.user_id, user.id);
   }
 
+  @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_task_history')
   @HttpCode(HttpStatus.OK)

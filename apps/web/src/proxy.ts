@@ -18,20 +18,15 @@ export async function proxy(request: NextRequest) {
 
   if (token) {
     try {
-      const secret = process.env.JWT_SECRET;
-      if (!secret) {
-        console.error(
-          "PROXY ERROR: JWT_SECRET environment variable is not defined!",
-        );
-      } else {
+      // Verify the short-lived access token only.
+      // If it's expired, middleware lets the request through — the Axios
+      // interceptor will transparently refresh it on the first 401.
+      const secret = process.env.JWT_ACCESS_SECRET;
+      if (secret) {
         jwt.verify(token, secret);
         isTokenValid = true;
       }
-    } catch (error) {
-      console.warn(
-        "Proxy session verification failed:",
-        (error as Error).message,
-      );
+    } catch {
       isTokenValid = false;
     }
   }
@@ -63,11 +58,8 @@ export async function proxy(request: NextRequest) {
       if (setCookie) {
         response.headers.append("set-cookie", setCookie);
       }
-    } catch (error) {
-      console.warn(
-        "CSRF token fetch failed in proxy:",
-        (error as Error).message,
-      );
+    } catch {
+      // CSRF pre-fetch failed — the app will request a token on first mutation
     }
   }
 

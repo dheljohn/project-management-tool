@@ -7,12 +7,14 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CacheHelper } from 'src/common/cache/cache.helper';
+import { ProjectGateway } from 'src/gateway/project.gateway';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private prisma: PrismaService,
     private cacheHelper: CacheHelper,
+    private projectGateway: ProjectGateway,
   ) {}
 
   async create(userId: number, createDto: CreateProjectDto) {
@@ -82,7 +84,6 @@ export class ProjectsService {
     return proj;
   }
 
-  // Only OWNER role can update project settings (name, wipLimit, etc).
   async update(userId: number, updateDto: UpdateProjectDto) {
     const { id, ...data } = updateDto;
 
@@ -110,10 +111,15 @@ export class ProjectsService {
       'all_projects',
       `projects_user_${userId}`,
     );
+
+    this.projectGateway.emitToProject(updated.id, 'project:updated', {
+      project: updated,
+      updatedBy: userId,
+    });
+
     return updated;
   }
 
-  // Any member can view the member list (needed for task assignment dropdown).
   async listMembers(userId: number, projectId: number) {
     const membership = await this.prisma.projectMember.findUnique({
       where: { projectId_memberId: { projectId, memberId: userId } },

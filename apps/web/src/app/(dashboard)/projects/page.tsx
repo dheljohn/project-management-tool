@@ -228,6 +228,7 @@ export default function ProjectsPage() {
 
                 <Button
                   variant="add"
+                  type="button"
                   onClick={openCreateModal}
                   // /* Changed flex-col flex to a centered row layout */
                   className="flex items-center gap-1.5 bg-accent text-accent-foreground text-sm font-medium px-4 py-2 rounded-full cursor-pointer transform transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0"
@@ -279,6 +280,7 @@ export default function ProjectsPage() {
                     return (
                       <Button
                         variant="pill"
+
                         key={item.value}
                         onClick={() =>
                           handleSortClick(item.value as typeof sortBy)

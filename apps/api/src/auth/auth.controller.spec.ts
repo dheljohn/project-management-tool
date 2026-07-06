@@ -1,26 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import type { Response } from 'express';
 
 describe('AuthController', () => {
   let controller: AuthController;
   let authService: AuthService;
 
+  const mockRes = {
+    cookie: jest.fn(),
+    clearCookie: jest.fn(),
+  } as unknown as Response;
+
   const mockAuthService = {
-    login: jest.fn((dto) => {
-      return Promise.resolve({ access_token: 'mock_jwt_token', user: dto });
-    }),
+    login: jest.fn((_dto, _res) =>
+      Promise.resolve({ user_id: 'testuser' }),
+    ),
+    refresh: jest.fn(),
+    logout: jest.fn(),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [
-        {
-          provide: AuthService,
-          useValue: mockAuthService,
-        },
-      ],
+      providers: [{ provide: AuthService, useValue: mockAuthService }],
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
@@ -32,18 +35,11 @@ describe('AuthController', () => {
   });
 
   describe('login', () => {
-    it('should call authService.login with correct params and return a token', async () => {
-      const mockLoginDto = { user_id: 'testuser', password: 'password123' };
-
-      // Act
-      const result = await controller.login(mockLoginDto);
-
-      // Assert
-      expect(authService.login).toHaveBeenCalledWith(mockLoginDto);
-      expect(result).toEqual({
-        access_token: 'mock_jwt_token',
-        user: mockLoginDto,
-      });
+    it('delegates to authService.login and returns user_id', async () => {
+      const dto = { user_id: 'testuser', password: 'password123' };
+      const result = await controller.login(dto, mockRes);
+      expect(authService.login).toHaveBeenCalledWith(dto, mockRes);
+      expect(result).toEqual({ user_id: 'testuser' });
     });
   });
 });

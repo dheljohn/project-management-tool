@@ -9,8 +9,4 @@ export class CreateMemberDto {
 
   @IsString()
   password!: string;
-
-  @IsOptional()
-  @IsString()
-  role?: string;
 }

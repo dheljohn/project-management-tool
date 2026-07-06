@@ -60,6 +60,7 @@ export default function TaskModal({
       status,
       priority: values.priority as Priority,
       assigneeIds: values.assigneeIds as number[],
+      remark: values.remark ?? undefined,
     });
 
   const inputClass =
