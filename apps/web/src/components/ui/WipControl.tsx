@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useProjectMutation } from "../../features/projects/hooks/useProjectMutation";
+import { useIsProjectOwner } from "../../features/tasks/hooks/useIsProjectOwner";
 // import { Project } from "../../types/types";
 
 export function WipControl({
@@ -15,6 +16,7 @@ export function WipControl({
 }) {
   const [editing, setEditing] = useState(false);
   const [input, setInput] = useState(String(wipLimit ?? ""));
+  const isOwner = useIsProjectOwner(projectId);
 
   const { mutate: saveWipLimit } = useProjectMutation({
     mode: "edit",
@@ -35,46 +37,58 @@ export function WipControl({
 
   return (
     <div className="flex items-center justify-center gap-1.5">
-      {editing ? (
-        <div className="flex items-center justify-center gap-1.5">
-          <input
-            placeholder="WIP"
-            type="number"
-            min={0}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSave()}
-            autoFocus
-            className="w-12 text-xs bg-muted border border-accent rounded px-1.5 py-0.5 text-foreground focus:outline-none"
-          />
-          <button
-            onClick={handleSave}
-            className="text-[10px] text-accent hover:underline leading-none"
-          >
-            Set
-          </button>
+      {isOwner ? (
+        editing ? (
+          <div className="flex items-center justify-center gap-1.5">
+            <input
+              placeholder="WIP"
+              type="number"
+              min={0}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSave()}
+              autoFocus
+              className="w-12 text-xs bg-muted border border-accent rounded px-1.5 py-0.5 text-foreground focus:outline-none"
+            />
+            <button
+              onClick={handleSave}
+              className="text-[10px] text-accent hover:underline leading-none"
+            >
+              Set
+            </button>
+
+            <button
+              onClick={() => {
+                saveWipLimit({ wipLimit: null });
+                setEditing(false);
+              }}
+              className="text-[10px] text-muted-foreground hover:text-foreground leading-none"
+            >
+              Clear
+            </button>
+          </div>
+        ) : (
           <button
             onClick={() => {
-              saveWipLimit({ wipLimit: null });
-              setEditing(false);
+              setInput(String(wipLimit ?? ""));
+              setEditing(true);
             }}
-            className="text-[10px] text-muted-foreground hover:text-foreground leading-none"
+            className="inline-flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground hover:text-accent transition-colors"
           >
-            Clear
+            <span>{wipLimit ? "Edit WIP" : "Set WIP"}</span>
+            <span className="text-[10px] text-muted-foreground">
+              / {wipLimit}
+            </span>
           </button>
-        </div>
+        )
       ) : (
-        <button
-          onClick={() => {
-            setInput(String(wipLimit ?? ""));
-            setEditing(true);
-          }}
-          className="inline-flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground hover:text-accent transition-colors"
-        >
-          <span>{wipLimit ? "Edit WIP" : "Set WIP"}</span>
-        </button>
+        wipLimit != null && (
+          <span className="text-[10px] text-muted-foreground">
+            WIP: {wipLimit}
+          </span>
+        )
       )}
-      {wipLimit !== null && wipLimit !== undefined && (
+      {/* {wipLimit !== null && wipLimit !== undefined && (
         <span
           className={`text-xs font-mono px-1.5 py-0.5 rounded-full border inline-flex items-center justify-center ${
             isExceeded
@@ -86,7 +100,7 @@ export function WipControl({
         >
           {inProgressCount}/{wipLimit}
         </span>
-      )}
+      )} */}
     </div>
   );
 }

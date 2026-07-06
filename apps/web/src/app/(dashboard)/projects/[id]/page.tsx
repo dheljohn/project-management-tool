@@ -270,7 +270,6 @@ function KanbanPageContent() {
           />
         ) : (
           <ActivityLogs projectId={project.id} />
-          // <ActivityLog logs={logs} loading={logsLoading} />
         )}
 
         {modalOpen && (

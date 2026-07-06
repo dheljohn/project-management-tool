@@ -7,13 +7,6 @@ import { KanbanColumn } from "./KanbanColumn";
 import { useTaskStatusMutation } from "../hooks/useTaskStatusMutation";
 import TaskModal from "./TaskModal";
 import { celebrateProject } from "../../../../lib/confetti";
-// import ViewToggle from "../../../components/ui/ViewToggle";
-
-interface Project {
-  id: number;
-  name: string;
-  description: string | null;
-}
 
 interface KanbanBoardProps {
   projectId: number;
@@ -59,7 +52,6 @@ export default function KanbanBoard({
   function getTasksByStatus(status: TaskStatus) {
     return tasks.filter((t) => t.status === status);
   }
-
 
   function openUpdateModal(task: Task) {
     setSelectedTask(task);
