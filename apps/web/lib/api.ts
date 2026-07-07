@@ -56,7 +56,7 @@ api.interceptors.response.use(
     // Skip retry for the auth endpoints themselves to avoid infinite loops.
     const isAuthEndpoint =
       originalRequest?.url?.includes("/testlogin/refresh") ||
-      originalRequest?.url?.includes("/testlogin/login") ||
+      originalRequest?.url === "/testlogin" ||
       originalRequest?.url?.includes("/testlogin/logout");
 
     if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
