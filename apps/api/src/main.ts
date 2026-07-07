@@ -32,7 +32,10 @@ async function bootstrap() {
     }),
   );
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (
+    process.env.NODE_ENV !== 'production' ||
+    process.env.ENABLE_SWAGGER === 'true'
+  ) {
     const config = new DocumentBuilder()
       .setTitle('Proyekto')
       .setDescription('Kanban-style project management API')

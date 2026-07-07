@@ -103,7 +103,7 @@ export class AuthService {
 
     const { secure, sameSite } = getAuthCookieOptions();
     res.clearCookie('auth_token', { httpOnly: true, secure, sameSite });
-    res.clearCookie('refresh_token', { httpOnly: true, secure, sameSite });
+    res.clearCookie('refresh_token', { httpOnly: true, secure, sameSite, path: '/api/testlogin/refresh' });
     res.clearCookie('csrf_token', { httpOnly: false, secure, sameSite });
 
     return { success: true };
@@ -147,7 +147,7 @@ export class AuthService {
       secure,
       sameSite,
       maxAge: REFRESH_TOKEN_TTL_MS,
-      path: 'api/testlogin/refresh',
+      path: '/api/testlogin/refresh',
     });
 
     res.cookie('csrf_token', csrfToken, {
