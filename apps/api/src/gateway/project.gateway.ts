@@ -31,16 +31,20 @@ export class ProjectGateway implements OnGatewayConnection {
 
   // Step 1: verify identity when the socket first connects.
   async handleConnection(client: Socket) {
-    const token = parseCookies(client.handshake.headers.cookie ?? '')[
+    const authToken = client.handshake.auth?.token;
+    const cookieToken = parseCookies(client.handshake.headers.cookie ?? '')[
       'auth_token'
     ];
+    const token = authToken ?? cookieToken;
+
     if (!token) {
       console.log(
-        '[socket] no auth_token cookie found, disconnecting',
+        '[socket] no token found (auth or cookie), disconnecting',
         client.id,
       );
       return client.disconnect();
     }
+
     try {
       const payload = this.jwtService.verify(token);
       client.data.userId = payload.sub ?? payload.id;
