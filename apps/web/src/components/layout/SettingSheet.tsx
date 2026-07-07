@@ -81,7 +81,7 @@ export default function SettingsSheet({
             type="button"
             onClick={onClose}
             aria-label="Close settings"
-            className="hidden sm lg:flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="hidden sm lg:flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors  hover:text-foreground cursor-pointer  "
           >
             <ChevronLeft size={20} />
           </button>
@@ -121,7 +121,7 @@ export default function SettingsSheet({
               <button
                 title="toggle"
                 onClick={toggleTheme}
-                className={`relative h-6 w-11 rounded-full transition-colors ${
+                className={`relative h-6 w-11 rounded-full transition-colors cursor-pointer ${
                   isDark ? "bg-accent" : "bg-muted"
                 }`}
               >
@@ -154,7 +154,7 @@ export default function SettingsSheet({
         <div className="mt-auto p-6">
           <button
             onClick={onLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 py-3 text-sm font-medium text-destructive transition hover:bg-destructive/15"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 py-3 text-sm font-medium text-destructive transition hover:bg-destructive/15 cursor-pointer"
           >
             <svg
               width="15"

@@ -67,7 +67,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
               e.stopPropagation();
               onEdit(project);
             }}
-            className="shrink-0 text-muted-foreground cursor-pointer hover:text-accent text-[11px] sm:text-xs p-0 hover:border-accent transition-colors"
+            className="shrink-0 text-muted-foreground cursor-pointer hover:text-accent text-[11px] sm:text-xs p-0 transition-colors"
           >
             Edit
           </Button>

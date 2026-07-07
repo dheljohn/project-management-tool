@@ -44,7 +44,7 @@ export default function ActivityLogs({ projectId }: { projectId: number }) {
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer
               ${
                 filter === f.value
                   ? "bg-accent text-accent-foreground border-accent"

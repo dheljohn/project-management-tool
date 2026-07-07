@@ -21,6 +21,7 @@ import { GenerateInviteModal } from "../../../../features/invite/components/Gene
 import { useProjectSocket } from "../../../../features/tasks/hooks/useProjectSocket";
 import { useIsProjectOwner } from "../../../../features/tasks/hooks/useIsProjectOwner";
 import { MoveUpRight } from "lucide-react";
+import MembersList from "../../../../components/ui/MembersList";
 
 export default function KanbanPage() {
   return (
@@ -258,7 +259,9 @@ function KanbanPageContent() {
             <div className="hidden text-xs text-muted-foreground sm:block">
               {activeView === "kanban"
                 ? "Drag cards between columns to update status"
-                : "Most recent changes first"}
+                : activeView === "activity"
+                  ? "Most recent changes first"
+                  : "People with access to this project"}
             </div>
           </div>
         </div>
@@ -268,8 +271,10 @@ function KanbanPageContent() {
             projectId={project.id}
             tasks={tasks}
           />
-        ) : (
+        ) : activeView === "activity" ? (
           <ActivityLogs projectId={project.id} />
+        ) : (
+          <MembersList projectId={project.id} />
         )}
 
         {modalOpen && (

@@ -12,6 +12,7 @@ async function bootstrap() {
   const allowedOrigins = [
     process.env.FRONTEND_URL, // e.g. https://proyekto-blue.vercel.app
     'http://localhost:3000',
+    ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:8000'] : []),
   ].filter(Boolean);
 
   app.enableCors({

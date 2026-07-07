@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { use, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { useBreadcrumbs } from "../../context/BreadcrumbContext";
 import Image from "next/image";
-import api from "../../../lib/api";
 import { ChevronLeft } from "lucide-react";
 import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser";
 import { getUserInitials } from "../../app/utils/getUserInitials";
@@ -133,7 +132,7 @@ export default function Navbar() {
           <div className="relative" ref={settingsRef}>
             <button
               onClick={() => setSettingsOpen((prev) => !prev)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer
                 ${
                   settingsOpen
                     ? "bg-accent/10 text-accent"

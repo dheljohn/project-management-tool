@@ -53,6 +53,11 @@ export function useProjectSocket(projectId: number) {
         return old.map((t) => (t.id === task.id ? task : t));
       });
     });
+    socket.on("member:joined", () => {
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.members(projectId),
+      });
+    });
 
     socket.on("log:created", () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.logs(projectId) });

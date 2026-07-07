@@ -57,6 +57,7 @@ api.interceptors.response.use(
     const isAuthEndpoint =
       originalRequest?.url?.includes("/testlogin/refresh") ||
       originalRequest?.url === "/testlogin" ||
+      originalRequest?.url?.includes("/testlogin/me") ||
       originalRequest?.url?.includes("/testlogin/logout");
 
     if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
