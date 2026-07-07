@@ -34,22 +34,29 @@ export class ProjectGateway implements OnGatewayConnection {
     const token = parseCookies(client.handshake.headers.cookie ?? '')[
       'auth_token'
     ];
-    if (!token) return client.disconnect();
-
+    if (!token) {
+      console.log(
+        '[socket] no auth_token cookie found, disconnecting',
+        client.id,
+      );
+      return client.disconnect();
+    }
     try {
       const payload = this.jwtService.verify(token);
       client.data.userId = payload.sub ?? payload.id;
-    } catch {
+      console.log('[socket] connected, userId:', client.data.userId);
+    } catch (err) {
+      console.log('[socket] token verify failed:', err);
       client.disconnect();
     }
   }
 
-  // Step 2: verify membership before letting them into a project's room.
   @SubscribeMessage('joinProject')
   async handleJoinProject(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { projectId: number },
   ) {
+    console.log('[socket] join attempt', client.data.userId, data.projectId);
     const membership = await this.prisma.projectMember.findUnique({
       where: {
         projectId_memberId: {
@@ -58,10 +65,12 @@ export class ProjectGateway implements OnGatewayConnection {
         },
       },
     });
-
-    if (!membership) return; // not a member, silently refuse the join
-
+    if (!membership) {
+      console.log('[socket] membership not found, refusing join');
+      return;
+    }
     client.join(projectRoom(data.projectId));
+    console.log('[socket] joined room', projectRoom(data.projectId));
   }
 
   // Step 3: called from your services after a mutation succeeds.
