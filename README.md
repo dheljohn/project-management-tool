@@ -66,8 +66,8 @@ Both options connect to the same online services (Neon PostgreSQL + Upstash Redi
 ### Prerequisites
 
 - [Git](https://git-scm.com)
-- Node.js ≥ 18 + npm ≥ 11 *(npm path only)*
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) *(Docker path only)*
+- Node.js ≥ 18 + npm ≥ 11 _(npm path only)_
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) _(Docker path only)_
 
 ### 1. Clone the repo
 
@@ -119,11 +119,14 @@ Runs both apps natively with hot-reload. Faster iteration than Docker.
 # Install all dependencies (run once)
 npm install
 
+# Generate the Prisma client (creates typed DB access based on schema.prisma)
+npx prisma generate --schema=apps/api/prisma/schema.prisma
+
 # Start both API and frontend in parallel
 npm run dev
 ```
 
-- Frontend: http://localhost:3000  
+- Frontend: http://localhost:3000
 - API: http://localhost:8000
 
 Both dev scripts automatically load from the root `.env` via `dotenv-cli` — no extra configuration needed.
