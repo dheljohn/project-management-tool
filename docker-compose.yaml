@@ -1,17 +1,22 @@
+# Local Docker Compose — uses Neon (DB) and Upstash (Redis) online services.
+# No local Postgres or Redis containers needed.
+#
+# Setup:
+#   cp .env.example .env
+#   Fill in the values in .env
+#   docker compose up --build
+
 services:
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
       args:
-        # DATABASE_URL is needed at build time for `prisma generate`.
-        # It is read from your .env.local file (see apps/api/.env.local.example).
+        # DATABASE_URL is passed as a build arg so prisma generate works during docker build.
         DATABASE_URL: ${DATABASE_URL}
     ports:
       - "8000:8000"
     environment:
-      # All runtime env vars are injected here directly.
-      # Copy apps/api/.env.local.example to apps/api/.env.local and fill in values.
       NODE_ENV: production
       PORT: "8000"
       DATABASE_URL: ${DATABASE_URL}
@@ -19,18 +24,26 @@ services:
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       TEST_SECRET: ${TEST_SECRET}
-      FRONTEND_URL: ${FRONTEND_URL}
+      # For local Docker: frontend is on localhost:3000
+      # For pointing at Vercel: https://proyekto-blue.vercel.app
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
 
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        # NEXT_PUBLIC_API_URL is baked in at build time by Next.js.
+        # For local Docker: http://localhost:8000
+        # For pointing at Render: https://proyekto.onrender.com
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
       PORT: "3000"
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      HOSTNAME: "0.0.0.0"
+      # JWT_ACCESS_SECRET is read server-side by the Next.js middleware
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
     depends_on:
       - api

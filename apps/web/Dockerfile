@@ -6,8 +6,9 @@ FROM node:22-alpine AS base
 WORKDIR /app
 RUN npm install -g turbo
 RUN corepack enable
+
 # =========================
-# Pruner
+# Pruner — extract only the web workspace files
 # =========================
 FROM base AS pruner
 
@@ -15,7 +16,7 @@ COPY . .
 RUN turbo prune web --docker
 
 # =========================
-# Installer (deps only)
+# Installer — install deps from the pruned lockfile
 # =========================
 FROM base AS installer
 
@@ -27,29 +28,29 @@ COPY --from=pruner /app/out/package-lock.json ./
 RUN npm ci
 
 # =========================
-# Builder
+# Builder — compile Next.js
 # =========================
-# Stage 3: Build the application
 FROM base AS builder
+
 WORKDIR /app
 
-# 1. Copy the full source code 
+# NEXT_PUBLIC_API_URL is baked into the client bundle at build time.
+# For Docker Compose local builds: http://localhost:8000
+# For Vercel: set in Vercel dashboard, not here.
+# This ARG lets docker-compose pass the value in at build time.
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 COPY --from=pruner /app/out/full/ ./
-
-# FIX: Copy the root lockfile here so Next.js/Turbopack can infer the workspace root!
 COPY --from=pruner /app/out/package-lock.json ./
-
-# 2. Copy node_modules from installer 
 COPY --from=installer /app/node_modules ./node_modules
 
-# 3. Run the build
 RUN npx turbo run build --filter=web
 
-
 # =========================
-# Runner (Next standalone)
+# Runner — Next.js standalone
 # =========================
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
@@ -62,9 +63,11 @@ RUN addgroup --system --gid 1001 nodejs \
 
 USER nextjs
 
-# Next.js standalone output
+# Next.js standalone output (includes server.js and all server-side code)
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+# Static assets
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+# Public folder
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 EXPOSE 3000
