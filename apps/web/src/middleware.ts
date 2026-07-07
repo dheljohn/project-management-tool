@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken";
+import { jwtVerify, errors } from "jose";
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;
@@ -25,13 +26,14 @@ export async function middleware(request: NextRequest) {
       // on the client will transparently refresh it on the first 401.
       const secret = process.env.JWT_ACCESS_SECRET;
       if (secret) {
-        jwt.verify(token, secret);
+        const encodedSecret = new TextEncoder().encode(secret);
+        await jwtVerify(token, encodedSecret);
         isTokenValid = true;
       }
     } catch (err: any) {
       // Expired (but present) — let it through; client-side refresh will handle it.
       // Only a missing token or an invalid signature counts as "not logged in".
-      isTokenValid = err?.name === "TokenExpiredError";
+      isTokenValid = err instanceof errors.JWTExpired;
     }
   }
 
