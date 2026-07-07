@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;
   const { pathname } = request.nextUrl;
 
@@ -18,9 +18,9 @@ export async function proxy(request: NextRequest) {
 
   if (token) {
     try {
-      // Verify the short-lived access token only.
-      // If it's expired, middleware lets the request through — the Axios
-      // interceptor will transparently refresh it on the first 401.
+      // Only checks the short-lived access token.
+      // If expired, middleware lets the request through — the Axios interceptor
+      // on the client will transparently refresh it on the first 401.
       const secret = process.env.JWT_ACCESS_SECRET;
       if (secret) {
         jwt.verify(token, secret);
@@ -47,7 +47,7 @@ export async function proxy(request: NextRequest) {
 
   const response = NextResponse.next();
 
-  // Ensure a CSRF token cookie exists before the app renders
+  // Seed a CSRF token cookie if the browser doesn't have one yet.
   if (!request.cookies.has("csrf_token")) {
     try {
       const csrfRes = await fetch(
@@ -59,7 +59,7 @@ export async function proxy(request: NextRequest) {
         response.headers.append("set-cookie", setCookie);
       }
     } catch {
-      // CSRF pre-fetch failed — the app will request a token on first mutation
+      // CSRF pre-fetch failed — the app will request one on first mutation
     }
   }
 
