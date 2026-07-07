@@ -147,7 +147,7 @@ export class AuthService {
       secure,
       sameSite,
       maxAge: REFRESH_TOKEN_TTL_MS,
-      path: '/testlogin/refresh',
+      path: 'api/testlogin/refresh',
     });
 
     res.cookie('csrf_token', csrfToken, {

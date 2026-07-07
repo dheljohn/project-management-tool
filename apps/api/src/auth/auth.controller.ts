@@ -47,6 +47,14 @@ export class AuthController {
     return req.user;
   }
 
+  @ApiOperation({ summary: 'Get access token for socket auth' })
+  @ApiCookieAuth('auth_token')
+  @UseGuards(JwtAuthGuard)
+  @Get('/socket-token')
+  getSocketToken(@Req() req: Request) {
+    return { token: req.cookies.auth_token };
+  }
+
   // ─── POST /login ──────────────────────────────────────────────────────────────
 
   @ApiOperation({ summary: 'Log in with user_id and password' })

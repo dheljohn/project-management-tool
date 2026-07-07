@@ -15,8 +15,10 @@ export async function middleware(request: NextRequest) {
   );
 
   let isTokenValid = false;
+  let hasToken = false;
 
   if (token) {
+    hasToken = true;
     try {
       // Only checks the short-lived access token.
       // If expired, middleware lets the request through — the Axios interceptor
@@ -26,8 +28,10 @@ export async function middleware(request: NextRequest) {
         jwt.verify(token, secret);
         isTokenValid = true;
       }
-    } catch {
-      isTokenValid = false;
+    } catch (err: any) {
+      // Expired (but present) — let it through; client-side refresh will handle it.
+      // Only a missing token or an invalid signature counts as "not logged in".
+      isTokenValid = err?.name === "TokenExpiredError";
     }
   }
 
