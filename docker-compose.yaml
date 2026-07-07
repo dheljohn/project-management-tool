@@ -45,5 +45,6 @@ services:
       HOSTNAME: "0.0.0.0"
       # JWT_ACCESS_SECRET is read server-side by the Next.js middleware
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      API_URL: ${DOCKER_API}
     depends_on:
       - api
