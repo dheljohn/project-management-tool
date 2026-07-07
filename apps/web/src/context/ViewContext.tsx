@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-type ActiveView = "kanban" | "activity";
+type ActiveView = "kanban" | "activity" | "members";
 
 interface ViewContextType {
   activeView: ActiveView;

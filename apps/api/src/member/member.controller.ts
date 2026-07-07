@@ -57,6 +57,11 @@ export class MemberController {
     return this.memberService.update(dto);
   }
 
+  @ApiCookieAuth('auth_token')
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
   @Delete('test_cleanup')
   testCleanup(@Body() body: { user_id: string; secret: string }) {
     if (process.env.NODE_ENV === 'production') {

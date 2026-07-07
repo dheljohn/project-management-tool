@@ -4,6 +4,7 @@ export const projectKeys = {
   detail: (id: number) => ["projects", id] as const,
   tasks: (projectId: number) => ["projects", projectId, "tasks"] as const,
   logs: (projectId: number) => ["projects", projectId, "logs"] as const,
+  members: (projectId: number) => ["projects", projectId, "members"] as const,
 };
 
 export const inviteKeys = {
