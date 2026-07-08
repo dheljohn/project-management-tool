@@ -72,7 +72,7 @@ export class AuthController {
     description: 'Rate limit exceeded (max 5 login attempts per minute).',
   })
   @SkipCsrf()
-  @Throttle({ default: { limit: 100, ttl: 60000 } })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @Post()
   login(
