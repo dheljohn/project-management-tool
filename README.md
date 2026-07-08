@@ -10,7 +10,7 @@ Proyekto lets teams create projects, manage tasks on a drag-and-drop board, invi
 | ------------------------------------------------------------- | -------------------------------------- |
 | Frontend (Vercel)                                             | https://proyekto-blue.vercel.app       |
 | API (Render)                                                  | https://proyekto.onrender.com          |
-| Swagger UI (Disabled in production, available when running locally ) | http://localhost:8000/api-docs         |
+| Swagger UI (available until final demo) | http://localhost:8000/api-docs || https://proyekto.onrender.com/api-docs         |
 
 ---
 
