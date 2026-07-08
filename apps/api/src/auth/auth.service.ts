@@ -8,8 +8,9 @@ import type { Response, Request } from 'express';
 import { randomBytes } from 'crypto';
 import { getAuthCookieOptions } from './cookie-options.util';
 
-const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+// const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
+const ACCESS_TOKEN_TTL_MS = 1 * 15 * 1000; // 15 seconds
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dayss
 
 @Injectable()
 export class AuthService {
@@ -97,13 +98,18 @@ export class AuthService {
           data: { revokedAt: new Date() },
         });
       } catch {
-        // Token already expired or invalid — nothing to revoke in DB
+        // Token already expired or invalid
       }
     }
 
     const { secure, sameSite } = getAuthCookieOptions();
     res.clearCookie('auth_token', { httpOnly: true, secure, sameSite });
-    res.clearCookie('refresh_token', { httpOnly: true, secure, sameSite, path: '/api/testlogin/refresh' });
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure,
+      sameSite,
+      path: '/api/testlogin/refresh',
+    });
     res.clearCookie('csrf_token', { httpOnly: false, secure, sameSite });
 
     return { success: true };
@@ -117,7 +123,7 @@ export class AuthService {
     const accessPayload = { sub: userId, user_id };
     const accessToken = this.jwtService.sign(accessPayload, {
       secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      expiresIn: '15m',
+      expiresIn: '15s',
     });
 
     const refreshPayload = { sub: userId, user_id, jti };

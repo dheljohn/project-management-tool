@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import api from "../../../../lib/api"; // adjust path to match your structure
+import api from "../../../../lib/api";
 
 export const useCurrentUser = () => {
   return useQuery({

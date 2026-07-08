@@ -1,8 +1,7 @@
 "use client";
-
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import api from "../../../lib/api";
+import { useEffect } from "react";
+import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser";
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -10,27 +9,15 @@ interface RouteGuardProps {
 
 export default function ProtectedRoute({ children }: RouteGuardProps) {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const { data, isLoading, isError, error } = useCurrentUser();
 
   useEffect(() => {
-    api
-      .get("/testlogin/me")
-      .then(() => {
-        setIsAuthenticated(true);
-      })
-      .catch((error) => {
-        if (error.response?.status === 401) {
-          setIsAuthenticated(false);
-          router.push("/login");
-          return;
-        }
+    if (isError && (error as any)?.response?.status === 401) {
+      router.push("/login");
+    }
+  }, [isError, error, router]);
 
-        // 429 or network issue — proceed optimistically
-        setIsAuthenticated(true);
-      });
-  }, [router]);
-
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -41,5 +28,10 @@ export default function ProtectedRoute({ children }: RouteGuardProps) {
     );
   }
 
-  return isAuthenticated ? <>{children}</> : null;
+  // 401 → redirecting (handled above); anything else (429, network error) → proceed optimistically
+  if (isError && (error as any)?.response?.status === 401) {
+    return null;
+  }
+
+  return <>{children}</>;
 }

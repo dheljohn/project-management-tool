@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-// import jwt from "jsonwebtoken";
-import { jwtVerify, errors } from "jose";
+import { jwtVerify } from "jose";
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;
@@ -16,14 +15,9 @@ export async function middleware(request: NextRequest) {
   );
 
   let isTokenValid = false;
-  let hasToken = false;
 
   if (token) {
-    hasToken = true;
     try {
-      // Only checks the short-lived access token.
-      // If expired, middleware lets the request through — the Axios interceptor
-      // on the client will transparently refresh it on the first 401.
       const secret = process.env.JWT_ACCESS_SECRET;
       if (secret) {
         const encodedSecret = new TextEncoder().encode(secret);
@@ -31,10 +25,10 @@ export async function middleware(request: NextRequest) {
         isTokenValid = true;
       }
     } catch (err: any) {
-      // Expired (but present) — let it through; client-side refresh will handle it.
-      // Only a missing token or an invalid signature counts as "not logged in".
-      isTokenValid = err instanceof errors.JWTExpired;
+      isTokenValid = err?.code === "ERR_JWT_EXPIRED";
     }
+  } else {
+    isTokenValid = isPrivatePage ? true : false;
   }
 
   if (pathname === "/") {
@@ -54,19 +48,23 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Seed a CSRF token cookie if the browser doesn't have one yet.
+  // Generate it here in middleware rather than fetching from the API —
+  // fetching from NEXT_PUBLIC_API_URL (Render) sets a cookie on the wrong
+  // domain and the client-side getCsrfToken() can never read it.
   if (!request.cookies.has("csrf_token")) {
-    try {
-      const csrfRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/testlogin/csrf-token`,
-        { headers: { cookie: request.headers.get("cookie") ?? "" } },
-      );
-      const setCookie = csrfRes.headers.get("set-cookie");
-      if (setCookie) {
-        response.headers.append("set-cookie", setCookie);
-      }
-    } catch {
-      // CSRF pre-fetch failed — the app will request one on first mutation
-    }
+    // Web Crypto API — available in all edge runtimes, unlike Node's crypto module
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    const csrfToken = Array.from(bytes, (b) =>
+      b.toString(16).padStart(2, "0"),
+    ).join("");
+    const isProd = process.env.NODE_ENV === "production";
+    response.cookies.set("csrf_token", csrfToken, {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
   }
 
   return response;

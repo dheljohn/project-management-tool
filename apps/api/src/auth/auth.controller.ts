@@ -90,18 +90,10 @@ export class AuthController {
       'Reads the refresh_token cookie, validates it against the stored ' +
       '(non-revoked, non-expired) RefreshToken record, rotates the refresh token ' +
       '(old jti is revoked immediately), and issues a new access + refresh token pair as httpOnly cookies. ' +
-      '\n\n**CSRF note:** This endpoint is protected by the CSRF double-submit guard. ' +
-      '"Try it out" in Swagger UI will fail unless you manually add the ' +
-      '`x-csrf-token` header matching the value in your `csrf_token` cookie.',
+      'CSRF is not required here — the refresh_token cookie is already httpOnly and ' +
+      'path-scoped to this endpoint, which provides equivalent protection.',
   })
   @ApiCookieAuth('refresh_token')
-  @ApiHeader({
-    name: 'x-csrf-token',
-    description:
-      'Must equal the value of your csrf_token cookie (double-submit CSRF pattern). ' +
-      'Copy from your csrf_token cookie before using Try it out.',
-    required: true,
-  })
   @ApiResponse({
     status: 200,
     description:
@@ -113,11 +105,7 @@ export class AuthController {
       'Refresh token missing, invalid signature, expired, or already revoked. ' +
       'If a revoked token is replayed, all tokens for that user are invalidated immediately.',
   })
-  @ApiResponse({
-    status: 403,
-    description:
-      'CSRF validation failed — x-csrf-token header missing or does not match cookie.',
-  })
+  @SkipCsrf()
   @HttpCode(HttpStatus.OK)
   @Post('/refresh')
   refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {

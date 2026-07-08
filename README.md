@@ -123,7 +123,7 @@ npm install
 npx prisma generate --schema=apps/api/prisma/schema.prisma
 
 # Start both API and frontend in parallel
-npm run dev
+npm run dev || turbo run dev
 ```
 
 - Frontend: http://localhost:3000

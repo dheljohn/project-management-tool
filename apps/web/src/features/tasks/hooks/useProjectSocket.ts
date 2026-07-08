@@ -3,7 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { projectKeys } from "../../../../lib/queryKeys";
 import { Project, Task } from "../../../types/types";
-import api from "../../../../lib/api"; // adjust to match actual relative depth
+import api from "../../../../lib/api";
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -30,7 +30,6 @@ export function useProjectSocket(projectId: number) {
     });
 
     socket.on("connect_error", (err) => {
-      // Surfaces auth failures (expired/missing token) instead of failing silently
       console.error("Socket connection error:", err.message);
     });
 
