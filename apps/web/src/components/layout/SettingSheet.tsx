@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { getUserInitials } from "../../app/utils/getUserInitials";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, KeyRound } from "lucide-react";
+import ChangePasswordModal from "../../features/auth/components/ChangePasswordModal";
 
 interface SettingsSheetProps {
   open: boolean;
@@ -20,6 +22,8 @@ export default function SettingsSheet({
   toggleTheme,
   onLogout,
 }: SettingsSheetProps) {
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+
   return (
     <>
       {/* Backdrop */}
@@ -35,15 +39,12 @@ export default function SettingsSheet({
 
       {/* Sheet */}
       <aside
-        className={`fixed z-50 bg-card border-border shadow-2xl transition-transform duration-300 ease-out 
-            
+        className={`fixed z-50 bg-card border-border shadow-2xl transition-transform duration-300 ease-out
         flex flex-col
-
         bottom-0 left-0 right-0
         h-[70vh]
         rounded-t-3xl
         border-t
-
         lg:top-0
         lg:bottom-0
         lg:right-0
@@ -54,8 +55,6 @@ export default function SettingsSheet({
         lg:rounded-none
         lg:rounded-l-2xl
         lg:border-l
-        lg:rounded-l-2xl
-
         ${
           open
             ? "translate-y-0 lg:translate-y-0 lg:translate-x-0"
@@ -67,24 +66,17 @@ export default function SettingsSheet({
           <div className="h-1.5 w-12 rounded-full bg-muted" />
         </div>
 
-        {/* Header */}
-        {/* <div className="px-6 pb-4 border-b border-border">
-          <h2 className="text-lg font-semibold">Settings</h2>
-          <p className="text-sm text-muted-foreground">
-            Manage your preferences
-          </p>
-        </div> */}
-
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           <button
             type="button"
             onClick={onClose}
             aria-label="Close settings"
-            className="hidden sm lg:flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors  hover:text-foreground cursor-pointer  "
+            className="hidden sm lg:flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
           >
             <ChevronLeft size={20} />
           </button>
+
           {/* User */}
           <div className="px-6 py-6 border-b border-border">
             <div className="flex items-center gap-3 flex-col align-middle justify-center">
@@ -93,8 +85,7 @@ export default function SettingsSheet({
                   {getUserInitials(username)}
                 </span>
               </div>
-
-              <div className="min-w-0 text-center ">
+              <div className="min-w-0 text-center">
                 <p className="text-xs text-muted-foreground">Signed in as</p>
                 <p className="font-medium truncate">{username.toUpperCase()}</p>
               </div>
@@ -106,20 +97,17 @@ export default function SettingsSheet({
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Appearance
             </h3>
-
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">
                   {isDark ? "Dark Mode" : "Light Mode"}
                 </p>
-
                 <p className="text-xs text-muted-foreground">
                   Switch application theme
                 </p>
               </div>
-
               <button
-                title="toggle"
+                title="Toggle theme"
                 onClick={toggleTheme}
                 className={`relative h-6 w-11 rounded-full transition-colors cursor-pointer ${
                   isDark ? "bg-accent" : "bg-muted"
@@ -134,23 +122,38 @@ export default function SettingsSheet({
             </div>
           </div>
 
-          {/* Future section */}
-          {/* <div className="px-6 py-5 border-b border-border">
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              More
+          {/* Security */}
+          <div className="px-6 py-5 border-b border-border">
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Security
             </h3>
-
-            <button className="w-full rounded-lg px-3 py-2 text-left text-sm text-muted-foreground hover:bg-muted transition">
-              Notifications (Coming Soon)
+            <button
+              onClick={() => setChangePasswordOpen(true)}
+              className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm text-foreground  transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-3">
+                <KeyRound
+                  size={15}
+                  className="text-muted-foreground group-hover:text-foreground transition-colors"
+                />
+                <span>Change Password</span>
+              </div>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-muted-foreground"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
             </button>
-
-            <button className="mt-2 w-full rounded-lg px-3 py-2 text-left text-sm text-muted-foreground hover:bg-muted transition">
-              Keyboard Shortcuts (Coming Soon)
-            </button>
-          </div> */}
-
-          {/* Footer */}
+          </div>
         </div>
+
+        {/* Logout */}
         <div className="mt-auto p-6">
           <button
             onClick={onLogout}
@@ -172,6 +175,14 @@ export default function SettingsSheet({
           </button>
         </div>
       </aside>
+
+      {/* Change Password Modal — rendered outside the sheet so z-index stacks cleanly */}
+      {changePasswordOpen && (
+        <ChangePasswordModal
+          userId={username}
+          onClose={() => setChangePasswordOpen(false)}
+        />
+      )}
     </>
   );
 }

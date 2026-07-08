@@ -89,7 +89,7 @@ export class MemberService {
     const updated = await this.prisma.member.update({
       where: { user_id: updateDto.user_id },
       data: {
-        email: updateDto.email,
+        ...(updateDto.email && { email: updateDto.email }),
         password: hashedNewPassword,
       },
     });
