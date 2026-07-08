@@ -52,12 +52,11 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const originalRequest = error.config;
 
-    // ── Transparent token refresh on 401 ────────────────────────────────────
-    // Skip retry for the auth endpoints themselves to avoid infinite loops.
+    // Skip retry only for endpoints that are themselves part of the auth flowzz
+    // trigger a refresh so RouteGuard can re-verify the session silently.
     const isAuthEndpoint =
       originalRequest?.url?.includes("/testlogin/refresh") ||
       originalRequest?.url === "/testlogin" ||
-      originalRequest?.url?.includes("/testlogin/me") ||
       originalRequest?.url?.includes("/testlogin/logout");
 
     if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {

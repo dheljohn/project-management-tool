@@ -1,4 +1,4 @@
-import api from "../../../../lib/api"; // adjust to your actual configured Axios instance
+import api from "../../../../lib/api";
 
 export interface InviteCode {
   id: number;

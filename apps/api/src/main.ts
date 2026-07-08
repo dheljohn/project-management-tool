@@ -10,7 +10,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   const allowedOrigins = [
-    process.env.FRONTEND_URL, // e.g. https://proyekto-blue.vercel.app
+    process.env.FRONTEND_URL,
     'http://localhost:3000',
     ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:8000'] : []),
   ].filter(Boolean);
@@ -40,14 +40,11 @@ async function bootstrap() {
       .setTitle('Proyekto')
       .setDescription('Kanban-style project management API')
       .setVersion('1.0')
-      // Short-lived access token (15 min) — sent with every authenticated request.
       .addCookieAuth(
         'auth_token',
         { type: 'apiKey', in: 'cookie', name: 'auth_token' },
         'auth_token',
       )
-      // Long-lived refresh token (7 days) — sent ONLY to POST /testlogin/refresh.
-      // Scoped via cookie path so the browser never attaches it to other requests.
       .addCookieAuth(
         'refresh_token',
         { type: 'apiKey', in: 'cookie', name: 'refresh_token' },
