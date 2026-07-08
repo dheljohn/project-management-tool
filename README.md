@@ -55,7 +55,7 @@ Proyekto lets teams create projects, manage tasks on a drag-and-drop board, invi
 - **Redis caching** — Project lists, task lists, and changelog pages cached in Upstash Redis with targeted invalidation on writes.
 - **Confetti** — `canvas-confetti` fires when all tasks in a project reach "Done".
 - **Dark / Light theme** — Toggleable via the settings sheet.
-- **Playwright E2E tests** — Auth, project, task, and changelog flows with data isolation and teardown.
+- **Playwright E2E tests** — Target core features only, but may fail due to rate limit.
 
 ---
 
@@ -203,12 +203,22 @@ After setting `NEXT_PUBLIC_API_URL`, trigger a fresh Vercel deployment to pick i
 
 ## Known Issues & Limitations
 
-**API controller route naming** — Routes use temporary names (`/test01`, `/test02`, `/test03`, `/test04`, `/testlogin`) that reflect the origin as assessment scaffolding. A real production app would use `/auth`, `/members`, `/projects`, `/tasks`, `/changelog`. Renaming was deprioritised to avoid breaking changes during active assessment.
 
-**No project deletion** — There is no delete-project or delete-task endpoint. Data can only be removed via the seed endpoint (which wipes everything) or direct DB access. This was not part of the assessment requirements but is the most obvious gap for a production tool.
+### No delete endpoint for projects or tasks
+There is no `DELETE /projects/:id` or `DELETE /tasks/:id` endpoint.
+**WebSocket on free Render tier** — Socket.IO connections work but may be dropped during Render's automatic restarts on the free plan. The client reconnects automatically; in-progress mutations are not lost since they go through the REST API. Implemented an uptime monitoring for this, result still vague
+### No project membership removal endpoint
+Once a user joins a project via invite code, there is no way to remove them from the project other than direct database manipulation. 
+### `Member.username` is optional and never set during registration
+Supposed to be setup upon login as an editable, display name since user_id became unique 
+### `ChangeLog.remark` is collected in the task modal but only stored on description changes
+Unfinish feature, 
+### `RefreshToken` table grows without cleanup
+Every login and every token refresh inserts a new row into the `RefreshToken` table. Rows are marked `revokedAt` on use or logout but are never deleted. 
+### E2E tests require a running stack
+Playwright tests run against the real app (`localhost:3000` + `localhost:8000`). There is no mocked or in-memory mode.
+### No forgot-password or email reset flow
+Password can only be changed through the Settings sheet if the user knows their current password. 
 
-**WebSocket on free Render tier** — Socket.IO connections work but may be dropped during Render's automatic restarts on the free plan. The client reconnects automatically; in-progress mutations are not lost since they go through the REST API.
 
-**No password reset flow** — `PATCH /test01/update_member` lets users change their password if they know the current one. A forgot-password/email flow is not implemented.
-
-**E2E tests require a running stack** — Playwright tests run against the real app (`localhost:3000` + `localhost:8000`). There is no mocked or in-memory mode.
+**
