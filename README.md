@@ -207,8 +207,6 @@ After setting `NEXT_PUBLIC_API_URL`, trigger a fresh Vercel deployment to pick i
 
 **No project deletion** — There is no delete-project or delete-task endpoint. Data can only be removed via the seed endpoint (which wipes everything) or direct DB access. This was not part of the assessment requirements but is the most obvious gap for a production tool.
 
-**Render cold starts** — Render's free tier spins down idle services. The first request after inactivity may take 30–60 seconds. Subsequent requests are fast.
-
 **WebSocket on free Render tier** — Socket.IO connections work but may be dropped during Render's automatic restarts on the free plan. The client reconnects automatically; in-progress mutations are not lost since they go through the REST API.
 
 **No password reset flow** — `PATCH /test01/update_member` lets users change their password if they know the current one. A forgot-password/email flow is not implemented.
