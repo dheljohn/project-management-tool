@@ -2,7 +2,6 @@
 
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
 import { MemberService } from './member/member.service';
 import { MemberController } from './member/member.controller';
@@ -50,7 +49,6 @@ import { ProjectGatewayModule } from './gateway/project-gateway.module';
   controllers: [AppController, MemberController],
 
   providers: [
-    AppService,
     PrismaService,
     MemberService,
     { provide: APP_GUARD, useClass: CustomThrottlerGuard },
