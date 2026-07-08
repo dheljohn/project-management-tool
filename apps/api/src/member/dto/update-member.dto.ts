@@ -1,13 +1,13 @@
-import { IsEmail, IsString, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsString, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
 
 export class UpdateMemberDto {
   @IsNotEmpty()
   @IsString()
-  user_id!: string; // Keeps the ID string from your JSON payload
+  user_id!: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsEmail()
-  email!: string;
+  email?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -15,6 +15,6 @@ export class UpdateMemberDto {
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(6) // Enforces a minimum password length
+  @MinLength(6)
   new_password!: string;
 }
