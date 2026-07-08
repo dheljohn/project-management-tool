@@ -8,8 +8,8 @@ import type { Response, Request } from 'express';
 import { randomBytes } from 'crypto';
 import { getAuthCookieOptions } from './cookie-options.util';
 
-// const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
-const ACCESS_TOKEN_TTL_MS = 1 * 15 * 1000; // 15 seconds
+const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
+// const ACCESS_TOKEN_TTL_MS = 1 * 15 * 1000; // 15 seconds
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dayss
 
 @Injectable()
@@ -123,7 +123,7 @@ export class AuthService {
     const accessPayload = { sub: userId, user_id };
     const accessToken = this.jwtService.sign(accessPayload, {
       secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      expiresIn: '15s',
+      expiresIn: '15m',
     });
 
     const refreshPayload = { sub: userId, user_id, jti };
