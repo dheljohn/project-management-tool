@@ -210,7 +210,7 @@ test.describe("Project Management", () => {
       await expect(
         page
           .getByText(/access denied|not have permission|does not exist/i)
-          .first(),
+          .last(),
       ).toBeVisible({ timeout: 8_000 });
     } finally {
       await apiCleanupUser(owner.user_id);

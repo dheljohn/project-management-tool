@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import * as bcrypt from 'bcrypt';
+import { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class MemberService {
@@ -17,34 +18,39 @@ export class MemberService {
     const normalizedEmail = createDto.email.toLowerCase();
     const normalizedUserId = createDto.user_id.toLowerCase();
 
-    const existing = await this.prisma.member.findFirst({
-      where: {
-        OR: [{ email: normalizedEmail }, { user_id: normalizedUserId }],
-      },
-    });
-
-    if (existing) {
-      if (existing.email === normalizedEmail) {
-        throw new ConflictException('Email already in use');
-      }
-      if (existing.user_id === normalizedUserId) {
-        throw new ConflictException('User ID already taken');
-      }
-    }
-
     const hashed = await bcrypt.hash(createDto.password, 10);
 
-    const created = await this.prisma.member.create({
-      data: {
-        ...createDto,
-        email: normalizedEmail,
-        user_id: normalizedUserId,
-        password: hashed,
-      },
-    });
+    try {
+      const created = await this.prisma.member.create({
+        data: {
+          ...createDto,
+          email: normalizedEmail,
+          user_id: normalizedUserId,
+          password: hashed,
+        },
+      });
 
-    const { password: _pw, ...safe } = created;
-    return safe;
+      const { password: _pw, ...safe } = created;
+      return safe;
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        // target can be a string (constraint name) or array (column names)
+        // depending on the DB provider, so stringify and use includes()
+        const target = String(err.meta?.target ?? '');
+
+        if (target.includes('email')) {
+          throw new ConflictException('Email already in use');
+        }
+        if (target.includes('user_id')) {
+          throw new ConflictException('User ID already taken');
+        }
+        throw new ConflictException('Account already exists');
+      }
+      throw err;
+    }
   }
 
   findAll() {
