@@ -188,13 +188,15 @@ After setting `NEXT_PUBLIC_API_URL`, trigger a fresh Vercel deployment to pick i
 
 ### No delete endpoint for projects or tasks
 There is no `DELETE /projects/:id` or `DELETE /tasks/:id` endpoint.
+### Redis connection failure crashes the application
+If `REDIS_URL` is missing or Upstash is unreachable at startup, the `CacheModule.registerAsync` call throws synchronously and the entire NestJS application fails to start. There is no graceful fallback to in-memory caching.
 ### WebSocket on free Render tier
 Socket.IO connections work but may be dropped during Render's automatic restarts on the free plan. The client reconnects automatically; in-progress mutations are not lost since they go through the REST API. Implemented an uptime monitoring for this, result still vague
 ### No project membership removal endpoint
 Once a user joins a project via invite code, there is no way to remove them from the project other than direct database manipulation. 
 ### `Member.username` is optional and never set during registration
 Supposed to be setup upon login as an editable, display name since user_id became unique 
-### `ChangeLog.remark` is collected in the task modal but only stored on description changes
+### No UI and Implementation for `ChangeLog.remark`
 Unfinish feature
 ### `RefreshToken` table grows without cleanup
 Every login and every token refresh inserts a new row into the `RefreshToken` table. Rows are marked `revokedAt` on use or logout but are never deleted. 
