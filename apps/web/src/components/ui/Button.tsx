@@ -18,7 +18,7 @@ export const Button = ({
 
   const variantStyles = {
     add: "bg-accent text-card ",
-    save: "flex items-center gap-1.5 bg-accent text-accent-foreground text-sm font-medium px-4 py-2 rounded-full cursor-pointer transform transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0",
+    save: "flex items-center gap-1.5 bg-accent text-accent-foreground text-sm font-medium px-4 py-2 rounded-full cursor-pointer transform transition-all duration-200 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 justify-center w-full ",
     cancel:
       "bg-transparent text-muted-foreground hover:text-foreground border-none",
     pill: "   hover:text-foreground hover:bg-muted/60",
