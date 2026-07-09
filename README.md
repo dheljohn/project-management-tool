@@ -46,12 +46,13 @@ Proyekto lets teams create projects, manage tasks on a drag-and-drop board, invi
 
 - **Real-time sync via WebSocket** — Task creates/updates, project changes, and new changelog entries broadcast instantly to all connected clients on the same project board using Socket.IO.
 - **Multi-assignee tasks** — Each task supports multiple assignees; assignee candidates are restricted to project members.
+- **Change password** — Users can change their password.
 - **Invite-code collaboration** — Project owners generate time-limited, usage-capped invite codes. Other users join via an 8-character code. Race-condition-safe redemption via a guarded DB transaction.
 - **Role-based access** — `OWNER` vs `MEMBER` roles. Only the OWNER can update project settings or generate invite codes.
 - **WIP limit** — Optional per-project "Work In Progress" limit; the board visually blocks dragging additional tasks into the "In Progress" column when the limit is reached.
 - **Cursor-based pagination** — The changelog endpoint supports infinite scroll with cursor pagination and field-type filtering.
 - **CSRF protection** — Hand-rolled double-submit cookie pattern applied globally to all mutating routes.
-- **Rate limiting** — Login rate-limited to 10 attempts per minute via `@nestjs/throttler`.
+- **Rate limiting** — Login rate-limited to 5 attempts per minute via `@nestjs/throttler`.
 - **Redis caching** — Project lists, task lists, and changelog pages cached in Upstash Redis with targeted invalidation on writes.
 - **Confetti** — `canvas-confetti` fires when all tasks in a project reach "Done".
 - **Dark / Light theme** — Toggleable via the settings sheet.
