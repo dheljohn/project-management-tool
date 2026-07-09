@@ -94,43 +94,27 @@ TEST_SECRET=        # any string (used by E2E test cleanup)
 
 > The remaining variables (`FRONTEND_URL`, `API_URL`, `DOCKER_API`) already have correct defaults in `.env.example` for local use — no changes needed.
 
+### 3. Install dependencies and generate the Prisma client
+```bash
+npm install
+npx prisma generate --schema=apps/api/prisma/schema.prisma
+```
 ---
 
-### Option A — Docker Compose
-
-Builds and runs both apps in containers. No Node.js installation required.
-
+### Run either with using Docker
 ```bash
 docker compose up --build
 ```
-
 - Frontend: http://localhost:3000
 - API: http://localhost:8000
-
 To stop: `Ctrl+C` then `docker compose down`
 
----
-
-### Option B — npm (local dev servers)
-
-Runs both apps natively with hot-reload. Faster iteration than Docker.
+### or local dev server
 
 ```bash
-# Install all dependencies (run once)
-npm install
-
-# Generate the Prisma client (creates typed DB access based on schema.prisma)
-npx prisma generate --schema=apps/api/prisma/schema.prisma
-
 # Start both API and frontend in parallel
 npm run dev || turbo run dev
 ```
-
-- Frontend: http://localhost:3000
-- API: http://localhost:8000
-
-Both dev scripts automatically load from the root `.env` via `dotenv-cli` — no extra configuration needed.
-
 To run each app individually:
 
 ```bash
@@ -141,9 +125,7 @@ cd apps/api && npm run dev
 cd apps/web && npm run dev
 ```
 
----
-
-### 3. Seed demo data (optional)
+### 4. Seed demo data (optional)
 
 With the API running (either option), seed a demo project with three pre-made accounts:
 
@@ -206,17 +188,18 @@ After setting `NEXT_PUBLIC_API_URL`, trigger a fresh Vercel deployment to pick i
 
 ### No delete endpoint for projects or tasks
 There is no `DELETE /projects/:id` or `DELETE /tasks/:id` endpoint.
-**WebSocket on free Render tier** — Socket.IO connections work but may be dropped during Render's automatic restarts on the free plan. The client reconnects automatically; in-progress mutations are not lost since they go through the REST API. Implemented an uptime monitoring for this, result still vague
+### WebSocket on free Render tier
+Socket.IO connections work but may be dropped during Render's automatic restarts on the free plan. The client reconnects automatically; in-progress mutations are not lost since they go through the REST API. Implemented an uptime monitoring for this, result still vague
 ### No project membership removal endpoint
 Once a user joins a project via invite code, there is no way to remove them from the project other than direct database manipulation. 
 ### `Member.username` is optional and never set during registration
 Supposed to be setup upon login as an editable, display name since user_id became unique 
 ### `ChangeLog.remark` is collected in the task modal but only stored on description changes
-Unfinish feature, 
+Unfinish feature
 ### `RefreshToken` table grows without cleanup
 Every login and every token refresh inserts a new row into the `RefreshToken` table. Rows are marked `revokedAt` on use or logout but are never deleted. 
 ### E2E tests require a running stack
-Playwright tests run against the real app (`localhost:3000` + `localhost:8000`). There is no mocked or in-memory mode.
+Playwright tests run against the real app (`localhost:3000` + `localhost:8000`). There is no mocked or in-memory mode. May fail due to rate limit.
 ### No forgot-password or email reset flow
 Password can only be changed through the Settings sheet if the user knows their current password. 
 
