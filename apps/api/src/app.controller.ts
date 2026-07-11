@@ -1,30 +1,29 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { PrismaService } from './prisma/prisma.service';
+import { CacheHelper } from './common/cache/cache.helper';
 
 @Controller()
 export class AppController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private cacheHelper: CacheHelper,
+  ) {}
 
   @Get('health')
-  health() {
-    return { status: 'ok', timestamp: new Date().toISOString() };
-  }
+  async check(@Res() res: Response) {
+    const [dbHealthy, redisHealthy] = await Promise.all([
+      this.prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false),
+      this.cacheHelper.checkHealth(),
+    ]);
 
-  @Get('health/db')
-  async healthDb() {
-    try {
-      await this.prisma.$queryRaw`SELECT 1`;
-      return {
-        status: 'ok',
-        db: 'connected',
-        timestamp: new Date().toISOString(),
-      };
-    } catch {
-      return {
-        status: 'ok',
-        db: 'unreachable',
-        timestamp: new Date().toISOString(),
-      };
-    }
+    const healthy = dbHealthy && redisHealthy;
+
+    return res.status(healthy ? 200 : 503).json({
+      status: healthy ? 'ok' : 'down',
+      db: dbHealthy ? 'up' : 'down',
+      redis: redisHealthy ? 'up' : 'down',
+      timestamp: new Date().toISOString(),
+    });
   }
 }
