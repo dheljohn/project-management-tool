@@ -8,6 +8,15 @@ export class CacheHelper {
 
   constructor(@Inject(CACHE_MANAGER) private cache: Cache) {}
 
+  async checkHealth(): Promise<boolean> {
+    try {
+      await this.cache.set('__health_check__', 'ok', 5000);
+      return (await this.cache.get('__health_check__')) === 'ok';
+    } catch {
+      return false;
+    }
+  }
+
   async getOrSet<T>(
     key: string,
     fetchFn: () => Promise<T>,
