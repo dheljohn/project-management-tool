@@ -16,7 +16,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
+import { createKeyv } from '@keyv/redis';
 import { CacheHelperModule } from './common/cache/cache.module';
 
 import { CsrfGuard } from './common/guards/csrf.guard';
@@ -29,8 +29,8 @@ import { ProjectGatewayModule } from './gateway/project-gateway.module';
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => ({
-        store: await redisStore({ url: process.env.REDIS_URL }),
-        ttl: 30000, // 30s default
+        stores: [createKeyv(process.env.REDIS_URL)],
+        ttl: 30000,
       }),
     }),
     CacheHelperModule,

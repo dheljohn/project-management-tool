@@ -16,11 +16,13 @@ export function useProjectSocket(projectId: number) {
 
     const socket = io(SOCKET_URL, {
       withCredentials: true,
-      auth: (cb) => {
-        api
-          .get("/testlogin/socket-token")
-          .then(({ data }) => cb({ token: data.token }))
-          .catch(() => cb({}));
+      auth: async (cb) => {
+        try {
+          const { data } = await api.get("/testlogin/socket-token");
+          cb({ token: data.token });
+        } catch (error) {
+          cb({});
+        }
       },
     });
     socketRef.current = socket;
