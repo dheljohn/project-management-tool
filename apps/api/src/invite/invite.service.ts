@@ -6,11 +6,11 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CacheHelper } from 'src/common/cache/cache.helper';
+import { PrismaService } from '../prisma/prisma.service';
+import { CacheHelper } from '../common/cache/cache.helper';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { JoinProjectDto } from './dto/join-project.dto';
-import { ProjectGateway } from 'src/gateway/project.gateway';
+import { ProjectGateway } from '../gateway/project.gateway';
 
 const DEFAULT_MAX_USES = 10;
 const DEFAULT_EXPIRY_DAYS = 7;
@@ -66,8 +66,9 @@ export class InvitesService {
             maxUses,
           },
         });
-      } catch (err: any) {
-        if (err.code === 'P2002') continue; // unique constraint hit, retry
+      } catch (err: unknown) {
+        if (typeof err === 'string' && err === 'P2002') continue;
+        // if (err.code === 'P2002') continue; // unique constraint hit, retry
         throw err;
       }
     }

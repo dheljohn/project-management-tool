@@ -16,7 +16,7 @@ import { MemberService } from './member.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { SkipCsrf } from 'src/auth/decorators/skip-csrf.decorator';
+import { SkipCsrf } from '../auth/decorators/skip-csrf.decorator';
 import { ApiHeader, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('members')

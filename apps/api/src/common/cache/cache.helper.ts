@@ -38,7 +38,7 @@ export class CacheHelper {
     // this.logger.log(`🗑️ Cache invalidated: ${keys.join(', ')}`);
   }
   async invalidatePattern(pattern: string): Promise<void> {
-    const stores = this.cache.stores as any;
+    const stores = this.cache.stores as any[];
     const store = Array.isArray(stores) ? stores[0] : stores;
 
     if (store && typeof store.iterator === 'function') {

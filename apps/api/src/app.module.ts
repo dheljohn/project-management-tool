@@ -28,7 +28,7 @@ import { ProjectGatewayModule } from './gateway/project-gateway.module';
     ProjectGatewayModule,
     CacheModule.registerAsync({
       isGlobal: true,
-      useFactory: async () => ({
+      useFactory: () => ({
         stores: [createKeyv(process.env.REDIS_URL)],
         ttl: 30000,
       }),

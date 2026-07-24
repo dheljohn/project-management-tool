@@ -4,10 +4,10 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { CacheHelper } from 'src/common/cache/cache.helper';
-import { ProjectGateway } from 'src/gateway/project.gateway';
+import { CacheHelper } from '../common/cache/cache.helper';
+import { ProjectGateway } from '../gateway/project.gateway';
 
 @Injectable()
 export class ProjectsService {

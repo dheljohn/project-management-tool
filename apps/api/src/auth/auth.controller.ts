@@ -20,7 +20,7 @@ import {
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import type { Response, Request } from 'express';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
 import { SkipCsrf } from './decorators/skip-csrf.decorator';
 import { randomBytes } from 'crypto';

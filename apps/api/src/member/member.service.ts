@@ -8,7 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import * as bcrypt from 'bcrypt';
-import { Prisma } from 'generated/prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 
 @Injectable()
 export class MemberService {
@@ -29,35 +29,41 @@ export class MemberService {
           password: hashed,
         },
       });
+      //implied type SafeUser rather than
+      //* const { password, ...safe } = created;
+      type SafeUser = Omit<typeof created, 'password'>;
+      const safe = created as SafeUser;
 
-      const { password: _pw, ...safe } = created;
       return safe;
     } catch (err) {
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&
         err.code === 'P2002'
       ) {
-        // target can be a string (constraint name) or array (column names)
-        // depending on the DB provider, so stringify and use includes()
-        const target = String(err.meta?.target ?? '');
+        const target = err.meta?.target;
+        if (
+          Array.isArray(target) &&
+          target.every((item): item is string => typeof item === 'string')
+        ) {
+          if (target.includes('email')) {
+            throw new ConflictException('Email already in use');
+          }
+          if (target.includes('user_id')) {
+            throw new ConflictException('User ID already taken');
+          }
+        }
 
-        if (target.includes('email')) {
-          throw new ConflictException('Email already in use');
-        }
-        if (target.includes('user_id')) {
-          throw new ConflictException('User ID already taken');
-        }
         throw new ConflictException('Account already exists');
       }
       throw err;
     }
   }
 
-  findAll() {
-    const member = this.prisma.member.findMany({
+  async findAll() {
+    const member = await this.prisma.member.findMany({
       omit: { password: true },
     });
-    if (!member) throw new NotFoundException('No members found');
+    if (member.length === 0) throw new NotFoundException('No members found');
     return member;
   }
 
@@ -99,9 +105,11 @@ export class MemberService {
         password: hashedNewPassword,
       },
     });
-
-    const { password: _pw, ...safe } = updated;
-    return safe;
+    // implied SafeUpdated rather than
+    // const { password: _pw, ...safe } = updated;
+    type SafeUpdated = Omit<typeof updated, 'password'>;
+    const safeUp = updated as SafeUpdated;
+    return safeUp;
   }
   async deleteByUserId(user_id: string) {
     return this.prisma.member.deleteMany({

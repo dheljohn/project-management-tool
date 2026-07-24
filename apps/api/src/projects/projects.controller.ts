@@ -13,8 +13,8 @@ import {
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
-import type { RequestWithUser } from 'src/common/interface/request-with-user.interface';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import type { RequestWithUser } from '../common/interface/request-with-user.interface';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ApiHeader, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
@@ -38,7 +38,7 @@ export class ProjectsController {
   @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_all_projects')
-  findAll(@Req() req: RequestWithUser) {
+  findAll() {
     return this.projectsService.findAll();
   }
 
