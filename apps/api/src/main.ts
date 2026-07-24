@@ -18,7 +18,10 @@ async function bootstrap() {
   ].filter(Boolean);
 
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -60,4 +63,11 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 8000);
 }
-bootstrap();
+bootstrap().catch((err) => {
+  // Ensure unhandled rejections are logged and process exits with failure
+  // This satisfies lint rules requiring a rejection handler on returned Promises
+  // and keeps behavior explicit in production.
+  // eslint-disable-next-line no-console
+  console.error(err);
+  process.exit(1);
+});

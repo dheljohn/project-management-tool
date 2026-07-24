@@ -13,9 +13,9 @@ import {
 import { ChangelogService } from './changelog.service';
 import { CreateChangelogDto } from './dto/create-changelog.dto';
 import { UpdateChangelogDto } from './dto/update-changelog.dto';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ApiHeader, ApiQuery, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('changelog')
 @Controller('test04')

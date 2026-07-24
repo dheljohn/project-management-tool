@@ -5,11 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { Priority, TaskStatus } from 'generated/prisma/enums';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Priority, TaskStatus } from '../../generated/prisma/enums';
+import { PrismaService } from '../prisma/prisma.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { CacheHelper } from 'src/common/cache/cache.helper';
-import { ProjectGateway } from 'src/gateway/project.gateway';
+import { CacheHelper } from '../common/cache/cache.helper';
+import { ProjectGateway } from '../gateway/project.gateway';
 
 @Injectable()
 export class TaskService {
@@ -167,7 +167,7 @@ export class TaskService {
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      const task = await tx.task.update({
+      await tx.task.update({
         where: { id: taskId },
         data: {
           ...(updateDto.title && { title: updateDto.title }),
@@ -176,7 +176,7 @@ export class TaskService {
           }),
           ...(formattedStatus && { status: formattedStatus }),
           ...(updateDto.priority && {
-            priority: updateDto.priority as Priority,
+            priority: updateDto.priority,
           }),
         },
       });
@@ -263,7 +263,7 @@ export class TaskService {
     let dbStatus: TaskStatus;
     let dbPriority: Priority;
 
-    switch (dto.status) {
+    switch (String(dto.status)) {
       case 'Todo':
         dbStatus = TaskStatus.Todo;
         break;
@@ -277,7 +277,7 @@ export class TaskService {
         throw new BadRequestException('Invalid status value provided');
     }
 
-    switch (dto.priority) {
+    switch (String(dto.priority)) {
       case 'Critical':
         dbPriority = Priority.Critical;
         break;

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { InvitesService } from './invite.service';
 import { InvitesController } from './invite.controller';
-import { ProjectGatewayModule } from 'src/gateway/project-gateway.module';
+import { ProjectGatewayModule } from '../gateway/project-gateway.module';
 
 @Module({
   imports: [ProjectGatewayModule],

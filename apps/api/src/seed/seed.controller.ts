@@ -1,6 +1,6 @@
 import { Controller, Post } from '@nestjs/common';
 import { SeedService } from './seed.service';
-import { SkipCsrf } from 'src/auth/decorators/skip-csrf.decorator';
+import { SkipCsrf } from '../auth/decorators/skip-csrf.decorator';
 
 @Controller('seed')
 export class SeedController {

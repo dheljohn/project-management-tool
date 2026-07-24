@@ -11,7 +11,7 @@ import { Type } from 'class-transformer';
 export class UpdateProjectDto {
   @Type(() => Number)
   @IsInt()
-  id: number;
+  id!: number;
 
   @IsString()
   @IsOptional()

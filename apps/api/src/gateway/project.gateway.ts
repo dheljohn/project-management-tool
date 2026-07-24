@@ -8,7 +8,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { PayloadT, SocketT } from './gateway-type';
 
 function projectRoom(projectId: number) {
   return `project:${projectId}`;
@@ -29,9 +30,11 @@ export class ProjectGateway implements OnGatewayConnection {
     private prisma: PrismaService,
   ) {}
 
-  // Step 1: verify identity when the socket first connects.
-  async handleConnection(client: Socket) {
-    const authToken = client.handshake.auth?.token;
+  handleConnection(client: Socket & { data: { userId?: number } }) {
+    const authToken = (() => {
+      const t = (client.handshake.auth as SocketT)?.token;
+      return typeof t === 'string' ? t : undefined;
+    })();
     const cookieToken = parseCookies(client.handshake.headers.cookie ?? '')[
       'auth_token'
     ];
@@ -46,9 +49,10 @@ export class ProjectGateway implements OnGatewayConnection {
     }
 
     try {
-      const payload = this.jwtService.verify(token);
-      client.data.userId = payload.sub ?? payload.id;
-      console.log('[socket] connected, userId:', client.data.userId);
+      const payload: PayloadT = this.jwtService.verify(token);
+      const socketData = client.data as { userId?: number | string };
+      socketData.userId = payload.sub ?? payload.id;
+      console.log('[socket] connected, userId:', socketData.userId);
     } catch (err) {
       console.log('[socket] token verify failed:', err);
       client.disconnect();
@@ -57,15 +61,21 @@ export class ProjectGateway implements OnGatewayConnection {
 
   @SubscribeMessage('joinProject')
   async handleJoinProject(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: Socket & { data: { userId?: number } },
     @MessageBody() data: { projectId: number },
   ) {
-    console.log('[socket] join attempt', client.data.userId, data.projectId);
+    const userId = (client.data as { userId?: number }).userId;
+    if (userId === undefined) {
+      console.log('[socket] no user id, refusing join');
+      return;
+    }
+
+    console.log('[socket] join attempt', userId, data.projectId);
     const membership = await this.prisma.projectMember.findUnique({
       where: {
         projectId_memberId: {
           projectId: data.projectId,
-          memberId: client.data.userId,
+          memberId: userId,
         },
       },
     });
@@ -73,7 +83,7 @@ export class ProjectGateway implements OnGatewayConnection {
       console.log('[socket] membership not found, refusing join');
       return;
     }
-    client.join(projectRoom(data.projectId));
+    await client.join(projectRoom(data.projectId));
     console.log('[socket] joined room', projectRoom(data.projectId));
   }
 

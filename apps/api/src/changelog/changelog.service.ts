@@ -3,10 +3,10 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateChangelogDto } from './dto/create-changelog.dto';
 import { UpdateChangelogDto } from './dto/update-changelog.dto';
-import { CacheHelper } from 'src/common/cache/cache.helper';
+import { CacheHelper } from '../common/cache/cache.helper';
 
 @Injectable()
 export class ChangelogService {
