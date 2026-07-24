@@ -2,7 +2,7 @@ import { IsInt, IsOptional, Min, Max } from 'class-validator';
 
 export class CreateInviteDto {
   @IsInt()
-  projectId: number;
+  projectId!: number;
 
   @IsOptional()
   @IsInt()

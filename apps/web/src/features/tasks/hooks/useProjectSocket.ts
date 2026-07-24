@@ -1,11 +1,11 @@
-import { useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
-import { useQueryClient } from "@tanstack/react-query";
-import { projectKeys } from "../../../../lib/queryKeys";
-import { Project, Task } from "../../../types/types";
-import api from "../../../../lib/api";
+import { useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { projectKeys } from '../../../../lib/queryKeys';
+import { Project, Task } from '../../../types/types';
+import api from '../../../../lib/api';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
 export function useProjectSocket(projectId: number) {
   const queryClient = useQueryClient();
@@ -18,7 +18,7 @@ export function useProjectSocket(projectId: number) {
       withCredentials: true,
       auth: async (cb) => {
         try {
-          const { data } = await api.get("/testlogin/socket-token");
+          const { data } = await api.get('/testlogin/socket-token');
           cb({ token: data.token });
         } catch (error) {
           cb({});
@@ -27,19 +27,19 @@ export function useProjectSocket(projectId: number) {
     });
     socketRef.current = socket;
 
-    socket.on("connect", () => {
-      socket.emit("joinProject", { projectId });
+    socket.on('connect', () => {
+      socket.emit('joinProject', { projectId });
     });
 
-    socket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err.message);
+    socket.on('connect_error', (err) => {
+      console.error('Socket connection error:', err.message);
     });
 
-    socket.on("project:updated", ({ project }: { project: Project }) => {
+    socket.on('project:updated', ({ project }: { project: Project }) => {
       queryClient.setQueryData<Project>(projectKeys.detail(projectId), project);
     });
 
-    socket.on("task:created", ({ task }: { task: Task }) => {
+    socket.on('task:created', ({ task }: { task: Task }) => {
       queryClient.setQueryData<Task[]>(projectKeys.tasks(projectId), (old) => {
         if (!old) return old;
 
@@ -48,19 +48,19 @@ export function useProjectSocket(projectId: number) {
       });
     });
 
-    socket.on("task:updated", ({ task }: { task: Task }) => {
+    socket.on('task:updated', ({ task }: { task: Task }) => {
       queryClient.setQueryData<Task[]>(projectKeys.tasks(projectId), (old) => {
         if (!old) return old;
         return old.map((t) => (t.id === task.id ? task : t));
       });
     });
-    socket.on("member:joined", () => {
+    socket.on('member:joined', () => {
       queryClient.invalidateQueries({
         queryKey: projectKeys.members(projectId),
       });
     });
 
-    socket.on("log:created", () => {
+    socket.on('log:created', () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.logs(projectId) });
     });
 

@@ -210,6 +210,14 @@ export class TaskService {
       });
     });
 
+    // await Promise.all([
+    //   this.cacheHelper.invalidate(
+    //     'all task',
+    //     `task_project_${updated.projectId}`,
+    //     `task_history_${taskId}`,
+    //   ),
+    //   this.cacheHelper.invalidate,
+    // ]);
     await this.cacheHelper.invalidate(
       'all_tasks',
       `tasks_project_${updated.projectId}`,
@@ -229,6 +237,7 @@ export class TaskService {
     if (logs.length > 0) {
       this.projectGateway.emitToProject(updated.projectId, 'log:created', {
         projectId: updated.projectId,
+        logs,
       });
     }
 
@@ -355,15 +364,10 @@ export class TaskService {
       });
     });
 
-    await this.cacheHelper.invalidate(
-      'all_tasks',
-      `tasks_project_${newTask.projectId}`,
-    );
     await this.cacheHelper.invalidatePattern(
       `changelog_project_${newTask.projectId}_*`,
     );
 
-    // Broadcast the new task to everyone else viewing this project's board.
     this.projectGateway.emitToProject(newTask.projectId, 'task:created', {
       task: newTask,
       createdBy: userId,
