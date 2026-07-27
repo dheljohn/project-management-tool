@@ -21,7 +21,7 @@ Proyekto lets teams create projects, manage tasks on a drag-and-drop board, invi
 | Frontend   | Next.js 16 (App Router), React 19, TanStack Query v5, Tailwind CSS v4, `@dnd-kit/react`, Axios, Zod, `socket.io-client` |
 | Backend    | NestJS v11, Passport JWT, `@nestjs/throttler`, `@nestjs/swagger`, Socket.IO                                             |
 | Database   | PostgreSQL via [Neon](https://neon.tech) (serverless), Prisma v7 ORM                                                    |
-| Cache      | Redis via [Upstash](https://upstash.com) (`cache-manager-redis-yet`)                                                    |
+| Cache      | Redis via [Upstash](https://upstash.com) (`cache-manager-redis-yet`), KeyV                                              |
 | Auth       | httpOnly cookie JWT — access token (15 min) + refresh token (7 days, DB-tracked rotation)                               |
 | Build      | Turborepo monorepo (`apps/api`, `apps/web`)                                                                             |
 | Deployment | Render (API, Docker) + Vercel (Frontend)                                                                                |
