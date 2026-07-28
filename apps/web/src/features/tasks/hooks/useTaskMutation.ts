@@ -1,14 +1,14 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createTask, updateTask } from "../api/tasks.api";
-import { projectKeys } from "../../../../lib/queryKeys";
-import { Priority, Task, TaskStatus } from "../../../types/types";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createTask, updateTask } from '../api/tasks.api';
+import { projectKeys } from '../../../../lib/queryKeys';
+import { Priority, Task, TaskStatus } from '../../../types/types';
 
 function toApiStatus(status: TaskStatus): string {
-  return status === "In_Progress" ? "In Progress" : status;
+  return status === 'In_Progress' ? 'In Progress' : status;
 }
 
 interface UseTaskMutationArgs {
-  mode: "create" | "update";
+  mode: 'create' | 'update';
   projectId: number;
   taskId?: number;
   onSuccess: () => void;
@@ -32,7 +32,7 @@ export const useTaskMutation = ({
       remark?: string | undefined;
       assigneeIds: number[];
     }) => {
-      if (mode === "create") {
+      if (mode === 'create') {
         return createTask({
           project_id: projectId,
           title: values.title,

@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { DragDropProvider } from "@dnd-kit/react";
-import { Task, TaskStatus } from "../../../types/types";
-import { KanbanColumn } from "./KanbanColumn";
-import { useTaskStatusMutation } from "../hooks/useTaskStatusMutation";
-import TaskModal from "./TaskModal";
-import { celebrateProject } from "../../../../lib/confetti";
+import { useState, useRef, useEffect } from 'react';
+import { DragDropProvider } from '@dnd-kit/react';
+import { Task, TaskStatus } from '../../../types/types';
+import { KanbanColumn } from './KanbanColumn';
+import { useTaskStatusMutation } from '../hooks/useTaskStatusMutation';
+import TaskModal from './TaskModal';
+import { celebrateProject } from '../../../../lib/confetti';
 
 interface KanbanBoardProps {
   projectId: number;
@@ -15,13 +15,13 @@ interface KanbanBoardProps {
 }
 
 const COLUMNS = [
-  { label: "To do", status: "Todo", color: "border-status-todo" },
+  { label: 'To do', status: 'Todo', color: 'border-status-todo' },
   {
-    label: "In Progress",
-    status: "In_Progress",
-    color: "border-status-progress",
+    label: 'In Progress',
+    status: 'In_Progress',
+    color: 'border-status-progress',
   },
-  { label: "Done", status: "Done", color: "border-status-done" },
+  { label: 'Done', status: 'Done', color: 'border-status-done' },
 ] satisfies { label: string; status: TaskStatus; color: string }[];
 
 export default function KanbanBoard({
@@ -30,7 +30,7 @@ export default function KanbanBoard({
   wipLimit,
 }: KanbanBoardProps) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "update">("create");
+  const [modalMode, setModalMode] = useState<'create' | 'update'>('create');
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [completedTaskId, setCompletedTaskId] = useState<number | null>(null);
   const isFiringRef = useRef(false);
@@ -38,7 +38,7 @@ export default function KanbanBoard({
   const { mutate: updateTaskStatus } = useTaskStatusMutation(projectId);
 
   const isProjectCompleted =
-    tasks.length > 0 && tasks.every((task) => task.status === "Done");
+    tasks.length > 0 && tasks.every((task) => task.status === 'Done');
   const wasCompleted = useRef(false);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function KanbanBoard({
 
   function openUpdateModal(task: Task) {
     setSelectedTask(task);
-    setModalMode("update");
+    setModalMode('update');
     setModalOpen(true);
   }
 
@@ -76,22 +76,22 @@ export default function KanbanBoard({
 
         const targetStatus = String(rawTargetId).replace(
           /\s+/g,
-          "_",
+          '_',
         ) as TaskStatus;
         const currentTask = tasks.find(
           (t) => String(t.id) === String(draggedId),
         );
         if (!currentTask || currentTask.status === targetStatus) return;
 
-        if (targetStatus === "In_Progress" && wipLimit !== null) {
-          const currentInProgressCount = getTasksByStatus("In_Progress").length;
+        if (targetStatus === 'In_Progress' && wipLimit !== null) {
+          const currentInProgressCount = getTasksByStatus('In_Progress').length;
           if (currentInProgressCount >= wipLimit) {
             return;
           }
         }
 
         // Trigger the pulse explicitly, driven by the actual drag action
-        if (targetStatus === "Done") {
+        if (targetStatus === 'Done') {
           const id = Number(draggedId);
           setCompletedTaskId(id);
           setTimeout(() => {
@@ -101,7 +101,7 @@ export default function KanbanBoard({
 
         updateTaskStatus({
           task_id: Number(draggedId),
-          status: targetStatus === "In_Progress" ? "In Progress" : targetStatus,
+          status: targetStatus === 'In_Progress' ? 'In Progress' : targetStatus,
           // user_id: localStorage.getItem("user_id"),
         });
       }}

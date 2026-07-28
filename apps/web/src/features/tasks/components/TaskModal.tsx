@@ -1,19 +1,22 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { taskSchema, TaskFormValues, PRIORITIES } from "../schemas/task.schema";
-import { useTaskMutation } from "../hooks/useTaskMutation";
-import { Task, TaskStatus } from "../../../types/types";
-import { Button } from "../../../components/ui/Button";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { taskSchema, TaskFormValues, PRIORITIES } from '../schemas/task.schema';
+import { useTaskMutation } from '../hooks/useTaskMutation';
+import { Task, TaskStatus } from '../../../types/types';
+import { Button } from '../../../components/ui/Button';
 
-import { PRIORITY_CONFIG } from "../../../../lib/priority";
-import { Priority } from "../../../types/types";
-import { useProjectMembers } from "../hooks/useProjectMembers";
+import { PRIORITY_CONFIG } from '../../../../lib/priority';
+import { Priority } from '../../../types/types';
+import { useProjectMembers } from '../hooks/useProjectMembers';
+import { Trash } from 'lucide-react';
+import { useDeleteTaskMutation } from '../hooks/useDeleteTask';
+import { DeleteTaskPayload } from '../api/tasks.api';
 
 interface TaskModalProps {
-  mode: "create" | "update";
+  mode: 'create' | 'update';
   task?: Task;
   projectId: number;
   onClose: () => void;
@@ -25,7 +28,7 @@ export default function TaskModal({
   projectId,
   onClose,
 }: TaskModalProps) {
-  const [status, setStatus] = useState<TaskStatus>(task?.status ?? "Todo");
+  const [status] = useState<TaskStatus>(task?.status ?? 'Todo');
 
   const {
     register,
@@ -36,10 +39,10 @@ export default function TaskModal({
   } = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
-      title: task?.title ?? "",
-      description: task?.description ?? "",
-      remark: "",
-      priority: task?.priority ?? "Medium",
+      title: task?.title ?? '',
+      description: task?.description ?? '',
+      remark: '',
+      priority: task?.priority ?? 'Medium',
       assigneeIds: task?.assignees.map((a) => a.member.id) ?? [],
     },
   });
@@ -51,8 +54,21 @@ export default function TaskModal({
     projectId,
     taskId: task?.id,
     onSuccess: onClose,
-    assigneeIds: watch("assigneeIds"),
+    assigneeIds: watch('assigneeIds'),
   });
+
+  const { mutate: deleteTaskMutate, isPending: isDeleting } =
+    useDeleteTaskMutation({
+      projectId,
+      onSuccess: onClose,
+    });
+
+  const handleDelete = () => {
+    if (!task?.id) return;
+    if (confirm('Delete this task? This cannot be undone.')) {
+      deleteTaskMutate(task.id);
+    }
+  };
 
   const onSubmit = (values: TaskFormValues) =>
     mutate({
@@ -64,23 +80,23 @@ export default function TaskModal({
     });
 
   const inputClass =
-    "bg-muted border border-border rounded-md px-3.5 py-2.5 sm:px-4 sm:py-2 w-full text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors";
+    'bg-muted border border-border rounded-md px-3.5 py-2.5 sm:px-4 sm:py-2 w-full text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors';
 
-  const assigneeIds = watch("assigneeIds") ?? [];
+  const assigneeIds = watch('assigneeIds') ?? [];
 
   const addAssigneeRow = () => {
-    setValue("assigneeIds", [...assigneeIds, NaN]);
+    setValue('assigneeIds', [...assigneeIds, NaN]);
   };
 
   const updateAssigneeAt = (index: number, memberId: number) => {
     const next = [...assigneeIds];
     next[index] = memberId;
-    setValue("assigneeIds", next);
+    setValue('assigneeIds', next);
   };
 
   const removeAssigneeAt = (index: number) => {
     setValue(
-      "assigneeIds",
+      'assigneeIds',
       assigneeIds.filter((_, i) => i !== index),
     );
   };
@@ -107,9 +123,20 @@ export default function TaskModal({
           shadow-lift"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-foreground text-base sm:text-lg font-semibold mb-4 sm:mb-5">
-          {mode === "create" ? "Create Task" : "Edit Task"}
-        </h2>
+        <div className="flex justify-between ">
+          <h2 className="text-foreground text-base sm:text-lg font-semibold mb-4 sm:mb-5">
+            {mode === 'create' ? 'Create Task' : 'Edit Task'}
+          </h2>
+          {mode === 'update' && (
+            <Button
+              variant="delete"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              <Trash />
+            </Button>
+          )}
+        </div>
 
         <label className="text-muted-foreground text-xs block mb-1">
           Task Title
@@ -118,7 +145,7 @@ export default function TaskModal({
           type="text"
           placeholder="Task Title"
           className={`${inputClass} mb-1`}
-          {...register("title")}
+          {...register('title')}
         />
         {errors.title && (
           <p className="text-destructive text-xs mb-3">
@@ -134,14 +161,14 @@ export default function TaskModal({
           placeholder="Task Description"
           className={`${inputClass} mb-4 resize-none`}
           rows={3}
-          {...register("description")}
+          {...register('description')}
         />
 
         <label className="text-muted-foreground text-xs block mb-1">
           Priority
         </label>
 
-        <select className={`${inputClass} mb-4`} {...register("priority")}>
+        <select className={`${inputClass} mb-4`} {...register('priority')}>
           {PRIORITIES.map((p) => (
             <option key={p} value={p}>
               {PRIORITY_CONFIG[p as Priority].label}
@@ -157,7 +184,7 @@ export default function TaskModal({
           <div key={index} className="flex items-center gap-2 mb-2">
             <select
               title={`assignee-${index}`}
-              value={Number.isNaN(val) ? "" : val}
+              value={Number.isNaN(val) ? '' : val}
               onChange={(e) => updateAssigneeAt(index, Number(e.target.value))}
               className={`${inputClass} flex-1`}
             >
@@ -209,12 +236,12 @@ export default function TaskModal({
           </Button>
           <Button variant="save" type="submit" className="w-full sm:w-auto">
             {isPending
-              ? mode === "update"
-                ? "Updating..."
-                : "Creating..."
-              : mode === "update"
-                ? "Save Changes"
-                : "Create Task"}
+              ? mode === 'update'
+                ? 'Updating...'
+                : 'Creating...'
+              : mode === 'update'
+                ? 'Save Changes'
+                : 'Create Task'}
           </Button>
         </div>
       </form>

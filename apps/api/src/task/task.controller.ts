@@ -91,7 +91,7 @@ export class TaskController {
     description: 'Copy from your csrf_token cookie',
   })
   @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.ACCEPTED)
   @Delete('delete_task')
   deleteTask(@Query('task_id') taskId: string) {
     return this.taskService.deleteTask(Number(taskId));
