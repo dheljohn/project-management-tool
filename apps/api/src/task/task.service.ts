@@ -49,6 +49,33 @@ export class TaskService {
       return projectTasks;
     });
   }
+  async deleteTask(taskId: number) {
+    if (!taskId) {
+      throw new BadRequestException('Task ID is required');
+    }
+    const existing = await this.prisma.task.findUnique({
+      where: { id: taskId },
+    });
+    if (!existing) {
+      throw new NotFoundException('Task not found');
+    }
+    await this.prisma.task.delete({
+      where: { id: taskId },
+    });
+    await this.cacheHelper.invalidate(
+      'all_tasks',
+      `tasks_project_${existing.projectId}`,
+      `task_history_${taskId}`,
+    );
+    await this.cacheHelper.invalidatePattern(
+      `changelog_project_${existing.projectId}_*`,
+    );
+    this.projectGateway.emitToProject(existing.projectId, 'task:deleted', {
+      taskId,
+    });
+
+    return existing;
+  }
 
   async update(updateDto: UpdateTaskDto, userId: string, callerId: number) {
     if (!updateDto.task_id) {
@@ -269,39 +296,47 @@ export class TaskService {
       throw new ForbiddenException('Not a member of this project');
     }
 
-    let dbStatus: TaskStatus;
-    let dbPriority: Priority;
+    const STATUS_MAP: Record<string, TaskStatus> = {
+      todo: TaskStatus.Todo,
+      in_progress: TaskStatus.In_Progress,
+      done: TaskStatus.Done,
+    };
+    const normalizedStatus = String(dto.status)
+      .replace(/\s+/g, '_')
+      .toLocaleLowerCase();
+    const dbStatus = STATUS_MAP[normalizedStatus];
 
-    switch (String(dto.status)) {
-      case 'Todo':
-        dbStatus = TaskStatus.Todo;
-        break;
-      case 'In Progress':
-        dbStatus = TaskStatus.In_Progress;
-        break;
-      case 'Done':
-        dbStatus = TaskStatus.Done;
-        break;
-      default:
-        throw new BadRequestException('Invalid status value provided');
+    // const dbStatus: typeof STATUS_MAP[String,];
+    if (!dbStatus) {
+      throw new BadRequestException('Invalid status value provided');
     }
 
-    switch (String(dto.priority)) {
-      case 'Critical':
-        dbPriority = Priority.Critical;
-        break;
-      case 'High':
-        dbPriority = Priority.High;
-        break;
-      case 'Medium':
-        dbPriority = Priority.Medium;
-        break;
-      case 'Low':
-        dbPriority = Priority.Low;
-        break;
-      default:
-        throw new BadRequestException('Invalid priority value provided');
-    }
+    const PRIORITY_MAP: Record<string, Priority> = {
+      Critical: Priority.Critical,
+      High: Priority.High,
+      Medium: Priority.Medium,
+      Low: Priority.Low,
+    };
+
+    const dbPriority = PRIORITY_MAP[String(dto.priority)];
+    // let dbPriority: Priority;
+
+    // switch (String(dto.priority)) {
+    //   case 'Critical':
+    //     dbPriority = Priority.Critical;
+    //     break;
+    //   case 'High':
+    //     dbPriority = Priority.High;
+    //     break;
+    //   case 'Medium':
+    //     dbPriority = Priority.Medium;
+    //     break;
+    //   case 'Low':
+    //     dbPriority = Priority.Low;
+    //     break;
+    //   default:
+    //     throw new BadRequestException('Invalid priority value provided');
+    // }
 
     // Anyone being assigned must also actually be a member of this project.
     if (dto.assigneeIds && dto.assigneeIds.length > 0) {
@@ -363,6 +398,11 @@ export class TaskService {
         },
       });
     });
+
+    await this.cacheHelper.invalidate(
+      'all_tasks',
+      `tasks_project_${newTask.projectId}`,
+    );
 
     await this.cacheHelper.invalidatePattern(
       `changelog_project_${newTask.projectId}_*`,

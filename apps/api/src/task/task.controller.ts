@@ -8,6 +8,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Delete,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { TaskService } from './task.service';
@@ -82,5 +83,17 @@ export class TaskController {
   @HttpCode(HttpStatus.OK)
   getHistory(@Query('task_id') taskId: string) {
     return this.taskService.getTaskHistory(Number(taskId));
+  }
+
+  @ApiCookieAuth('auth_token')
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete('delete_task')
+  deleteTask(@Query('task_id') taskId: string) {
+    return this.taskService.deleteTask(Number(taskId));
   }
 }

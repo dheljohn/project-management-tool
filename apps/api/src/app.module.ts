@@ -30,7 +30,6 @@ import { ProjectGatewayModule } from './gateway/project-gateway.module';
       isGlobal: true,
       useFactory: () => ({
         stores: [createKeyv(process.env.REDIS_URL)],
-        // namespace: 'proyekto',
         ttl: 30000,
       }),
     }),
