@@ -27,7 +27,7 @@ export const Button = ({
   };
   return (
     <button
-      className={`${baseStyles} ${variantStyles[variant]} ${className}`}
+      className={`${baseStyles} ${variantStyles[variant]} ${className} `}
       {...props}
     >
       {variant === 'add' && <Plus className="mr-2 h-4 w-4" />}

@@ -1,7 +1,5 @@
-import { Readex_Pro } from 'next/font/google';
 import api from '../../../../lib/api';
 import { Priority, Task, TaskStatus, TaskID } from '../../../types/types';
-import { number } from 'zod';
 
 export const getTasksByProject = async (projectId: number): Promise<Task[]> => {
   const { data } = await api.get('/test03/get_all_tasks_by_project', {
@@ -52,6 +50,7 @@ export const updateTask = async (payload: UpdateTaskPayload): Promise<Task> => {
     id: payload.task_id,
     ...payload,
   });
+  console.log(data);
   return data;
 };
 

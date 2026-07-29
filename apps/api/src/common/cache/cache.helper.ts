@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 
@@ -13,7 +13,7 @@ interface KeyvIteratorStore {
 }
 @Injectable()
 export class CacheHelper {
-  // private logger = new Logger(CacheHelper.name);
+  private logger = new Logger(CacheHelper.name);
 
   constructor(@Inject(CACHE_MANAGER) private cache: Cache) {}
 
@@ -26,10 +26,10 @@ export class CacheHelper {
       ? stores[0]
       : stores;
 
-    // const start = Date.now();
-    // this.logger.log(
-    //   `invalidatePattern(${pattern}) took ${Date.now() - start}ms`,
-    // );
+    const start = Date.now();
+    this.logger.log(
+      `invalidatePattern(${pattern}) took ${Date.now() - start}ms`,
+    );
 
     if (store && typeof store.iterator === 'function') {
       const prefix = pattern.replace(/\*$/, ''); // strip trailing wildcard
@@ -44,14 +44,18 @@ export class CacheHelper {
       }
 
       if (matchedKeys.length) {
-        await Promise.all(matchedKeys.map((key) => this.cache.del(key)));
-        // this.logger.log(
-        //   `🗑️ Cache invalidated (pattern): ${pattern} → ${matchedKeys.length} keys`,
-        // );
+        try {
+          await Promise.all(matchedKeys.map((key) => this.cache.del(key)));
+        } catch (err) {
+          console.log(err);
+          this.logger.log(
+            `🗑️ Cache invalidated (pattern): ${pattern} → ${matchedKeys.length} keys`,
+          );
+        }
       } else {
-        // this.logger.log(
-        //   `🗑️ Cache invalidate pattern matched 0 keys: ${pattern}`,
-        // );
+        this.logger.log(
+          `🗑️ Cache invalidate pattern matched 0 keys: ${pattern}`,
+        );
         console.log(
           'store type:',
           store?.opts?.store?.constructor?.name,
@@ -60,9 +64,9 @@ export class CacheHelper {
         );
       }
     } else {
-      // this.logger.warn(
-      //   `Store does not support iterator() — cannot pattern-invalidate: ${pattern}`,
-      // );
+      this.logger.warn(
+        `Store does not support iterator() — cannot pattern-invalidate: ${pattern}`,
+      );
     }
   }
 

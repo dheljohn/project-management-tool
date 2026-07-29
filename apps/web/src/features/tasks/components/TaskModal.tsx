@@ -129,6 +129,7 @@ export default function TaskModal({
           </h2>
           {mode === 'update' && (
             <Button
+              type="button"
               variant="delete"
               onClick={handleDelete}
               disabled={isDeleting}

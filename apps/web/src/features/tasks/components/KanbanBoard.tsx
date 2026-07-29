@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { DragDropProvider } from '@dnd-kit/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Task, TaskStatus } from '../../../types/types';
 import { KanbanColumn } from './KanbanColumn';
 import { useTaskStatusMutation } from '../hooks/useTaskStatusMutation';
 import TaskModal from './TaskModal';
 import { celebrateProject } from '../../../../lib/confetti';
+import { projectKeys } from '../../../../lib/queryKeys';
 
 interface KanbanBoardProps {
   projectId: number;
@@ -36,6 +38,7 @@ export default function KanbanBoard({
   const isFiringRef = useRef(false);
 
   const { mutate: updateTaskStatus } = useTaskStatusMutation(projectId);
+  const queryClient = useQueryClient();
 
   const isProjectCompleted =
     tasks.length > 0 && tasks.every((task) => task.status === 'Done');
@@ -78,16 +81,21 @@ export default function KanbanBoard({
           /\s+/g,
           '_',
         ) as TaskStatus;
+        const freshTasks = queryClient.getQueryData<Task[]>(
+          projectKeys.tasks(projectId),
+        );
+
         const currentTask = tasks.find(
           (t) => String(t.id) === String(draggedId),
         );
+
         if (!currentTask || currentTask.status === targetStatus) return;
 
         if (targetStatus === 'In_Progress' && wipLimit !== null) {
-          const currentInProgressCount = getTasksByStatus('In_Progress').length;
-          if (currentInProgressCount >= wipLimit) {
-            return;
-          }
+          const currentInProgressCount = freshTasks!.filter(
+            (t) => t.status === 'In_Progress',
+          ).length;
+          if (currentInProgressCount >= wipLimit) return;
         }
 
         // Trigger the pulse explicitly, driven by the actual drag action

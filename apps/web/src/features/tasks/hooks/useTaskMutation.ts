@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createTask, updateTask } from '../api/tasks.api';
 import { projectKeys } from '../../../../lib/queryKeys';
-import { Priority, Task, TaskStatus } from '../../../types/types';
+import { Priority, TaskStatus } from '../../../types/types';
 
 function toApiStatus(status: TaskStatus): string {
   return status === 'In_Progress' ? 'In Progress' : status;

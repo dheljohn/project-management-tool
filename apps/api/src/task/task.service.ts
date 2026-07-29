@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -10,6 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CacheHelper } from '../common/cache/cache.helper';
 import { ProjectGateway } from '../gateway/project.gateway';
+import { Prisma } from '../../generated/prisma/client';
 
 @Injectable()
 export class TaskService {
@@ -59,9 +61,20 @@ export class TaskService {
     if (!existing) {
       throw new NotFoundException('Task not found');
     }
-    await this.prisma.task.delete({
-      where: { id: taskId },
-    });
+    try {
+      await this.prisma.task.delete({
+        where: { id: taskId },
+      });
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2025'
+      ) {
+        throw new NotFoundException('Task not found');
+      }
+      console.log(`Failed to delete task ${taskId}`, err);
+      throw new InternalServerErrorException('Failed to delete task');
+    }
     await this.cacheHelper.invalidate(
       'all_tasks',
       `tasks_project_${existing.projectId}`,
@@ -194,6 +207,17 @@ export class TaskService {
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
+      if (updateDto.assigneeIds !== undefined) {
+        await tx.taskAssignee.deleteMany({ where: { taskId } });
+        if (updateDto.assigneeIds.length > 0) {
+          await tx.taskAssignee.createMany({
+            data: updateDto.assigneeIds.map((memberId) => ({
+              taskId,
+              memberId,
+            })),
+          });
+        }
+      }
       await tx.task.update({
         where: { id: taskId },
         data: {
@@ -207,18 +231,6 @@ export class TaskService {
           }),
         },
       });
-
-      if (updateDto.assigneeIds !== undefined) {
-        await tx.taskAssignee.deleteMany({ where: { taskId } });
-        if (updateDto.assigneeIds.length > 0) {
-          await tx.taskAssignee.createMany({
-            data: updateDto.assigneeIds.map((memberId) => ({
-              taskId,
-              memberId,
-            })),
-          });
-        }
-      }
 
       for (const log of logs) {
         await tx.changeLog.create({ data: log });
@@ -237,6 +249,17 @@ export class TaskService {
       });
     });
 
+    await Promise.all([
+      this.cacheHelper.invalidate(
+        'all_tasks',
+        `tasks_project_${updated.projectId}`,
+        `task_history_${taskId}`,
+      ),
+      this.cacheHelper.invalidatePattern(
+        `changelog_project_${updated.projectId}_*`,
+      ),
+    ]);
+
     // await Promise.all([
     //   this.cacheHelper.invalidate(
     //     'all task',
@@ -245,14 +268,15 @@ export class TaskService {
     //   ),
     //   this.cacheHelper.invalidate,
     // ]);
-    await this.cacheHelper.invalidate(
-      'all_tasks',
-      `tasks_project_${updated.projectId}`,
-      `task_history_${taskId}`,
-    );
-    await this.cacheHelper.invalidatePattern(
-      `changelog_project_${updated.projectId}_*`,
-    );
+
+    // await this.cacheHelper.invalidate(
+    //   'all_tasks',
+    //   `tasks_project_${updated.projectId}`,
+    //   `task_history_${taskId}`,
+    // );
+    // await this.cacheHelper.invalidatePattern(
+    //   `changelog_project_${updated.projectId}_*`,
+    // );
 
     // Broadcast to everyone else viewing this project's board so their
     // TanStack Query cache updates without waiting for a refetch.
