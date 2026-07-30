@@ -1,20 +1,20 @@
-import { useView } from "../../context/ViewContext";
+import { useView } from '../../context/ViewContext';
 
 export default function ViewToggle({}: {}) {
   const { activeView, setActiveView } = useView();
 
   const tabs = [
     {
-      id: "kanban" as const,
-      label: "Kanban",
+      id: 'kanban' as const,
+      label: 'Kanban',
     },
     {
-      id: "activity" as const,
-      label: "Activity",
+      id: 'activity' as const,
+      label: 'Activity',
     },
     {
-      id: "members" as const,
-      label: "Members",
+      id: 'members' as const,
+      label: 'Members',
     },
   ];
   return (
@@ -30,11 +30,11 @@ export default function ViewToggle({}: {}) {
             // aria-selected={active}
             onClick={() => setActiveView(t.id)}
             className={[
-              "relative px-4 py-3 text-sm transition cursor-pointer",
+              'relative px-4 py-3 text-sm transition cursor-pointer',
               active
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            ].join(" ")}
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
+            ].join(' ')}
           >
             <span className="flex items-center gap-2">{t.label}</span>
             {active && (

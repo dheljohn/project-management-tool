@@ -13,18 +13,51 @@ export const useDeleteTaskMutation = ({
   onSuccess,
 }: UseDeleteTaskMutationArgs) => {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (taskId: number) => deleteTask(taskId),
+    mutationFn: (taskId: number) => {
+      console.debug('[useDeleteTaskMutation] mutationFn called', {
+        taskId,
+        projectId,
+      });
+      return deleteTask(taskId);
+    },
     onMutate: async (taskId: number) => {
       const queryKey = projectKeys.tasks(projectId);
-      await queryClient.cancelQueries({ queryKey });
-      const previous = queryClient.getQueryData<Task[]>(queryKey);
-      queryClient.setQueryData<Task[]>(queryKey, (prev = []) =>
-        prev.filter((t) => t.id !== taskId),
+      console.debug(
+        '[useDeleteTaskMutation] onMutate: optimistically removing task',
+        {
+          taskId,
+          queryKey,
+        },
       );
+
+      await queryClient.cancelQueries({ queryKey });
+
+      const previous = queryClient.getQueryData<Task[]>(queryKey);
+      console.debug(
+        '[useDeleteTaskMutation] onMutate: previous cache snapshot',
+        previous,
+      );
+
+      queryClient.setQueryData<Task[]>(queryKey, (prev = []) => {
+        const next = prev.filter((t) => t.id !== taskId);
+        console.debug('[useDeleteTaskMutation] onMutate: cache after removal', {
+          before: prev.length,
+          after: next.length,
+        });
+        return next;
+      });
+
       return { previous };
     },
-    onError: (_err, _taskId, context) => {
+    onError: (err, taskId, context) => {
+      console.debug('[useDeleteTaskMutation] onError: rolling back', {
+        taskId,
+        error: err,
+        hadPrevious: !!context?.previous,
+      });
+
       if (context?.previous) {
         queryClient.setQueryData(
           projectKeys.tasks(projectId),
@@ -32,11 +65,16 @@ export const useDeleteTaskMutation = ({
         );
       }
     },
-    onSettled: () => {
+    onSettled: (data, error, taskId) => {
+      console.debug('[useDeleteTaskMutation] onSettled: invalidating queries', {
+        taskId,
+        hadError: !!error,
+      });
       queryClient.invalidateQueries({ queryKey: projectKeys.tasks(projectId) });
       queryClient.invalidateQueries({ queryKey: projectKeys.logs(projectId) });
     },
-    onSuccess: () => {
+    onSuccess: (data, taskId) => {
+      console.debug('[useDeleteTaskMutation] onSuccess', { taskId, data });
       onSuccess();
     },
   });

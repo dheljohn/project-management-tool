@@ -13,7 +13,6 @@ import { Priority } from '../../../types/types';
 import { useProjectMembers } from '../hooks/useProjectMembers';
 import { Trash } from 'lucide-react';
 import { useDeleteTaskMutation } from '../hooks/useDeleteTask';
-import { DeleteTaskPayload } from '../api/tasks.api';
 
 interface TaskModalProps {
   mode: 'create' | 'update';
@@ -232,10 +231,16 @@ export default function TaskModal({
             type="button"
             onClick={onClose}
             className="w-full sm:w-auto"
+            disabled={isPending}
           >
             Cancel
           </Button>
-          <Button variant="save" type="submit" className="w-full sm:w-auto">
+          <Button
+            variant="save"
+            type="submit"
+            className="w-full sm:w-auto"
+            disabled={isPending}
+          >
             {isPending
               ? mode === 'update'
                 ? 'Updating...'

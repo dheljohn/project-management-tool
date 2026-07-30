@@ -48,12 +48,22 @@ export function useProjectSocket(projectId: number) {
       });
     });
 
+    socket.on('task:deleted', ({ task }: { task: Task }) => {
+      queryClient.setQueryData<Task[]>(projectKeys.tasks(projectId), (old) => {
+        if (!old) return old;
+        return old.filter((t) => t.id !== task.id);
+      });
+      // the delete also writes a changelog entry server-side, so refresh logs too
+      queryClient.invalidateQueries({ queryKey: projectKeys.logs(projectId) });
+    });
+
     socket.on('task:updated', ({ task }: { task: Task }) => {
       queryClient.setQueryData<Task[]>(projectKeys.tasks(projectId), (old) => {
         if (!old) return old;
         return old.map((t) => (t.id === task.id ? task : t));
       });
     });
+
     socket.on('member:joined', () => {
       queryClient.invalidateQueries({
         queryKey: projectKeys.members(projectId),
