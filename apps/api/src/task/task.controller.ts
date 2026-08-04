@@ -8,6 +8,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Delete,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { TaskService } from './task.service';
@@ -15,7 +16,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { ApiHeader, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiCookieAuth, ApiTags, ApiQuery } from '@nestjs/swagger';
+import { DeleteTaskDto } from './dto/delete-task.dto';
 
 @ApiTags('tasks')
 @Controller('test03')
@@ -82,5 +84,21 @@ export class TaskController {
   @HttpCode(HttpStatus.OK)
   getHistory(@Query('task_id') taskId: string) {
     return this.taskService.getTaskHistory(Number(taskId));
+  }
+
+  @ApiCookieAuth('auth_token')
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
+  @ApiQuery({ name: 'task_id', type: Number, required: true })
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.ACCEPTED)
+  @Delete('delete_task')
+  deleteTask(
+    @Query() query: DeleteTaskDto,
+    @CurrentUser() user: { id: number; user_id: string },
+  ) {
+    return this.taskService.deleteTask(query.task_id, user.id, user.user_id);
   }
 }

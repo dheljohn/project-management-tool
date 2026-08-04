@@ -3,7 +3,7 @@ import { ThrottlerException, ThrottlerGuard } from '@nestjs/throttler';
 
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
-  protected async throwThrottlingException(): Promise<void> {
+  protected throwThrottlingException(): Promise<void> {
     throw new ThrottlerException(
       'Too many attempts. Please wait a minute and try again.',
     );

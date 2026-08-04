@@ -25,6 +25,12 @@ export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
   @SkipCsrf()
+  @Get('/sentry-test')
+  sentryTest() {
+    throw new Error('Sentry test error');
+  }
+
+  @SkipCsrf()
   @HttpCode(HttpStatus.CREATED)
   @Post('create_member')
   create(@Body() createDto: CreateMemberDto) {

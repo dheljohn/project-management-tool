@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
-import { ViewProvider, useView } from "../../../../context/ViewContext";
-import { useBreadcrumbs } from "../../../../context/BreadcrumbContext";
-import { useProject } from "../../../../features/projects/hooks/useProject";
-import { useProjectTasks } from "../../../../features/projects/hooks/useProjectTasks";
-import { useChangeLogs } from "../../../../features/logs/hooks/useChangeLogs";
-import KanbanBoard from "../../../../features/tasks/components/KanbanBoard";
-import axios from "axios";
-import ViewToggle from "../../../../components/ui/ViewToggle";
-import { Task, TaskStatus } from "../../../../types/types";
-import { celebrateProject } from "../../../../../lib/confetti";
-import { Button } from "../../../../components/ui/Button";
-import TaskModal from "../../../../features/tasks/components/TaskModal";
-import { getProjectInitials } from "../../../utils/string";
-import ActivityLogs from "../../../../components/ui/ActivityLogs";
-import { useTaskStatusMutation } from "../../../../features/tasks/hooks/useTaskStatusMutation";
-import { GenerateInviteModal } from "../../../../features/invite/components/GenerateInviteModal";
-import { useProjectSocket } from "../../../../features/tasks/hooks/useProjectSocket";
-import { useIsProjectOwner } from "../../../../features/tasks/hooks/useIsProjectOwner";
-import { MoveUpRight } from "lucide-react";
-import MembersList from "../../../../components/ui/MembersList";
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { ViewProvider, useView } from '../../../../context/ViewContext';
+import { useBreadcrumbs } from '../../../../context/BreadcrumbContext';
+import { useProject } from '../../../../features/projects/hooks/useProject';
+import { useProjectTasks } from '../../../../features/projects/hooks/useProjectTasks';
+import { useChangeLogs } from '../../../../features/logs/hooks/useChangeLogs';
+import KanbanBoard from '../../../../features/tasks/components/KanbanBoard';
+import axios from 'axios';
+import ViewToggle from '../../../../components/ui/ViewToggle';
+import { Task, TaskStatus } from '../../../../types/types';
+import { celebrateProject } from '../../../../../lib/confetti';
+import { Button } from '../../../../components/ui/Button';
+import TaskModal from '../../../../features/tasks/components/TaskModal';
+import { getProjectInitials } from '../../../utils/string';
+import ActivityLogs from '../../../../components/ui/ActivityLogs';
+import { useTaskStatusMutation } from '../../../../features/tasks/hooks/useTaskStatusMutation';
+import { GenerateInviteModal } from '../../../../features/invite/components/GenerateInviteModal';
+import { useProjectSocket } from '../../../../features/tasks/hooks/useProjectSocket';
+import { useIsProjectOwner } from '../../../../features/tasks/hooks/useIsProjectOwner';
+import { MoveUpRight } from 'lucide-react';
+import MembersList from '../../../../components/ui/MembersList';
 
 export default function KanbanPage() {
   return (
@@ -51,7 +51,7 @@ function KanbanPageContent() {
   useProjectSocket(projectId);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "update">("create");
+  const [modalMode, setModalMode] = useState<'create' | 'update'>('create');
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
 
   const { mutate: updateTaskStatus } = useTaskStatusMutation(projectId);
@@ -59,7 +59,7 @@ function KanbanPageContent() {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   const isProjectCompleted =
-    tasks.length > 0 && tasks.every((task) => task.status === "Done");
+    tasks.length > 0 && tasks.every((task) => task.status === 'Done');
   const wasCompleted = useRef(false);
 
   useEffect(() => {
@@ -75,12 +75,12 @@ function KanbanPageContent() {
   }
 
   const total = tasks.length;
-  const doneCount = getTasksByStatus("Done").length;
+  const doneCount = getTasksByStatus('Done').length;
   const donePercent = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
   function openCreateModal() {
     setSelectedTask(undefined);
-    setModalMode("create");
+    setModalMode('create');
     setModalOpen(true);
   }
 
@@ -98,7 +98,7 @@ function KanbanPageContent() {
 
   function openUpdateModal(task: Task) {
     setSelectedTask(task);
-    setModalMode("update");
+    setModalMode('update');
     setModalOpen(true);
   }
 
@@ -110,7 +110,7 @@ function KanbanPageContent() {
   useEffect(() => {
     if (!project) return;
     setBreadcrumbs([
-      { label: "Projects", href: "/projects" },
+      { label: 'Projects', href: '/projects' },
       { label: project.name },
     ]);
   }, [project, setBreadcrumbs]);
@@ -257,21 +257,21 @@ function KanbanPageContent() {
           <div className="mt-4 flex items-center justify-between border-b border-border w-full">
             <ViewToggle />
             <div className="hidden text-xs text-muted-foreground sm:block">
-              {activeView === "kanban"
-                ? "Drag cards between columns to update status"
-                : activeView === "activity"
-                  ? "Most recent changes first"
-                  : "People with access to this project"}
+              {activeView === 'kanban'
+                ? 'Drag cards between columns to update status'
+                : activeView === 'activity'
+                  ? 'Most recent changes first'
+                  : 'People with access to this project'}
             </div>
           </div>
         </div>
-        {activeView === "kanban" ? (
+        {activeView === 'kanban' ? (
           <KanbanBoard
             wipLimit={project.wipLimit}
             projectId={project.id}
             tasks={tasks}
           />
-        ) : activeView === "activity" ? (
+        ) : activeView === 'activity' ? (
           <ActivityLogs projectId={project.id} />
         ) : (
           <MembersList projectId={project.id} />

@@ -87,7 +87,7 @@ export class ProjectGateway implements OnGatewayConnection {
     console.log('[socket] joined room', projectRoom(data.projectId));
   }
 
-  // Step 3: called from your services after a mutation succeeds.
+  // called from your services after a mutation succeeds.
   emitToProject(projectId: number, event: string, payload: unknown) {
     this.server.to(projectRoom(projectId)).emit(event, payload);
   }

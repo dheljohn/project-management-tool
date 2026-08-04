@@ -89,6 +89,9 @@ model Task {
   changelogs  ChangeLog[]
   assignees   TaskAssignee[]
   project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  deletedAt   DateTime?
+
+  @@index([deletedAt])
 }
 
 model TaskAssignee {
@@ -103,15 +106,15 @@ model TaskAssignee {
 
 model ChangeLog {
   id        Int      @id @default(autoincrement())
-  taskId    Int
-  taskTitle String   @default("")  
+  taskId    Int?
+  taskTitle String   @default("")    
   field     String
   oldValue  String?
   newValue  String?
   remark    String?
   createdAt DateTime @default(now())
   username  String
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task      Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull) 
   member    Member   @relation(fields: [username], references: [user_id], onDelete: Cascade)
 }
 

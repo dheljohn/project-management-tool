@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { ChangeLog, ActivityLogProps } from "../../types/types";
-import { getUserInitials } from "../../app/utils/getUserInitials";
+import { ChangeLog, ActivityLogProps } from '../../types/types';
+import { getUserInitials } from '../../app/utils/getUserInitials';
 
 function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleTimeString("en-PH", {
-    hour: "numeric",
-    minute: "2-digit",
+  return new Date(dateStr).toLocaleTimeString('en-PH', {
+    hour: 'numeric',
+    minute: '2-digit',
     hour12: true,
   });
 }
@@ -19,21 +19,21 @@ function formatDateHeader(dateStr: string): string {
 
   const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
-  if (isSameDay(date, today)) return "TODAY";
-  if (isSameDay(date, yesterday)) return "YESTERDAY";
+  if (isSameDay(date, today)) return 'TODAY';
+  if (isSameDay(date, yesterday)) return 'YESTERDAY';
 
   return date
-    .toLocaleDateString("en-PH", {
-      weekday: "long",
-      month: "short",
-      day: "numeric",
+    .toLocaleDateString('en-PH', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
     })
     .toUpperCase();
 }
 
 function formatStatus(val: string | null | undefined): string {
-  if (!val) return "—";
-  return val.replace(/_/g, " ");
+  if (!val) return '—';
+  return val.replace(/_/g, ' ');
 }
 
 function groupLogsByDay(
@@ -59,30 +59,47 @@ function formatAction(log: ChangeLog): {
   sentence: React.ReactNode;
   detail?: string;
 } {
-  const actor = log.member?.username ?? log.member?.user_id ?? "Someone";
+  const actor = log.member?.username ?? log.member?.user_id ?? 'Someone';
 
   const taskTitle = log.taskTitle || `Task #${log.taskId}`;
 
   switch (log.field) {
-    case "task creation":
+    case 'task creation':
       return {
         actor,
         sentence: (
           <>
-            created{" "}
-            <span className="font-semibold text-foreground">"{taskTitle}"</span>
+            created{' '}
+            <span className="font-semibold text-foreground">
+              &quot;{taskTitle}&quot;
+            </span>
           </>
         ),
       };
 
-    case "status":
+    case 'task deletion':
       return {
         actor,
         sentence: (
           <>
-            moved{" "}
-            <span className="font-semibold text-foreground">"{taskTitle}"</span>{" "}
-            to{" "}
+            deleted{' '}
+            <span className="font-semibold text-foreground">
+              &quot;{taskTitle}&quot;
+            </span>
+          </>
+        ),
+      };
+
+    case 'status':
+      return {
+        actor,
+        sentence: (
+          <>
+            moved{' '}
+            <span className="font-semibold text-foreground">
+              &quot;{taskTitle}&quot;
+            </span>{' '}
+            to{' '}
             <span className="font-semibold text-foreground">
               {formatStatus(log.newValue)}
             </span>
@@ -90,52 +107,56 @@ function formatAction(log: ChangeLog): {
         ),
       };
 
-    case "title":
+    case 'title':
       return {
         actor,
         sentence: (
           <>
-            renamed a task to{" "}
+            renamed a task to{' '}
             <span className="font-semibold text-foreground">
-              "{log.newValue}"
+              &quot;{log.newValue}&quot;
             </span>
           </>
         ),
       };
 
-    case "description":
+    case 'description':
       return {
         actor,
         sentence: (
           <>
-            updated the description on{" "}
+            updated the description on{' '}
             <span className="font-semibold text-foreground">"{taskTitle}"</span>
           </>
         ),
         detail: log.newValue ?? undefined,
       };
 
-    case "priority":
+    case 'priority':
       return {
         actor,
         sentence: (
           <>
-            changed priority on{" "}
-            <span className="font-semibold text-foreground">"{taskTitle}"</span>{" "}
-            to{" "}
+            changed priority on{' '}
+            <span className="font-semibold text-foreground">
+              &quot;{taskTitle}&quot;
+            </span>{' '}
+            to{' '}
             <span className="font-semibold text-foreground">
               {formatStatus(log.newValue)}
             </span>
           </>
         ),
       };
-    case "assignees":
+    case 'assignees':
       return {
         actor,
         sentence: (
           <>
-            updated assignees on{" "}
-            <span className="font-semibold text-foreground">"{taskTitle}"</span>
+            updated assignees on{' '}
+            <span className="font-semibold text-foreground">
+              &quot;{taskTitle}&quot;
+            </span>
           </>
         ),
       };
@@ -145,11 +166,13 @@ function formatAction(log: ChangeLog): {
         actor,
         sentence: (
           <>
-            changed {log.field} on{" "}
-            <span className="font-semibold text-foreground">"{taskTitle}"</span>
+            changed {log.field} on{' '}
+            <span className="font-semibold text-foreground">
+              &quot;{taskTitle}&quot;
+            </span>
           </>
         ),
-        detail: `${log.oldValue ?? "—"} → ${log.newValue ?? "—"}`,
+        detail: `${log.oldValue ?? '—'} → ${log.newValue ?? '—'}`,
       };
   }
 }
@@ -205,7 +228,7 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
           {/* Date divider */}
           <div className="flex items-center gap-3 mb-3 px-1">
             <span className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
-              {group.logs[0] ? formatDateHeader(group.logs[0].createdAt) : ""}
+              {group.logs[0] ? formatDateHeader(group.logs[0].createdAt) : ''}
             </span>
             <span className="h-px flex-1 bg-border" />
           </div>
@@ -213,7 +236,8 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
           <ol className="relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-px before:bg-border">
             {group.logs.map((log) => {
               const { actor, sentence, detail } = formatAction(log);
-              const isCreation = log.field === "task creation";
+              const isCreation = log.field === 'task creation';
+              const isDeletion = log.field === 'task deletion';
 
               return (
                 <li key={log.id} className="relative flex gap-4 py-1.5">
@@ -223,8 +247,10 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
                             rounded-full border text-[10px] font-bold
                             ${
                               isCreation
-                                ? "border-status-done/40 bg-status-done/10 text-status-done"
-                                : "border-border bg-background text-muted-foreground"
+                                ? 'border-status-done/40 bg-status-done/10 text-status-done'
+                                : isDeletion
+                                  ? 'border-destructive/40 bg-destructive/10 text-status-danger'
+                                  : 'border-border bg-background text-muted-foreground'
                             }`}
                   >
                     {getUserInitials(actor)}
@@ -236,14 +262,14 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
                       <p className="text-sm leading-snug flex-1">
                         <span className="font-semibold text-foreground">
                           {actor}
-                        </span>{" "}
+                        </span>{' '}
                         <span className="text-muted-foreground">
                           {sentence}
                         </span>
                       </p>
                       <time
                         className="font-mono text-[11px] text-muted-foreground shrink-0 pt-0.5"
-                        title={new Date(log.createdAt).toLocaleString("en-PH")}
+                        title={new Date(log.createdAt).toLocaleString('en-PH')}
                       >
                         {formatTime(log.createdAt)}
                       </time>
@@ -251,7 +277,7 @@ export default function ActivityLog({ logs, loading }: ActivityLogProps) {
 
                     {detail && (
                       <p className="mt-2.5 rounded-md border-l-2 border-accent/60 bg-surface px-3 py-2 text-xs text-muted-foreground italic">
-                        "{detail}"
+                        &quot;{detail}&quot;
                       </p>
                     )}
                   </div>

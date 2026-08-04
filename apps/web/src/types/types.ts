@@ -30,8 +30,11 @@ export interface TaskAssignee {
     username: string | null;
   };
 }
-export type Priority = "Critical" | "High" | "Medium" | "Low";
-export type TaskStatus = "Todo" | "In_Progress" | "Done";
+export type Priority = 'Critical' | 'High' | 'Medium' | 'Low';
+export type TaskStatus = 'Todo' | 'In_Progress' | 'Done';
+export type TaskID = {
+  task_id: number;
+};
 
 export interface Task {
   id: number;

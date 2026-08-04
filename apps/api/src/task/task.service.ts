@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -10,9 +12,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CacheHelper } from '../common/cache/cache.helper';
 import { ProjectGateway } from '../gateway/project.gateway';
+import { Prisma } from '../../generated/prisma/client';
+// import { CreateChangeLogDto } from '../changelog/types/changelog.types';
 
 @Injectable()
 export class TaskService {
+  private logger = new Logger(TaskService.name);
   constructor(
     private prisma: PrismaService,
     private cacheHelper: CacheHelper,
@@ -35,7 +40,7 @@ export class TaskService {
   async findAllByProject(projsID: number) {
     return this.cacheHelper.getOrSet(`tasks_project_${projsID}`, async () => {
       const projectTasks = await this.prisma.task.findMany({
-        where: { projectId: projsID },
+        where: { projectId: projsID, deletedAt: null },
         include: {
           assignees: {
             include: {
@@ -50,6 +55,101 @@ export class TaskService {
     });
   }
 
+  async deleteTask(taskId: number, callerId: number, callerUserId: string) {
+    this.logger.debug(`deleteTask called`, { taskId, callerId, callerUserId });
+
+    if (!taskId) {
+      throw new BadRequestException('Task ID is required');
+    }
+
+    const existing = await this.prisma.task.findUnique({
+      where: { id: taskId },
+    });
+    this.logger.debug(`deleteTask: existing task lookup`, {
+      taskId,
+      found: !!existing,
+    });
+
+    if (!existing || existing.deletedAt) {
+      this.logger.debug(`deleteTask: task not found or already deleted`, {
+        taskId,
+      });
+      throw new NotFoundException('Task not found');
+    }
+
+    let deleted;
+    try {
+      this.logger.debug(`deleteTask: starting transaction`, { taskId });
+
+      deleted = await this.prisma.$transaction(async (tx) => {
+        const task = await tx.task.update({
+          where: { id: taskId },
+          data: { deletedAt: new Date() },
+        });
+        this.logger.debug(`deleteTask: task soft-deleted`, {
+          taskId: task.id,
+          projectId: task.projectId,
+          deletedAt: task.deletedAt,
+        });
+
+        const log = await tx.changeLog.create({
+          data: {
+            taskId: task.id,
+            taskTitle: task.title,
+            username: callerUserId,
+            field: 'task deletion',
+            oldValue: task.status,
+            newValue: 'deleted',
+          },
+        });
+        this.logger.debug(`deleteTask: changelog entry created`, {
+          changeLogId: log.id,
+          taskId: task.id,
+        });
+
+        return task;
+      });
+
+      this.logger.debug(`deleteTask: transaction committed`, {
+        taskId: deleted.id,
+      });
+    } catch (err) {
+      this.logger.debug(`deleteTask: transaction failed`, {
+        taskId,
+        errorCode:
+          err instanceof Prisma.PrismaClientKnownRequestError
+            ? err.code
+            : undefined,
+        errorMessage: err instanceof Error ? err.message : err,
+      });
+
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2025'
+      ) {
+        throw new NotFoundException('Task not found');
+      }
+      console.log(`Failed to delete task ${taskId}`, err);
+      throw new InternalServerErrorException('Failed to delete task');
+    }
+
+    await this.cacheHelper.invalidate(
+      'all_tasks',
+      `tasks_project_${existing.projectId}`,
+      `task_history_${taskId}`,
+    );
+    await this.cacheHelper.invalidatePattern(
+      `changelog_project_${existing.projectId}_*`,
+    );
+
+    this.projectGateway.emitToProject(existing.projectId, 'task:deleted', {
+      task: deleted,
+    });
+
+    this.logger.debug(`deleteTask: completed successfully`, { taskId });
+    return deleted;
+  }
+
   async update(updateDto: UpdateTaskDto, userId: string, callerId: number) {
     if (!updateDto.task_id) {
       throw new BadRequestException('Task ID is required');
@@ -59,7 +159,8 @@ export class TaskService {
     const existing = await this.prisma.task.findUnique({
       where: { id: taskId },
     });
-    if (!existing) throw new NotFoundException('Task not found');
+    if (!existing || existing.deletedAt)
+      throw new NotFoundException('Task not found');
 
     // Only actual members of this task's project can update it.
     const membership = await this.prisma.projectMember.findUnique({
@@ -167,6 +268,17 @@ export class TaskService {
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
+      if (updateDto.assigneeIds !== undefined) {
+        await tx.taskAssignee.deleteMany({ where: { taskId } });
+        if (updateDto.assigneeIds.length > 0) {
+          await tx.taskAssignee.createMany({
+            data: updateDto.assigneeIds.map((memberId) => ({
+              taskId,
+              memberId,
+            })),
+          });
+        }
+      }
       await tx.task.update({
         where: { id: taskId },
         data: {
@@ -180,18 +292,6 @@ export class TaskService {
           }),
         },
       });
-
-      if (updateDto.assigneeIds !== undefined) {
-        await tx.taskAssignee.deleteMany({ where: { taskId } });
-        if (updateDto.assigneeIds.length > 0) {
-          await tx.taskAssignee.createMany({
-            data: updateDto.assigneeIds.map((memberId) => ({
-              taskId,
-              memberId,
-            })),
-          });
-        }
-      }
 
       for (const log of logs) {
         await tx.changeLog.create({ data: log });
@@ -210,14 +310,16 @@ export class TaskService {
       });
     });
 
-    await this.cacheHelper.invalidate(
-      'all_tasks',
-      `tasks_project_${updated.projectId}`,
-      `task_history_${taskId}`,
-    );
-    await this.cacheHelper.invalidatePattern(
-      `changelog_project_${updated.projectId}_*`,
-    );
+    await Promise.all([
+      this.cacheHelper.invalidate(
+        'all_tasks',
+        `tasks_project_${updated.projectId}`,
+        `task_history_${taskId}`,
+      ),
+      this.cacheHelper.invalidatePattern(
+        `changelog_project_${updated.projectId}_*`,
+      ),
+    ]);
 
     // Broadcast to everyone else viewing this project's board so their
     // TanStack Query cache updates without waiting for a refetch.
@@ -229,6 +331,7 @@ export class TaskService {
     if (logs.length > 0) {
       this.projectGateway.emitToProject(updated.projectId, 'log:created', {
         projectId: updated.projectId,
+        logs,
       });
     }
 
@@ -236,14 +339,18 @@ export class TaskService {
   }
 
   async findOne(id: number) {
-    const onetask = await this.prisma.task.findUnique({ where: { id } });
+    const onetask = await this.prisma.task.findFirst({
+      where: { id, deletedAt: null },
+    });
     if (!onetask) throw new NotFoundException('Task not found');
     return onetask;
   }
 
   async findAll() {
     return this.cacheHelper.getOrSet('all_tasks', async () => {
-      const all = await this.prisma.task.findMany();
+      const all = await this.prisma.task.findMany({
+        where: { deletedAt: null },
+      });
       if (all.length === 0) throw new NotFoundException('No tasks found');
       return all;
     });
@@ -260,39 +367,30 @@ export class TaskService {
       throw new ForbiddenException('Not a member of this project');
     }
 
-    let dbStatus: TaskStatus;
-    let dbPriority: Priority;
+    const STATUS_MAP: Record<string, TaskStatus> = {
+      todo: TaskStatus.Todo,
+      in_progress: TaskStatus.In_Progress,
+      done: TaskStatus.Done,
+    };
+    const normalizedStatus = String(dto.status)
+      .replace(/\s+/g, '_')
+      .toLocaleLowerCase();
+    const dbStatus = STATUS_MAP[normalizedStatus];
 
-    switch (String(dto.status)) {
-      case 'Todo':
-        dbStatus = TaskStatus.Todo;
-        break;
-      case 'In Progress':
-        dbStatus = TaskStatus.In_Progress;
-        break;
-      case 'Done':
-        dbStatus = TaskStatus.Done;
-        break;
-      default:
-        throw new BadRequestException('Invalid status value provided');
+    // const dbStatus: typeof STATUS_MAP[String,];
+    if (!dbStatus) {
+      throw new BadRequestException('Invalid status value provided');
     }
 
-    switch (String(dto.priority)) {
-      case 'Critical':
-        dbPriority = Priority.Critical;
-        break;
-      case 'High':
-        dbPriority = Priority.High;
-        break;
-      case 'Medium':
-        dbPriority = Priority.Medium;
-        break;
-      case 'Low':
-        dbPriority = Priority.Low;
-        break;
-      default:
-        throw new BadRequestException('Invalid priority value provided');
-    }
+    const PRIORITY_MAP: Record<string, Priority> = {
+      Critical: Priority.Critical,
+      High: Priority.High,
+      Medium: Priority.Medium,
+      Low: Priority.Low,
+    };
+
+    const dbPriority = PRIORITY_MAP[String(dto.priority)];
+    // let dbPriority: Priority;
 
     // Anyone being assigned must also actually be a member of this project.
     if (dto.assigneeIds && dto.assigneeIds.length > 0) {
@@ -359,11 +457,11 @@ export class TaskService {
       'all_tasks',
       `tasks_project_${newTask.projectId}`,
     );
+
     await this.cacheHelper.invalidatePattern(
       `changelog_project_${newTask.projectId}_*`,
     );
 
-    // Broadcast the new task to everyone else viewing this project's board.
     this.projectGateway.emitToProject(newTask.projectId, 'task:created', {
       task: newTask,
       createdBy: userId,
