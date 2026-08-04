@@ -15,15 +15,18 @@ services:
         # DATABASE_URL is passed as a build arg so prisma generate works during docker build.
         DATABASE_URL: ${DATABASE_URL}
     ports:
-      - "8000:8000"
+      - '8000:8000'
     environment:
       NODE_ENV: production
-      PORT: "8000"
+      PORT: '8000'
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       TEST_SECRET: ${TEST_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
+      NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
       # For local Docker: frontend is on localhost:3000
       # For pointing at Vercel: https://proyekto-blue.vercel.app
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
@@ -38,11 +41,11 @@ services:
         # For pointing at Render: https://proyekto.onrender.com
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       NODE_ENV: production
-      PORT: "3000"
-      HOSTNAME: "0.0.0.0"
+      PORT: '3000'
+      HOSTNAME: '0.0.0.0'
       # JWT_ACCESS_SECRET is read server-side by the Next.js middleware
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       API_URL: ${DOCKER_API}
