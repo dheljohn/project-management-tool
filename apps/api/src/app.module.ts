@@ -22,9 +22,14 @@ import { CacheHelperModule } from './common/cache/cache.module';
 import { CsrfGuard } from './common/guards/csrf.guard';
 import { InviteModule } from './invite/invite.module';
 import { ProjectGatewayModule } from './gateway/project-gateway.module';
+import { SentryModule } from '@sentry/nestjs/setup';
+
+import { APP_FILTER } from '@nestjs/core';
+import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ProjectGatewayModule,
     CacheModule.registerAsync({
       isGlobal: true,
@@ -53,6 +58,10 @@ import { ProjectGatewayModule } from './gateway/project-gateway.module';
     MemberService,
     { provide: APP_GUARD, useClass: CustomThrottlerGuard },
     { provide: APP_GUARD, useClass: CsrfGuard },
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
   ],
 })
 export class AppModule {}
