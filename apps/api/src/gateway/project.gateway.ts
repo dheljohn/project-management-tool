@@ -11,10 +11,14 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { PayloadT, SocketT } from './gateway-type';
 
+import { SentryGlobalFilter } from '@sentry/nestjs/setup';
+import { UseFilters } from '@nestjs/common';
+
 function projectRoom(projectId: number) {
   return `project:${projectId}`;
 }
 
+@UseFilters(new SentryGlobalFilter())
 @WebSocketGateway({
   cors: {
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',

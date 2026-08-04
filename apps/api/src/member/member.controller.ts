@@ -25,9 +25,9 @@ export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
   @SkipCsrf()
-  @Get('/sentry-test')
-  sentryTest() {
-    throw new Error('Sentry test error');
+  @Get('/debug-sentry')
+  getError() {
+    throw new Error('My first Sentry error!');
   }
 
   @SkipCsrf()
