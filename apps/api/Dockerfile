@@ -60,8 +60,8 @@ RUN cd apps/api && npx prisma generate
 
 # Compile the NestJS application
 # Compile the NestJS application
-ARG SENTRY_AUTH_TOKEN
-ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+# ARG SENTRY_AUTH_TOKEN
+# ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 RUN npx turbo run build --filter=api
 
 # =========================
