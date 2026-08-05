@@ -38,6 +38,8 @@ out/
 build
 dist
 
+sentry-example-page/
+apps/web/src/app/api/
 
 # Debug
 npm-debug.log*
@@ -48,4 +50,4 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-.backup/
+.backup//home/pc/ReactRefresh/nextProj/project-management-tool/apps/web/src/app/api/[...path]/route.ts

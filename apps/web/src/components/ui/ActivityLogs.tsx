@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { ChangeLog } from "../../types/types";
-import { useChangeLogs } from "../../features/logs/hooks/useChangeLogs";
-import ActivityLog from "./ActivityLog";
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { ChangeLog } from '../../types/types';
+import { useChangeLogs } from '../../features/logs/hooks/useChangeLogs';
+import ActivityLog from './ActivityLog';
 
 const FILTERS = [
-  { label: "All", value: "all" },
-  { label: "Created", value: "task creation" },
-  { label: "Status", value: "status" },
-  { label: "Updated", value: "description" },
+  { label: 'All', value: 'all' },
+  { label: 'Created', value: 'task creation' },
+  { label: 'Status', value: 'status' },
+  { label: 'Updated', value: 'description' },
 ];
 
 export default function ActivityLogs({ projectId }: { projectId: number }) {
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState('all');
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useChangeLogs(projectId, filter === "all" ? undefined : filter);
+    useChangeLogs(projectId, filter === 'all' ? undefined : filter);
 
   const logs = data?.pages.flatMap((page) => page.items) ?? [];
 
@@ -47,8 +47,8 @@ export default function ActivityLogs({ projectId }: { projectId: number }) {
             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer
               ${
                 filter === f.value
-                  ? "bg-accent text-accent-foreground border-accent"
-                  : "bg-muted text-muted-foreground border-border hover:bg-muted/70"
+                  ? 'bg-accent text-accent-foreground border-accent'
+                  : 'bg-muted text-muted-foreground border-border hover:bg-muted/70'
               }`}
           >
             {f.label}

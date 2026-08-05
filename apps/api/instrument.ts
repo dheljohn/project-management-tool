@@ -1,7 +1,12 @@
 import * as Sentry from '@sentry/nestjs';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  tracesSampleRate: 1.0,
+  dsn: process.env.SENTRY_API_DSN,
+  environment: process.env.NODE_ENV,
+  integrations: [nodeProfilingIntegration()],
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
+  profileSessionSampleRate: 1.0,
+  profileLifecycle: 'trace',
   enableLogs: true,
 });
