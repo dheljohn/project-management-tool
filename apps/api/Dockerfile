@@ -41,10 +41,12 @@ WORKDIR /app
 # It does NOT get baked into the final image — runtime reads it from env vars.
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
+RUN echo "DB length: ${#DATABASE_URL}"
+
 
 COPY --from=pruner /app/out/full/ ./
 COPY --from=pruner /app/out/package-lock.json ./
-
+    
 # Root-level node_modules (most packages live here after npm workspace hoisting)
 COPY --from=installer /app/node_modules ./node_modules
 # Also copy app-level node_modules — some packages (e.g. @nestjs/cache-manager)
@@ -60,10 +62,14 @@ RUN cd apps/api && npx prisma generate
 
 # Compile the NestJS application
 # Compile the NestJS application
-ARG SENTRY_AUTH_TOKEN
-ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-RUN echo "Token length: ${#SENTRY_AUTH_TOKEN}"
-RUN npx turbo run build --filter=api
+RUN --mount=type=secret,id=sentry_auth_token \
+    SENTRY_AUTH_TOKEN=$(cat /run/secrets/sentry_auth_token) \
+    npx turbo run build --filter=api
+
+# ARG SENTRY_AUTH_TOKEN
+# ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+# RUN echo "Token length: ${#SENTRY_AUTH_TOKEN}"
+# RUN npx turbo run build --filter=api
 
 # =========================
 # Runner — minimal production image
