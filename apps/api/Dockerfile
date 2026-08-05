@@ -62,14 +62,11 @@ RUN cd apps/api && npx prisma generate
 
 # Compile the NestJS application
 # Compile the NestJS application
-RUN --mount=type=secret,id=sentry_auth_token \
-    SENTRY_AUTH_TOKEN=$(cat /run/secrets/sentry_auth_token) \
-    npx turbo run build --filter=api
 
-# ARG SENTRY_AUTH_TOKEN
-# ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-# RUN echo "Token length: ${#SENTRY_AUTH_TOKEN}"
-# RUN npx turbo run build --filter=api
+ARG SENTRY_AUTH_TOKEN
+ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+RUN echo "Sentry token length: ${#SENTRY_AUTH_TOKEN}"
+RUN npx turbo run build --filter=api
 
 # =========================
 # Runner — minimal production image
