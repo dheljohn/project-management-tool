@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as Sentry from '@sentry/nestjs';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -61,7 +62,7 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api-docs', app, document);
   }
-
+  Sentry.setupNestErrorHandler(app);
   await app.listen(process.env.PORT ?? 8000);
 }
 bootstrap().catch((err) => {

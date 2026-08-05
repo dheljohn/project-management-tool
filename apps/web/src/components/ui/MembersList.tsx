@@ -1,22 +1,22 @@
-"use client";
-import { useProjectMembers } from "../../features/tasks/hooks/useProjectMembers";
-import { Crown } from "lucide-react";
+'use client';
+import { useProjectMembers } from '../../features/tasks/hooks/useProjectMembers';
+import { Crown } from 'lucide-react';
 
 function getInitials(name: string) {
   return name
     .split(/[\s_]+/)
     .map((part) => part[0])
-    .join("")
+    .join('')
     .slice(0, 2)
     .toUpperCase();
 }
 
 // Deterministic accent-tinted color per member, so avatars aren't all identical
 const AVATAR_TINTS = [
-  "bg-accent/15 text-accent",
-  "bg-status-progress/15 text-status-progress",
-  "bg-status-done/15 text-status-done",
-  "bg-status-todo/15 text-status-todo",
+  'bg-accent/15 text-accent',
+  'bg-status-progress/15 text-status-progress',
+  'bg-status-done/15 text-status-done',
+  'bg-status-todo/15 text-status-todo',
 ];
 
 function tintFor(id: number) {
@@ -98,8 +98,8 @@ export default function MembersList({ projectId }: { projectId: number }) {
 
   if (isLoading) return <MembersListSkeleton />;
 
-  const owner = members.find((m) => m.role === "OWNER");
-  const others = members.filter((m) => m.role !== "OWNER");
+  const owner = members.find((m) => m.role === 'OWNER');
+  const others = members.filter((m) => m.role !== 'OWNER');
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-1">
