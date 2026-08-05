@@ -6,7 +6,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**", "dist/**"],
-      "env": ["DATABASE_URL", "API_URL"],
+      "env": ["DATABASE_URL", "API_URL", "SENTRY_ORG", "SENTRY_PROJECT"],
       "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
     },
     "lint": {
