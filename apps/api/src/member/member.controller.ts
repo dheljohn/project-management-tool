@@ -22,7 +22,10 @@ import { ApiHeader, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 @ApiTags('members')
 @Controller('test01')
 export class MemberController {
-  constructor(private readonly memberService: MemberService) {}
+  constructor(
+    private readonly memberService: MemberService,
+    // private memberService: MemberService,
+  ) {}
 
   @SkipCsrf()
   @Get('/debug-sentry')

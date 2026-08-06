@@ -26,9 +26,38 @@ import { SentryModule } from '@sentry/nestjs/setup';
 
 import { APP_FILTER } from '@nestjs/core';
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
+import { Member } from '../database/src/Entities/member.entity';
+import { Project } from '../database/src/Entities/project.entity';
+import { ProjectMember } from '../database/src/Entities/project-member.entity';
+import { Task } from '../database/src/Entities/task.entity';
+import { TaskAssignee } from '../database/src/Entities/task-assignee.entity';
+import { ChangeLog } from '../database/src/Entities/change-log.entity';
+import { RefreshToken } from '../database/src/Entities/refresh-token.entity';
+import { InviteCode } from '../database/src/Entities/invite-code.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      username: 'user1',
+      password: 'user1234',
+      database: 'mysql_nestjs',
+      entities: [
+        Member,
+        Project,
+        ProjectMember,
+        Task,
+        TaskAssignee,
+        ChangeLog,
+        RefreshToken,
+        InviteCode,
+      ],
+      synchronize: true,
+    }),
+
     SentryModule.forRoot(),
     ProjectGatewayModule,
     CacheModule.registerAsync({
