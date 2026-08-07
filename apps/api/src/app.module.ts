@@ -1,61 +1,74 @@
 // src/app.module.ts
-
+import { CacheModule } from '@nestjs/cache-manager';
+import { createKeyv } from '@keyv/redis';
+import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { Module } from '@nestjs/common';
+import { SentryModule } from '@sentry/nestjs/setup';
+import { APP_FILTER } from '@nestjs/core';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AppController } from './app.controller';
 import { PrismaService } from './prisma/prisma.service';
-import { MemberService } from './member/member.service';
-import { MemberController } from './member/member.controller';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TaskModule } from './task/task.module';
 import { ChangelogModule } from './changelog/changelog.module';
 import { SeedModule } from './seed/seed.module';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
 import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
-import { CacheModule } from '@nestjs/cache-manager';
-import { createKeyv } from '@keyv/redis';
 import { CacheHelperModule } from './common/cache/cache.module';
 
 import { CsrfGuard } from './common/guards/csrf.guard';
 import { InviteModule } from './invite/invite.module';
 import { ProjectGatewayModule } from './gateway/project-gateway.module';
-import { SentryModule } from '@sentry/nestjs/setup';
-
-import { APP_FILTER } from '@nestjs/core';
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { Member } from '../database/src/Entities/member.entity';
-import { Project } from '../database/src/Entities/project.entity';
-import { ProjectMember } from '../database/src/Entities/project-member.entity';
-import { Task } from '../database/src/Entities/task.entity';
-import { TaskAssignee } from '../database/src/Entities/task-assignee.entity';
-import { ChangeLog } from '../database/src/Entities/change-log.entity';
-import { RefreshToken } from '../database/src/Entities/refresh-token.entity';
-import { InviteCode } from '../database/src/Entities/invite-code.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MembersModule } from './member/member.module';
+import * as fs from 'fs';
+import * as path from 'path';
+// import { Project } from '../database/src/Entities/project.entity';
+// import { ProjectMember } from '../database/src/Entities/project-member.entity';
+// import { Task } from '../database/src/Entities/task.entity';
+// import { TaskAssignee } from '../database/src/Entities/task-assignee.entity';
+// import { ChangeLog } from '../database/src/Entities/change-log.entity';
+// import { RefreshToken } from '../database/src/Entities/refresh-token.entity';
+// import { InviteCode } from '../database/src/Entities/invite-code.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'user1',
-      password: 'user1234',
-      database: 'mysql_nestjs',
-      entities: [
-        Member,
-        Project,
-        ProjectMember,
-        Task,
-        TaskAssignee,
-        ChangeLog,
-        RefreshToken,
-        InviteCode,
-      ],
-      synchronize: true,
+    // TypeOrmModule.forRoot({
+    //   type: 'mysql',
+    //   host: 'localhost',
+    //   port: 3306,
+    //   username: 'superuser',
+    //   password: 'MySQL_Server_123',
+    //   database: 'project_managementMYSQL',
+    //   entities: [Member],
+    //   synchronize: true,
+    // }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'mariadb',
+        host: config.get<string>('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get<string>('DB_USER'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_NAME'),
+        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        synchronize: false,
+        autoLoadEntities: true,
+        ssl: {
+          ca: fs.readFileSync(path.join(process.cwd(), 'skysql-ca.pem')),
+          rejectUnauthorized: true,
+        },
+        extra: {
+          connectionLimit: 10,
+        },
+      }),
     }),
 
     SentryModule.forRoot(),
@@ -72,6 +85,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    MembersModule,
     PrismaModule,
     AuthModule,
     ProjectsModule,
@@ -80,11 +94,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     SeedModule,
     InviteModule,
   ],
-  controllers: [AppController, MemberController],
+  controllers: [AppController],
 
   providers: [
     PrismaService,
-    MemberService,
     { provide: APP_GUARD, useClass: CustomThrottlerGuard },
     { provide: APP_GUARD, useClass: CsrfGuard },
     {
