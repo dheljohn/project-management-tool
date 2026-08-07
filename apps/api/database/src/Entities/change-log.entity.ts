@@ -15,22 +15,22 @@ export class ChangeLog {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   taskId!: number | null;
 
-  @Column({ default: '' })
+  @Column({ type: 'text', default: '' })
   taskTitle!: string;
 
   @Column()
   field!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   oldValue?: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   newValue?: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   remark?: string | null;
 
   @CreateDateColumn()

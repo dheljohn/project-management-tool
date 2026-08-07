@@ -22,8 +22,9 @@ export class Project {
   @Column()
   name!: string;
 
-  @Column({ nullable: true })
-  description?: string | null;
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+  // description?: object | null;
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -43,7 +44,7 @@ export class Project {
   @OneToMany(() => Task, (task) => task.project)
   tasks?: Task[];
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   wipLimit?: number | null;
 
   @OneToMany(() => ProjectMember, (projectMember) => projectMember.project)

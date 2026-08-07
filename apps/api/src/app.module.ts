@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { Module } from '@nestjs/common';
 import { SentryModule } from '@sentry/nestjs/setup';
+import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -23,11 +24,10 @@ import { CacheHelperModule } from './common/cache/cache.module';
 import { CsrfGuard } from './common/guards/csrf.guard';
 import { InviteModule } from './invite/invite.module';
 import { ProjectGatewayModule } from './gateway/project-gateway.module';
-import { SentryGlobalFilter } from '@sentry/nestjs/setup';
-import { Member } from '../database/src/Entities/member.entity';
 import { MembersModule } from './member/member.module';
-import * as fs from 'fs';
-import * as path from 'path';
+// import { Member } from '../database/src/Entities/member.entity';
+// import * as fs from 'fs';
+// import * as path from 'path';
 // import { Project } from '../database/src/Entities/project.entity';
 // import { ProjectMember } from '../database/src/Entities/project-member.entity';
 // import { Task } from '../database/src/Entities/task.entity';
@@ -38,38 +38,52 @@ import * as path from 'path';
 
 @Module({
   imports: [
-    // TypeOrmModule.forRoot({
-    //   type: 'mysql',
-    //   host: 'localhost',
-    //   port: 3306,
-    //   username: 'superuser',
-    //   password: 'MySQL_Server_123',
-    //   database: 'project_managementMYSQL',
-    //   entities: [Member],
-    //   synchronize: true,
-    // }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'mariadb',
-        host: config.get<string>('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        username: config.get<string>('DB_USER'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_NAME'),
+        host: config.getOrThrow<string>('DB_HOST'),
+        port: config.getOrThrow<number>('DB_PORT'),
+        username: config.getOrThrow<string>('DB_USER'),
+        password: config.getOrThrow<string>('DB_PASSWORD'),
+        database: config.getOrThrow<string>('DB_NAME'),
+        // entities: [
+        //   Member,
+        //   Project,
+        //   ProjectMember,
+        //   Task,
+        //   TaskAssignee,
+        //   ChangeLog,
+        //   RefreshToken,
+        //   InviteCode,
+        // ],
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        synchronize: false,
-        autoLoadEntities: true,
-        ssl: {
-          ca: fs.readFileSync(path.join(process.cwd(), 'skysql-ca.pem')),
-          rejectUnauthorized: true,
-        },
-        extra: {
-          connectionLimit: 10,
-        },
+        synchronize: true,
       }),
     }),
+    // TypeOrmModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: (config: ConfigService) => ({
+    //     type: 'mariadb',
+    //     host: config.get<string>('DB_HOST'),
+    //     port: config.get<number>('DB_PORT'),
+    //     username: config.get<string>('DB_USER'),
+    //     password: config.get<string>('DB_PASSWORD'),
+    //     database: config.get<string>('DB_NAME'),
+    //     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+    //     synchronize: false,
+    //     autoLoadEntities: true,
+    //     ssl: {
+    //       ca: fs.readFileSync(path.join(process.cwd(), 'skysql-ca.pem')),
+    //       rejectUnauthorized: true,
+    //     },
+    //     extra: {
+    //       connectionLimit: 10,
+    //     },
+    //   }),
+    // }),
 
     SentryModule.forRoot(),
     ProjectGatewayModule,

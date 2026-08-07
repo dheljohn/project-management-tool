@@ -15,7 +15,7 @@ export class Member {
   @Column({ unique: true })
   user_id!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   username?: string | null;
 
   @Column({ unique: true })
