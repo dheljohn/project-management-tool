@@ -15,8 +15,8 @@ export class Member {
   @Column({ unique: true })
   user_id!: string;
 
-  @Column({ type: 'text', nullable: true })
-  username?: string | null;
+  @Column({ nullable: true })
+  username?: string;
 
   @Column({ unique: true })
   email!: string;

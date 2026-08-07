@@ -40,8 +40,8 @@ export class MemberController {
     return this.memberService.create(createDto);
   }
 
-  @ApiCookieAuth('auth_token')
-  @UseGuards(JwtAuthGuard)
+  // @ApiCookieAuth('auth_token')
+  // @UseGuards(JwtAuthGuard)
   @Get('get_all_member')
   findAll() {
     return this.memberService.findAll();

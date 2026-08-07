@@ -129,6 +129,7 @@ import {
   NotFoundException,
   ConflictException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -140,45 +141,161 @@ import { Member } from '../../database/src/Entities/member.entity';
 
 @Injectable()
 export class MemberService {
+  private readonly logger = new Logger(MemberService.name);
   constructor(
     @InjectRepository(Member)
     private readonly memberRepository: Repository<Member>,
   ) {}
 
+  // async create(createDto: CreateMemberDto) {
+  //   const normalizedEmail = createDto.email.toLowerCase();
+  //   const normalizedUserId = createDto.user_id.toLowerCase();
+
+  //   const hashed = await bcrypt.hash(createDto.password, 10);
+
+  //   const member = this.memberRepository.create({
+  //     ...createDto,
+  //     email: normalizedEmail,
+  //     user_id: normalizedUserId,
+  //     password: hashed,
+  //   });
+  //   const existing = await this.memberRepository.findOne({
+  //     where: { user_id: normalizedUserId },
+  //   });
+
+  //   if (existing) {
+  //     throw new ConflictException('A member with this user ID already exists');
+  //   }
+
+  //   try {
+  //     const created = await this.memberRepository.save(member);
+
+  //     const { password: _password, ...safe } = created;
+
+  //     return safe;
+  //   } catch (err) {
+  //     // catch (err) {
+  //     //   // PostgreSQL unique constraint violation
+  //     //   if (err instanceof Error && 'code' in err && err.code === '23505') {
+  //     //     if (err instanceof Error && 'detail' in err) {
+  //     //       const detail = String(err.detail);
+
+  //     //       if (detail.includes('email')) {
+  //     //         throw new ConflictException('Email already in use');
+  //     //       }
+
+  //     //       if (detail.includes('user_id')) {
+  //     //         throw new ConflictException('User ID already taken');
+  //     //       }
+  //     //     }
+
+  //     //     throw new ConflictException('Account already exists');
+  //     //   }
+
+  //     //   throw err;
+  //     // }
+  //     // MySQL/MariaDB unique constraint violation
+  //     if (
+  //       err instanceof Error &&
+  //       'code' in err &&
+  //       err.code === 'ER_DUP_ENTRY'
+  //     ) {
+  //       const sqlMessage = 'sqlMessage' in err ? String(err.sqlMessage) : '';
+
+  //       if (sqlMessage.includes('email')) {
+  //         throw new ConflictException('Email already in use');
+  //       }
+
+  //       if (sqlMessage.includes('user_id')) {
+  //         throw new ConflictException('User ID already taken');
+  //       }
+
+  //       throw new ConflictException('Account already exists');
+  //     }
+
+  //     throw err;
+  //   }
+  // }
   async create(createDto: CreateMemberDto) {
     const normalizedEmail = createDto.email.toLowerCase();
     const normalizedUserId = createDto.user_id.toLowerCase();
 
-    const hashed = await bcrypt.hash(createDto.password, 10);
+    this.logger.debug(
+      `create() called — user_id="${normalizedUserId}", email="${normalizedEmail}"`,
+    );
 
+    // 1. Pre-check for existing user_id or email
+    this.logger.debug(`Checking for existing member with user_id or email...`);
+    const existing = await this.memberRepository.findOne({
+      where: [{ user_id: normalizedUserId }, { email: normalizedEmail }],
+    });
+
+    if (existing) {
+      const conflictField =
+        existing.user_id === normalizedUserId ? 'user_id' : 'email';
+      this.logger.warn(
+        `Pre-check found conflict on "${conflictField}" for user_id="${normalizedUserId}" (existing.id=${existing.id})`,
+      );
+      throw new ConflictException(
+        conflictField === 'user_id'
+          ? 'A member with this user ID already exists'
+          : 'Email already in use',
+      );
+    }
+    this.logger.debug(`No existing member found — proceeding to hash password`);
+
+    // 2. Hash password
+    const hashed = await bcrypt.hash(createDto.password, 10);
+    this.logger.debug(`Password hashed successfully`);
+
+    // 3. Build entity
     const member = this.memberRepository.create({
       ...createDto,
       email: normalizedEmail,
       user_id: normalizedUserId,
       password: hashed,
     });
+    this.logger.debug(
+      `Entity built in memory: ${JSON.stringify({
+        user_id: member.user_id,
+        email: member.email,
+        username: member.username ?? null,
+      })}`,
+    );
 
+    // 4. Save to DB
     try {
+      this.logger.debug(`Attempting save() for user_id="${normalizedUserId}"`);
       const created = await this.memberRepository.save(member);
+      this.logger.log(
+        `Member created successfully — id=${created.id}, user_id="${created.user_id}"`,
+      );
 
       const { password: _password, ...safe } = created;
-
       return safe;
     } catch (err) {
-      // PostgreSQL unique constraint violation
-      if (err instanceof Error && 'code' in err && err.code === '23505') {
-        if (err instanceof Error && 'detail' in err) {
-          const detail = String(err.detail);
+      this.logger.error(
+        `save() failed for user_id="${normalizedUserId}": ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
 
-          if (detail.includes('email')) {
-            throw new ConflictException('Email already in use');
-          }
+      if (
+        err instanceof Error &&
+        'code' in err &&
+        err.code === 'ER_DUP_ENTRY'
+      ) {
+        const sqlMessage = 'sqlMessage' in err ? String(err.sqlMessage) : '';
+        this.logger.warn(
+          `Race-condition duplicate caught at save() — sqlMessage: "${sqlMessage}"`,
+        );
 
-          if (detail.includes('user_id')) {
-            throw new ConflictException('User ID already taken');
-          }
+        if (sqlMessage.includes('email')) {
+          throw new ConflictException('Email already in use');
         }
-
+        if (sqlMessage.includes('user_id')) {
+          throw new ConflictException('User ID already taken');
+        }
         throw new ConflictException('Account already exists');
       }
 
@@ -248,12 +365,22 @@ export class MemberService {
 
       return safe;
     } catch (err) {
-      if (err instanceof Error && 'code' in err && err.code === '23505') {
+      if (
+        err instanceof Error &&
+        'code' in err &&
+        err.code === 'ER_DUP_ENTRY'
+      ) {
         throw new ConflictException('Email already in use');
       }
-
       throw err;
     }
+    // catch (err) {
+    //   if (err instanceof Error && 'code' in err && err.code === '23505') {
+    //     throw new ConflictException('Email already in use');
+    //   }
+
+    //   throw err;
+    // }
   }
 
   async deleteByUserId(user_id: string) {
