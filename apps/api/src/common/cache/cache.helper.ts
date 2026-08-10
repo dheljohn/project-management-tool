@@ -27,9 +27,6 @@ export class CacheHelper {
       : stores;
 
     const start = Date.now();
-    this.logger.log(
-      `invalidatePattern(${pattern}) took ${Date.now() - start}ms`,
-    );
 
     if (store && typeof store.iterator === 'function') {
       const prefix = pattern.replace(/\*$/, ''); // strip trailing wildcard
@@ -68,6 +65,9 @@ export class CacheHelper {
         `Store does not support iterator() — cannot pattern-invalidate: ${pattern}`,
       );
     }
+    this.logger.log(
+      `invalidatePattern(${pattern}) took ${Date.now() - start}ms`,
+    );
   }
 
   async checkHealth(): Promise<boolean> {
@@ -79,19 +79,42 @@ export class CacheHelper {
     }
   }
 
+  // async getOrSet<T>(
+  //   key: string,
+  //   fetchFn: () => Promise<T>,
+  //   ttl: number = 30000,
+  // ): Promise<T> {
+  //   const cached = await this.cache.get<T>(key);
+  //   if (cached !== undefined && cached !== null) {
+  //     // this.logger.log(`✅ Cache HIT: ${key}`);
+  //     return cached;
+  //   }
+  //   // this.logger.log(`❌ Cache MISS: ${key}`);
+  //   const fresh = await fetchFn();
+  //   await this.cache.set(key, fresh, ttl);
+  //   return fresh;
+  // }
   async getOrSet<T>(
     key: string,
     fetchFn: () => Promise<T>,
     ttl: number = 30000,
   ): Promise<T> {
+    const t0 = Date.now();
     const cached = await this.cache.get<T>(key);
+    console.log(`[cache] get(${key}) took ${Date.now() - t0}ms`);
+
     if (cached !== undefined && cached !== null) {
-      // this.logger.log(`✅ Cache HIT: ${key}`);
       return cached;
     }
-    // this.logger.log(`❌ Cache MISS: ${key}`);
+
+    const t1 = Date.now();
     const fresh = await fetchFn();
+    console.log(`[cache] fetchFn() took ${Date.now() - t1}ms`);
+
+    const t2 = Date.now();
     await this.cache.set(key, fresh, ttl);
+    console.log(`[cache] set(${key}) took ${Date.now() - t2}ms`);
+
     return fresh;
   }
 

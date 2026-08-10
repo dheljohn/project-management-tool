@@ -14,6 +14,12 @@ import { CacheHelper } from '../common/cache/cache.helper';
 import { ProjectGateway } from '../gateway/project.gateway';
 import { Prisma } from '../../generated/prisma/client';
 // import { CreateChangeLogDto } from '../changelog/types/changelog.types';
+const formatted = new Date().toLocaleTimeString('en-US', {
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  fractionalSecondDigits: 3,
+});
 
 @Injectable()
 export class TaskService {
@@ -151,6 +157,8 @@ export class TaskService {
   }
 
   async update(updateDto: UpdateTaskDto, userId: string, callerId: number) {
+    console.log(`[timing] update() started at ${formatted}`);
+
     if (!updateDto.task_id) {
       throw new BadRequestException('Task ID is required');
     }
@@ -321,8 +329,12 @@ export class TaskService {
       ),
     ]);
 
+    console.log(formatted);
+    // August 10, 2026
     // Broadcast to everyone else viewing this project's board so their
     // TanStack Query cache updates without waiting for a refetch.
+    console.log(`[timing] about to emit at ${formatted}`);
+
     this.projectGateway.emitToProject(updated.projectId, 'task:updated', {
       task: updated,
       updatedBy: userId,

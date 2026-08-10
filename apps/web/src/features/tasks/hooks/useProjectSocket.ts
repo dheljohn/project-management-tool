@@ -10,6 +10,7 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 export function useProjectSocket(projectId: number) {
   const queryClient = useQueryClient();
   const socketRef = useRef<Socket | null>(null);
+  const hasConnectedBefore = useRef(false);
 
   useEffect(() => {
     if (!projectId) return;
@@ -21,6 +22,7 @@ export function useProjectSocket(projectId: number) {
           const { data } = await api.get('/testlogin/socket-token');
           cb({ token: data.token });
         } catch (error) {
+          console.error('Failed to fetch socket token:', error);
           cb({});
         }
       },
@@ -28,9 +30,47 @@ export function useProjectSocket(projectId: number) {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      socket.emit('joinProject', { projectId });
-    });
+      const isReconnect = hasConnectedBefore.current;
+      console.log(
+        `[socket] ${isReconnect ? 'RECONNECTED' : 'connected'} — id: ${socket.id}, projectId: ${projectId}`,
+      );
 
+      socket.emit('joinProject', { projectId });
+      console.log(`[socket] emitted joinProject for projectId: ${projectId}`);
+
+      if (isReconnect) {
+        console.log(
+          `[socket] reconnect detected — invalidating queries for projectId: ${projectId}`,
+        );
+
+        queryClient.invalidateQueries({
+          queryKey: projectKeys.detail(projectId),
+        });
+        console.log('[socket] invalidated: project detail');
+
+        queryClient.invalidateQueries({
+          queryKey: projectKeys.tasks(projectId),
+          // refetchType: 'all',
+        });
+        console.log('[socket] invalidated: tasks');
+
+        queryClient.invalidateQueries({
+          queryKey: projectKeys.members(projectId),
+        });
+        console.log('[socket] invalidated: members');
+
+        queryClient.invalidateQueries({
+          queryKey: projectKeys.logs(projectId),
+        });
+        console.log('[socket] invalidated: logs');
+      } else {
+        console.log(
+          '[socket] initial connect — skipping invalidation (React Query will fetch on mount)',
+        );
+      }
+
+      hasConnectedBefore.current = true;
+    });
     socket.on('connect_error', (err) => {
       console.error('Socket connection error:', err.message);
     });
@@ -49,6 +89,8 @@ export function useProjectSocket(projectId: number) {
     });
 
     socket.on('task:deleted', ({ task }: { task: Task }) => {
+      console.log(`[timing] received at ${Date.now()}`);
+
       queryClient.setQueryData<Task[]>(projectKeys.tasks(projectId), (old) => {
         if (!old) return old;
         return old.filter((t) => t.id !== task.id);
@@ -57,7 +99,17 @@ export function useProjectSocket(projectId: number) {
       queryClient.invalidateQueries({ queryKey: projectKeys.logs(projectId) });
     });
 
+    // socket.on('task:updated', ({ task }: { task: Task }) => {
+    //   queryClient.setQueryData<Task[]>(projectKeys.tasks(projectId), (old) => {
+    //     if (!old) return old;
+    //     return old.map((t) => (t.id === task.id ? task : t));
+    //   });
+    // });
     socket.on('task:updated', ({ task }: { task: Task }) => {
+      const now = new Date();
+      console.log(
+        `[timing] CLIENT received task:updated at ${now.toLocaleTimeString()}.${now.getMilliseconds()}`,
+      );
       queryClient.setQueryData<Task[]>(projectKeys.tasks(projectId), (old) => {
         if (!old) return old;
         return old.map((t) => (t.id === task.id ? task : t));
@@ -74,7 +126,16 @@ export function useProjectSocket(projectId: number) {
       queryClient.invalidateQueries({ queryKey: projectKeys.logs(projectId) });
     });
 
+    socket.on('disconnect', (reason) => {
+      console.log('[Socket] Disconnected:', reason);
+    });
+
+    socket.onAny((eventName, ...args) => {
+      console.log(`[socket] received event: "${eventName}"`, args);
+    });
+
     return () => {
+      console.log('[Socket] Cleanup: disconnecting socket...');
       socket.disconnect();
       socketRef.current = null;
     };

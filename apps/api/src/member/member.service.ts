@@ -216,6 +216,7 @@ export class MemberService {
   //     throw err;
   //   }
   // }
+
   async create(createDto: CreateMemberDto) {
     const normalizedEmail = createDto.email.toLowerCase();
     const normalizedUserId = createDto.user_id.toLowerCase();
@@ -224,12 +225,11 @@ export class MemberService {
       `create() called — user_id="${normalizedUserId}", email="${normalizedEmail}"`,
     );
 
-    // 1. Pre-check for existing user_id or email
+    // 1. Pre-check for existing user_id or email (fast-path UX, not the safety guarantee)
     this.logger.debug(`Checking for existing member with user_id or email...`);
     const existing = await this.memberRepository.findOne({
       where: [{ user_id: normalizedUserId }, { email: normalizedEmail }],
     });
-
     if (existing) {
       const conflictField =
         existing.user_id === normalizedUserId ? 'user_id' : 'email';
@@ -263,14 +263,14 @@ export class MemberService {
       })}`,
     );
 
-    // 4. Save to DB
+    // 4. Save to DB — the actual atomic guarantee lives in the UNIQUE INDEX,
+    // this catch is just the translation layer for when the race happens
     try {
       this.logger.debug(`Attempting save() for user_id="${normalizedUserId}"`);
       const created = await this.memberRepository.save(member);
       this.logger.log(
         `Member created successfully — id=${created.id}, user_id="${created.user_id}"`,
       );
-
       const { password: _password, ...safe } = created;
       return safe;
     } catch (err) {
@@ -290,15 +290,24 @@ export class MemberService {
           `Race-condition duplicate caught at save() — sqlMessage: "${sqlMessage}"`,
         );
 
-        if (sqlMessage.includes('email')) {
+        // Match the actual key name (e.g. "for key 'member.IDX_member_email'")
+        // instead of a loose substring check — safer against edge-case input values
+        // that might themselves contain "email" or "user_id".
+        const keyMatch = sqlMessage.match(/for key '([^']+)'/);
+        const keyName = (keyMatch?.[1] ?? '').toLowerCase();
+
+        if (keyName.includes('email')) {
           throw new ConflictException('Email already in use');
         }
-        if (sqlMessage.includes('user_id')) {
+        if (keyName.includes('user_id')) {
           throw new ConflictException('User ID already taken');
         }
+
+        this.logger.warn(
+          `ER_DUP_ENTRY caught but key name didn't match a known field — sqlMessage: "${sqlMessage}"`,
+        );
         throw new ConflictException('Account already exists');
       }
-
       throw err;
     }
   }
