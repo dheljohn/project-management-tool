@@ -8,10 +8,22 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CacheHelper } from '../common/cache/cache.helper';
 import { ProjectGateway } from '../gateway/project.gateway';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Project } from '../../database/src/Entities/project.entity';
+import { DataSource, Repository } from 'typeorm';
+import { ProjectMember } from '../../database/src/Entities/project-member.entity';
+import { ProjectRole } from '../../database/enums/project-role.enum';
+// import { ProjectRole } from '../../generated/prisma/enums';
 
 @Injectable()
 export class ProjectsService {
   constructor(
+    @InjectRepository(Project)
+    private readonly projectRepository: Repository<Project>,
+    @InjectRepository(ProjectMember)
+    private readonly projectMemberRepository: Repository<ProjectMember>,
+
+    private readonly dataSource: DataSource,
     private prisma: PrismaService,
     private cacheHelper: CacheHelper,
     private projectGateway: ProjectGateway,
@@ -20,26 +32,30 @@ export class ProjectsService {
   async create(userId: number, createDto: CreateProjectDto) {
     if (!createDto.name) throw new NotFoundException('no project name');
 
-    return this.prisma.$transaction(async (tx) => {
-      const project = await tx.project.create({
-        data: {
+    return this.dataSource.transaction(async (manager) => {
+      const projectRepo = manager.getRepository(Project);
+      const memberRepo = manager.getRepository(ProjectMember);
+      console.log('Attempting to create project for userId:', userId);
+
+      // Check if this ID actually exists in your DB
+
+      const project = await projectRepo.save(
+        projectRepo.create({
           name: createDto.name,
           description: createDto.description,
           wipLimit: createDto.wipLimit,
           ownerId: userId,
-        },
-      });
+        }),
+      );
+      console.log('DATAA', project);
 
-      // Seed the owner as a ProjectMember so all membership-based
-      // checks (task access, invite generation, etc.) work uniformly
-      // for owners and joined members alike.
-      await tx.projectMember.create({
-        data: {
+      await memberRepo.save(
+        memberRepo.create({
           projectId: project.id,
           memberId: userId,
-          role: 'OWNER',
-        },
-      });
+          role: ProjectRole.OWNER,
+        }),
+      );
 
       await this.cacheHelper.invalidate(
         'all_projects',
@@ -48,10 +64,49 @@ export class ProjectsService {
       return project;
     });
   }
+  // async create(userId: number, createDto: CreateProjectDto) {
+  //   if (!createDto.name) throw new NotFoundException('no project name');
+
+  //   return this.dataSource.transaction(async (manager) => {
+  //     const projectRepo = manager.getRepository(Project);
+  //     const memberRepo = manager.getRepository(ProjectMember);
+  //     const memberModelRepo = manager.getRepository(Member);
+  //     console.log('Attempting to create project for userId:', userId);
+
+  //     // Check if this ID actually exists in your DB
+  //     const member = await memberModelRepo.findOne({ where: { userId } });
+  //     if (!member) {
+  //       throw new NotFoundException('member not found');
+  //     }
+  //     const project = await projectRepo.save(
+  //       projectRepo.create({
+  //         name: createDto.name,
+  //         description: createDto.description,
+  //         wipLimit: createDto.wipLimit,
+  //         ownerId: userId,
+  //       }),
+  //     );
+  //     // console.log('DATAA', project);
+
+  //     await memberRepo.save(
+  //       memberRepo.create({
+  //         projectId: project.id,
+  //         memberId: userId,
+  //         role: ProjectRole.OWNER,
+  //       }),
+  //     );
+
+  //     await this.cacheHelper.invalidate(
+  //       'all_projects',
+  //       `projects_user_${userId}`,
+  //     );
+  //     return project;
+  //   });
+  // }
 
   async findAll() {
     return this.cacheHelper.getOrSet('all_projects', async () => {
-      const all = await this.prisma.project.findMany();
+      const all = await this.projectRepository.find();
       if (all.length === 0) throw new NotFoundException('No projects found');
       return all;
     });
@@ -60,12 +115,8 @@ export class ProjectsService {
   // Now returns owned AND joined projects, not just owned ones.
   async findAllByUser(userId: number) {
     return this.cacheHelper.getOrSet(`projects_user_${userId}`, () =>
-      this.prisma.project.findMany({
-        where: {
-          members: {
-            some: { memberId: userId },
-          },
-        },
+      this.projectMemberRepository.findBy({
+        memberId: userId,
       }),
     );
   }

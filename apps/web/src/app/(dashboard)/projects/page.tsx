@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import ProjectCard from "../../../features/projects/components/ProjectCard";
-import ProjectModal from "../../../features/projects/components/ProjectModal";
-import { useBreadcrumbs } from "../../../context/BreadcrumbContext";
-import { useProjects } from "../../../features/projects/hooks/useProjects";
-import { Project } from "../../../types/types";
-import { Button } from "../../../components/ui/Button";
-import { JoinProjectButton } from "../../../features/invite/components/JoinProjectModal";
+import { useEffect, useState } from 'react';
+import ProjectCard from '../../../features/projects/components/ProjectCard';
+import ProjectModal from '../../../features/projects/components/ProjectModal';
+import { useBreadcrumbs } from '../../../context/BreadcrumbContext';
+import { useProjects } from '../../../features/projects/hooks/useProjects';
+import { Project } from '../../../types/types';
+import { Button } from '../../../components/ui/Button';
+import { JoinProjectButton } from '../../../features/invite/components/JoinProjectModal';
 import {
   ArrowDownZA,
   ArrowUpAZ,
@@ -15,14 +15,14 @@ import {
   ClockArrowUp,
   CalendarArrowDown,
   CalendarArrowUp,
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function ProjectsPage() {
   const { data: projects, isLoading, isError, refetch } = useProjects();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedProject, setSelectedProject] = useState<Project | undefined>(
     undefined,
   );
@@ -30,26 +30,26 @@ export default function ProjectsPage() {
   <ArrowDownZA />;
   <ArrowUpAZ />;
 
-  const [sortBy, setSortBy] = useState<"updatedAt" | "createdAt" | "name">(
-    "updatedAt",
+  const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'name'>(
+    'updatedAt',
   );
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const { setBreadcrumbs } = useBreadcrumbs();
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "" }]);
+    setBreadcrumbs([{ label: '' }]);
   }, [setBreadcrumbs]);
 
   function openCreateModal() {
     setSelectedProject(undefined);
-    setModalMode("create");
+    setModalMode('create');
     setModalOpen(true);
   }
 
   function openEditModal(project: Project) {
     setSelectedProject(project);
-    setModalMode("edit");
+    setModalMode('edit');
     setModalOpen(true);
   }
 
@@ -64,9 +64,9 @@ export default function ProjectsPage() {
     .sort((a, b) => {
       let comparison = 0;
 
-      if (sortBy === "name") {
+      if (sortBy === 'name') {
         comparison = a.name.localeCompare(b.name);
-      } else if (sortBy === "updatedAt") {
+      } else if (sortBy === 'updatedAt') {
         comparison =
           new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
       } else {
@@ -74,7 +74,7 @@ export default function ProjectsPage() {
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       }
 
-      return sortOrder === "asc" ? comparison : -comparison;
+      return sortOrder === 'asc' ? comparison : -comparison;
     });
 
   const recentProject = list.reduce<Project | null>((latest, p) => {
@@ -82,24 +82,24 @@ export default function ProjectsPage() {
     return new Date(p.updatedAt) > new Date(latest.updatedAt) ? p : latest;
   }, null);
 
-  const getSortIcon = (value: string, order: "asc" | "desc") => {
+  const getSortIcon = (value: string, order: 'asc' | 'desc') => {
     const iconSize = 14;
-    if (value === "name") {
-      return order === "asc" ? (
+    if (value === 'name') {
+      return order === 'asc' ? (
         <ArrowUpAZ size={iconSize} />
       ) : (
         <ArrowDownZA size={iconSize} />
       );
     }
-    if (value === "updatedAt") {
-      return order === "asc" ? (
+    if (value === 'updatedAt') {
+      return order === 'asc' ? (
         <ClockArrowUp size={iconSize} />
       ) : (
         <ClockArrowDown size={iconSize} />
       );
     }
     // Default to createdAt / Calendar
-    return order === "asc" ? (
+    return order === 'asc' ? (
       <CalendarArrowUp size={iconSize} />
     ) : (
       <CalendarArrowDown size={iconSize} />
@@ -109,11 +109,11 @@ export default function ProjectsPage() {
   // Logic to switch order if pill is already active, otherwise switch the sorting category
   const handleSortClick = (value: typeof sortBy) => {
     if (sortBy === value) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortBy(value);
       // Optional: Set intuitive default directions when clicking a new pill
-      setSortOrder(value === "name" ? "asc" : "desc");
+      setSortOrder(value === 'name' ? 'asc' : 'desc');
     }
   };
 
@@ -163,8 +163,8 @@ export default function ProjectsPage() {
 
               <p className="text-muted-foreground text-xs sm:text-sm mt-1.5">
                 {list.length === 0
-                  ? "No projects yet. Get started by creating your first one!"
-                  : `${list.length} project${list.length !== 1 ? "s" : ""} in your workspace`}
+                  ? 'No projects yet. Get started by creating your first one!'
+                  : `${list.length} project${list.length !== 1 ? 's' : ''} in your workspace`}
               </p>
             </div>
           </div>
@@ -272,9 +272,9 @@ export default function ProjectsPage() {
 
                 <div className="flex flex-wrap items-center gap-2 overflow-x-auto sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 pb-1 sm:pb-0 justify-end">
                   {[
-                    { label: "Name", value: "name" },
-                    { label: "Updated", value: "updatedAt" },
-                    { label: "Created", value: "createdAt" },
+                    { label: 'Name', value: 'name' },
+                    { label: 'Updated', value: 'updatedAt' },
+                    { label: 'Created', value: 'createdAt' },
                   ].map((item) => {
                     const isActive = sortBy === item.value;
                     return (
@@ -288,8 +288,8 @@ export default function ProjectsPage() {
                         className={`shrink-0 text-xs sm:text-sm flex items-center gap-1.5 transition-colors cursor-pointer
                       ${
                         isActive
-                          ? "text-accent border-accent bg-accent/5 "
-                          : "text-muted-foreground border-border hover:text-foreground hover:border-accent"
+                          ? 'text-accent border-accent bg-accent/5 '
+                          : 'text-muted-foreground border-border hover:text-foreground hover:border-accent'
                       }`}
                       >
                         <span>{item.label}</span>
@@ -357,11 +357,11 @@ export default function ProjectsPage() {
           {list.length > 0 && filtered.length === 0 && (
             <div className="flex flex-col items-center justify-center h-48 border border-dashed border-border rounded-xl">
               <p className="text-muted-foreground text-sm">
-                No projects match{" "}
+                No projects match{' '}
                 <span className="text-foreground font-medium">"{search}"</span>
               </p>
               <button
-                onClick={() => setSearch("")}
+                onClick={() => setSearch('')}
                 className="mt-2 text-accent text-xs hover:underline"
               >
                 Clear search
