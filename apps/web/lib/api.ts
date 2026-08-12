@@ -1,14 +1,14 @@
-import axios from "axios";
-import { toast } from "sonner";
-import { getCsrfToken } from "./csrf";
-import { setGlobalOfflineHandler } from "./offlineSignal";
+import axios from 'axios';
+import { toast } from 'sonner';
+import { getCsrfToken } from './csrf';
+import { setGlobalOfflineHandler } from './offlineSignal';
 
 const api = axios.create({
   // baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
-  baseURL: "/api",
+  baseURL: '/api',
   withCredentials: true,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -16,10 +16,10 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const method = config.method?.toUpperCase();
-  if (method && !["GET", "HEAD", "OPTIONS"].includes(method)) {
+  if (method && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
     const csrfToken = getCsrfToken();
     if (csrfToken) {
-      config.headers["x-csrf-token"] = csrfToken;
+      config.headers['x-csrf-token'] = csrfToken;
     }
   }
   return config;
@@ -55,9 +55,9 @@ api.interceptors.response.use(
     // Skip retry only for endpoints that are themselves part of the auth flowzz
     // trigger a refresh so RouteGuard can re-verify the session silently.
     const isAuthEndpoint =
-      originalRequest?.url?.includes("/testlogin/refresh") ||
-      originalRequest?.url === "/testlogin" ||
-      originalRequest?.url?.includes("/testlogin/logout");
+      originalRequest?.url?.includes('/testlogin/refresh') ||
+      originalRequest?.url === '/testlogin' ||
+      originalRequest?.url?.includes('/testlogin/logout');
 
     if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
@@ -73,13 +73,13 @@ api.interceptors.response.use(
       try {
         // POST /testlogin/refresh — CSRF header is attached by the request
         // interceptor above since this is a POST.
-        await api.post("/testlogin/refresh");
+        await api.post('/testlogin/refresh');
         drainQueue();
         return api(originalRequest);
       } catch (refreshError) {
         // Refresh token itself is dead — force a real re-login.
         refreshQueue = [];
-        window.location.href = "/login";
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -89,12 +89,12 @@ api.interceptors.response.use(
     if (status === 429) {
       const message =
         error.response?.data?.message ??
-        "Too many requests. Please wait a moment and try again.";
+        'Too many requests. Please wait a moment and try again.';
       toast.error(message);
     }
 
-    if (status === 403 && error.response?.data?.message?.includes("CSRF")) {
-      toast.error("Session expired, please refresh and try again.");
+    if (status === 403 && error.response?.data?.message?.includes('CSRF')) {
+      toast.error('Session expired, please refresh and try again.');
     }
 
     return Promise.reject(error);

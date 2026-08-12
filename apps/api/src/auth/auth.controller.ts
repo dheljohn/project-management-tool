@@ -15,7 +15,6 @@ import {
   ApiCookieAuth,
   ApiResponse,
   ApiBody,
-  ApiHeader,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
