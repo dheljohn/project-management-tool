@@ -138,6 +138,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { Member } from '../../database/src/Entities/member.entity';
+import { PublicMemberSchema } from '../schemas/member.schema';
 
 @Injectable()
 export class MemberService {
@@ -271,15 +272,15 @@ export class MemberService {
       this.logger.log(
         `Member created successfully — id=${created.id}, user_id="${created.user_id}"`,
       );
-      const { password: _password, ...safe } = created;
-      return safe;
+      const safeUser = PublicMemberSchema.parse(member);
+      // const { password: _password, ...safe } = created;
+      return safeUser;
     } catch (err) {
       this.logger.error(
         `save() failed for user_id="${normalizedUserId}": ${
           err instanceof Error ? err.message : String(err)
         }`,
       );
-
       if (
         err instanceof Error &&
         'code' in err &&
@@ -318,8 +319,11 @@ export class MemberService {
     if (members.length === 0) {
       throw new NotFoundException('No members found');
     }
-
-    return members.map(({ password: _password, ...member }) => member);
+    const safeMembers = members.map((members) =>
+      PublicMemberSchema.parse(members),
+    );
+    return safeMembers;
+    // return members.map(({ password: _password, ...member }) => member);
   }
 
   async findOne(id: number) {
@@ -331,9 +335,11 @@ export class MemberService {
       throw new NotFoundException('Member not found');
     }
 
-    const { password: _password, ...safe } = member;
+    // const { password: _password, ...safe } = member;
+    // return safe;
 
-    return safe;
+    const safeUser = PublicMemberSchema.parse(member);
+    return safeUser;
   }
 
   async update(updateDto: UpdateMemberDto) {
@@ -369,10 +375,10 @@ export class MemberService {
 
     try {
       const updated = await this.memberRepository.save(member);
+      const updatedSafe = PublicMemberSchema.parse(updated);
+      // const { password, ...safe } = updated;
 
-      const { password: _password, ...safe } = updated;
-
-      return safe;
+      return updatedSafe;
     } catch (err) {
       if (
         err instanceof Error &&
