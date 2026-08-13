@@ -1,36 +1,36 @@
-import { Priority } from "../src/types/types";
+import { Priority } from '../src/types/types';
 
 export const PRIORITY_CONFIG: Record<
   Priority,
   { label: string; color: string; bg: string; border: string; dot: string }
 > = {
   Critical: {
-    label: "Critical",
-    color: "text-red-500",
-    bg: "bg-red-500/10",
-    border: "border-red-500/30",
-    dot: "bg-red-500",
+    label: 'Critical',
+    color: 'text-red-500',
+    bg: 'bg-red-500/10',
+    border: 'border-red-500/30',
+    dot: 'bg-red-500',
   },
   High: {
-    label: "High",
-    color: "text-orange-400",
-    bg: "bg-orange-400/10",
-    border: "border-orange-400/30",
-    dot: "bg-orange-400",
+    label: 'High',
+    color: 'text-orange-400',
+    bg: 'bg-orange-400/10',
+    border: 'border-orange-400/30',
+    dot: 'bg-orange-400',
   },
   Medium: {
-    label: "Medium",
-    color: "text-blue-400",
-    bg: "bg-blue-400/10",
-    border: "border-blue-400/30",
-    dot: "bg-blue-400",
+    label: 'Medium',
+    color: 'text-blue-400',
+    bg: 'bg-blue-400/10',
+    border: 'border-blue-400/30',
+    dot: 'bg-blue-400',
   },
   Low: {
-    label: "Low",
-    color: "text-green-500",
-    bg: "bg-green-500/10",
-    border: "border-green-500/30",
-    dot: "bg-green-500",
+    label: 'Low',
+    color: 'text-green-500',
+    bg: 'bg-green-500/10',
+    border: 'border-green-500/30',
+    dot: 'bg-green-500',
   },
 };
 

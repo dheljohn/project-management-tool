@@ -58,6 +58,10 @@ export default function ProjectsPage() {
   }
 
   const list = projects ?? [];
+  console.log('list length:', list.length);
+  list.forEach((p, i) => {
+    if (!p.name) console.log(`Project at index ${i} has no name:`, p);
+  });
 
   const filtered = list
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))

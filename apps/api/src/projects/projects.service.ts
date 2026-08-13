@@ -38,7 +38,6 @@ export class ProjectsService {
       console.log('Attempting to create project for userId:', userId);
 
       // Check if this ID actually exists in your DB
-
       const project = await projectRepo.save(
         projectRepo.create({
           name: createDto.name,
@@ -114,20 +113,42 @@ export class ProjectsService {
 
   // Now returns owned AND joined projects, not just owned ones.
   async findAllByUser(userId: number) {
-    return this.cacheHelper.getOrSet(`projects_user_${userId}`, () =>
-      this.projectMemberRepository.findBy({
-        memberId: userId,
-      }),
-    );
+    return this.cacheHelper.getOrSet(`projects_user_${userId}`, async () => {
+      // this.projectRepository.findBy({
+      //   ownerId: userId,
+      // }),
+      const [owned, membership] = await Promise.all([
+        this.projectRepository.findBy({ ownerId: userId }),
+        this.projectMemberRepository.find({
+          where: { memberId: userId },
+          relations: { project: true },
+        }),
+      ]);
+      const memberProjects = membership.map((m) => m.project);
+      const combined = [...owned, ...memberProjects];
+      return Array.from(new Map(combined.map((p) => [p.id, p])).values());
+    });
   }
 
   // Any member (owner or joined) can view the project.
+  // async findOne(projectId: number, userId: number) {
+  //   const proj = await this.prisma.project.findFirst({
+  //     where: {
+  //       id: projectId,
+  //       members: {
+  //         some: { memberId: userId },
+  //       },
+  //     },
+  //   });
+  //   if (!proj) throw new NotFoundException('Project not found');
+  //   return proj;
+  // }
   async findOne(projectId: number, userId: number) {
-    const proj = await this.prisma.project.findFirst({
+    const proj = await this.projectRepository.findOne({
       where: {
         id: projectId,
         members: {
-          some: { memberId: userId },
+          memberId: userId,
         },
       },
     });
@@ -172,19 +193,24 @@ export class ProjectsService {
   }
 
   async listMembers(userId: number, projectId: number) {
-    const membership = await this.prisma.projectMember.findUnique({
-      where: { projectId_memberId: { projectId, memberId: userId } },
+    const membership = await this.projectMemberRepository.findOne({
+      where: { memberId: userId },
     });
     if (!membership) throw new NotFoundException('Project not found');
 
-    return this.prisma.projectMember.findMany({
+    // return this.prisma.projectMember.findMany({
+    //   where: { projectId },
+    //   include: {
+    //     member: {
+    //       select: { id: true, user_id: true, username: true, email: true },
+    //     },
+    //   },
+    //   orderBy: { joinedAt: 'asc' },
+    // });
+    return this.projectMemberRepository.find({
       where: { projectId },
-      include: {
-        member: {
-          select: { id: true, user_id: true, username: true, email: true },
-        },
-      },
-      orderBy: { joinedAt: 'asc' },
+      relations: { member: true },
+      order: { joinedAt: 'asc' },
     });
   }
 }
