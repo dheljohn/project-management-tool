@@ -34,7 +34,7 @@ export class CreateTaskDto {
 
   @IsString()
   @IsOptional()
-  description!: string;
+  description?: string;
 
   @IsString()
   @IsOptional()

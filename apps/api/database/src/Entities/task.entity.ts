@@ -36,8 +36,15 @@ export class Task {
   })
   status!: TaskStatus;
 
-  @Column()
+  // @Column()
+  @Column({ name: 'project_id' })
   projectId!: number;
+
+  @ManyToOne(() => Project, (project) => project.tasks, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'projectId' })
+  project?: Project;
 
   @CreateDateColumn()
   createdAt!: Date;
@@ -60,12 +67,6 @@ export class Task {
 
   @OneToMany(() => TaskAssignee, (assignee) => assignee.task)
   assignees?: TaskAssignee[];
-
-  @ManyToOne(() => Project, (project) => project.tasks, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'projectId' })
-  project?: Project;
 
   @DeleteDateColumn({ nullable: true })
   deletedAt?: Date | null;

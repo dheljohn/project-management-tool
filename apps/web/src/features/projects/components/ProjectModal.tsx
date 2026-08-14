@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   projectSchema,
   ProjectFormInput,
   ProjectFormOutput,
-} from "../schemas/project.schema";
-import { useProjectMutation } from "../hooks/useProjectMutation";
-import { Project } from "../../../types/types";
-import { Button } from "../../../components/ui/Button";
+} from '../schemas/project.schema';
+import { useProjectMutation } from '../hooks/useProjectMutation';
+import { Project } from '../../../types/types';
+import { Button } from '../../../components/ui/Button';
 
 interface ProjectModalProps {
-  mode: "create" | "edit";
+  mode: 'create' | 'edit';
   project?: Project;
   onClose: () => void;
   onSuccess: (project: Project) => void;
@@ -31,8 +31,8 @@ export default function ProjectModal({
   } = useForm<ProjectFormInput, any, ProjectFormOutput>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      name: project?.name ?? "",
-      description: project?.description ?? "",
+      name: project?.name ?? '',
+      description: project?.description ?? '',
       wipLimit: project?.wipLimit ?? undefined,
     },
   });
@@ -49,7 +49,7 @@ export default function ProjectModal({
   const onSubmit = (values: ProjectFormOutput) => mutate(values);
 
   const inputClass =
-    "w-full bg-muted border border-border rounded-lg px-3.5 py-2.5 sm:px-4 sm:py-2 text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors";
+    'w-full bg-muted border border-border rounded-lg px-3.5 py-2.5 sm:px-4 sm:py-2 text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors';
 
   return (
     <div
@@ -67,7 +67,7 @@ export default function ProjectModal({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-foreground text-base sm:text-lg font-semibold mb-4 sm:mb-5">
-          {mode === "create" ? "Create Project" : "Edit Project"}
+          {mode === 'create' ? 'Create Project' : 'Edit Project'}
         </h2>
 
         <div className="mb-4">
@@ -78,7 +78,7 @@ export default function ProjectModal({
             type="text"
             placeholder="e.g. ProjectFlow"
             className={inputClass}
-            {...register("name")}
+            {...register('name')}
           />
           {errors.name && (
             <p className="text-destructive text-xs mt-1">
@@ -89,27 +89,27 @@ export default function ProjectModal({
 
         <div className="mb-5">
           <label className="block text-sm text-muted-foreground mb-1">
-            Description{" "}
+            Description{' '}
             <span className="text-muted-foreground text-xs">(optional)</span>
           </label>
           <textarea
             placeholder="What is this project about?"
             rows={3}
             className={`${inputClass} resize-none`}
-            {...register("description")}
+            {...register('description')}
           />
         </div>
 
         <div className="mb-5">
           <label className="block text-sm text-muted-foreground mb-1">
-            WIP Limit{" "}
+            WIP Limit{' '}
             <span className="text-muted-foreground text-xs">(optional)</span>
           </label>
           <input
             type="number"
             placeholder="0"
             className={inputClass}
-            {...register("wipLimit")}
+            {...register('wipLimit')}
           />
           {errors.wipLimit && (
             <p className="text-destructive text-xs mt-1">
@@ -138,12 +138,12 @@ export default function ProjectModal({
           </Button>
           <Button type="submit" variant="save" className="w-full sm:w-auto">
             {isPending
-              ? mode === "create"
-                ? "Creating..."
-                : "Saving..."
-              : mode === "create"
-                ? "Create Project"
-                : "Save Changes"}
+              ? mode === 'create'
+                ? 'Creating...'
+                : 'Saving...'
+              : mode === 'create'
+                ? 'Create Project'
+                : 'Save Changes'}
           </Button>
         </div>
       </form>

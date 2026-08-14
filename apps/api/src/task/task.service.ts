@@ -8,17 +8,19 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
-import { Priority, TaskStatus } from '../../generated/prisma/enums';
+import { TaskStatus } from '../../database/enums/task-status.enum';
+import { Priority } from '../../database/enums/priority.enum';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { CacheHelper } from '../common/cache/cache.helper';
 import { ProjectGateway } from '../gateway/project.gateway';
 import { Prisma } from '../../generated/prisma/client';
-import { DataSource, In, IsNull, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
 import { Task } from '../../database/src/Entities/task.entity';
 import { TaskAssignee } from '../../database/src/Entities/task-assignee.entity';
 import { ProjectMember } from '../../database/src/Entities/project-member.entity';
 import { ChangeLog } from '../../database/src/Entities/change-log.entity';
+// import { toDotPath } from 'zod/v4/core';
 // import { CreateChangeLogDto } from '../changelog/types/changelog.types';
 const formatted = new Date().toLocaleTimeString('en-US', {
   hour: '2-digit',
@@ -56,11 +58,141 @@ export class TaskService {
   //   );
   // }
 
+  // async create(dto: CreateTaskDto, userId: string, callerId: number) {
+  //   // Only actual members of this project can create tasks in it.
+  //   const membership = await this.prisma.projectMember.findUnique({
+  //     where: {
+  //       projectId_memberId: { projectId: dto.project_id, memberId: callerId },
+  //     },
+  //   });
+  //   if (!membership) {
+  //     throw new ForbiddenException('Not a member of this project');
+  //   }
+
+  //   const STATUS_MAP: Record<string, TaskStatus> = {
+  //     todo: TaskStatus.Todo,
+  //     in_progress: TaskStatus.In_Progress,
+  //     done: TaskStatus.Done,
+  //   };
+  //   const normalizedStatus = String(dto.status)
+  //     .replace(/\s+/g, '_')
+  //     .toLocaleLowerCase();
+  //   const dbStatus = STATUS_MAP[normalizedStatus];
+
+  //   // const dbStatus: typeof STATUS_MAP[String,];
+  //   if (!dbStatus) {
+  //     throw new BadRequestException('Invalid status value provided');
+  //   }
+
+  //   const PRIORITY_MAP: Record<string, Priority> = {
+  //     Critical: Priority.Critical,
+  //     High: Priority.High,
+  //     Medium: Priority.Medium,
+  //     Low: Priority.Low,
+  //   };
+
+  //   const dbPriority = PRIORITY_MAP[String(dto.priority)];
+  //   // let dbPriority: Priority;
+
+  //   // Anyone being assigned must also actually be a member of this project.
+  //   if (dto.assigneeIds && dto.assigneeIds.length > 0) {
+  //     const validCount = await this.prisma.projectMember.count({
+  //       where: {
+  //         projectId: dto.project_id,
+  //         memberId: { in: dto.assigneeIds },
+  //       },
+  //     });
+  //     if (validCount !== dto.assigneeIds.length) {
+  //       throw new BadRequestException(
+  //         'One or more assignees are not members of this project',
+  //       );
+  //     }
+  //   }
+
+  //   const newTask = await this.prisma.$transaction(async (tx) => {
+  //     const task = await tx.task.create({
+  //       data: {
+  //         projectId: dto.project_id,
+  //         title: dto.title,
+  //         description: dto.description,
+  //         status: dbStatus,
+  //         priority: dbPriority,
+  //       },
+  //     });
+
+  //     if (dto.assigneeIds && dto.assigneeIds.length > 0) {
+  //       await tx.taskAssignee.createMany({
+  //         data: dto.assigneeIds.map((memberId) => ({
+  //           taskId: task.id,
+  //           memberId,
+  //         })),
+  //       });
+  //     }
+
+  //     await tx.changeLog.create({
+  //       data: {
+  //         taskId: task.id,
+  //         taskTitle: task.title,
+  //         username: userId,
+  //         field: 'task creation',
+  //         oldValue: '',
+  //         newValue: task.title,
+  //         remark: dto.remark ?? null,
+  //       },
+  //     });
+
+  //     // Refetch with assignees included so the response/broadcast has
+  //     // the full member data, not just raw IDs.
+  //     return tx.task.findUniqueOrThrow({
+  //       where: { id: task.id },
+  //       include: {
+  //         assignees: {
+  //           include: {
+  //             member: { select: { id: true, user_id: true, username: true } },
+  //           },
+  //         },
+  //       },
+  //     });
+  //   });
+
+  //   await this.cacheHelper.invalidate(
+  //     'all_tasks',
+  //     `tasks_project_${newTask.projectId}`,
+  //   );
+
+  //   await this.cacheHelper.invalidatePattern(
+  //     `changelog_project_${newTask.projectId}_*`,
+  //   );
+
+  //   this.projectGateway.emitToProject(newTask.projectId, 'task:created', {
+  //     task: newTask,
+  //     createdBy: userId,
+  //   });
+  //   this.projectGateway.emitToProject(newTask.projectId, 'log:created', {
+  //     projectId: newTask.projectId,
+  //   });
+
+  //   return newTask;
+  // }
+  private findTaskWithAssignees(manager: EntityManager, taskId: number) {
+    return manager.findOneOrFail(Task, {
+      where: {
+        id: taskId,
+      },
+      relations: {
+        assignees: {
+          member: true,
+        },
+      },
+    });
+  }
+
   async create(dto: CreateTaskDto, userId: string, callerId: number) {
     // Only actual members of this project can create tasks in it.
-    const membership = await this.prisma.projectMember.findUnique({
+    const membership = await this.projectMemberRepository.findOne({
       where: {
-        projectId_memberId: { projectId: dto.project_id, memberId: callerId },
+        projectId: dto.project_id,
+        memberId: callerId,
       },
     });
     if (!membership) {
@@ -107,51 +239,117 @@ export class TaskService {
       }
     }
 
-    const newTask = await this.prisma.$transaction(async (tx) => {
-      const task = await tx.task.create({
-        data: {
-          projectId: dto.project_id,
-          title: dto.title,
-          description: dto.description,
-          status: dbStatus,
-          priority: dbPriority,
-        },
+    // const newTask = await this.prisma.$transaction(async (tx) => {
+    //   const task = await tx.task.create({
+    //     data: {
+    //       projectId: dto.project_id,
+    //       title: dto.title,
+    //       description: dto.description,
+    //       status: dbStatus,
+    //       priority: dbPriority,
+    //     },
+    //   });
+
+    //   if (dto.assigneeIds && dto.assigneeIds.length > 0) {
+    //     await tx.taskAssignee.createMany({
+    //       data: dto.assigneeIds.map((memberId) => ({
+    //         taskId: task.id,
+    //         memberId,
+    //       })),
+    //     });
+    //   }
+
+    //   await tx.changeLog.create({
+    //     data: {
+    //       taskId: task.id,
+    //       taskTitle: task.title,
+    //       username: userId,
+    //       field: 'task creation',
+    //       oldValue: '',
+    //       newValue: task.title,
+    //       remark: dto.remark ?? null,
+    //     },
+    //   });
+
+    //   // Refetch with assignees included so the response/broadcast has
+    //   // the full member data, not just raw IDs.
+    //   return tx.task.findUniqueOrThrow({
+    //     where: { id: task.id },
+    //     include: {
+    //       assignees: {
+    //         include: {
+    //           member: { select: { id: true, user_id: true, username: true } },
+    //         },
+    //       },
+    //     },
+    //   });
+    // });
+    const newTask = await this.dataSource.transaction(async (manager) => {
+      const task = manager.create(Task, {
+        projectId: dto.project_id,
+        title: dto.title,
+        description: dto.description,
+        status: dbStatus,
+        priority: dbPriority,
       });
 
-      if (dto.assigneeIds && dto.assigneeIds.length > 0) {
-        await tx.taskAssignee.createMany({
-          data: dto.assigneeIds.map((memberId) => ({
+      await manager.save(Task, task);
+
+      if (dto.assigneeIds?.length) {
+        await manager.insert(
+          TaskAssignee,
+          dto.assigneeIds.map((memberId) => ({
             taskId: task.id,
             memberId,
           })),
-        });
+        );
       }
 
-      await tx.changeLog.create({
-        data: {
-          taskId: task.id,
-          taskTitle: task.title,
-          username: userId,
-          field: 'task creation',
-          oldValue: '',
-          newValue: task.title,
-          remark: dto.remark ?? null,
-        },
+      await manager.insert(ChangeLog, {
+        taskId: task.id,
+        taskTitle: task.title,
+        username: userId,
+        field: 'task creation',
+        oldValue: '',
+        newValue: task.title,
+        remark: dto.remark ?? null,
       });
 
-      // Refetch with assignees included so the response/broadcast has
-      // the full member data, not just raw IDs.
-      return tx.task.findUniqueOrThrow({
-        where: { id: task.id },
-        include: {
-          assignees: {
-            include: {
-              member: { select: { id: true, user_id: true, username: true } },
-            },
-          },
-        },
-      });
+      return this.findTaskWithAssignees(manager, task.id);
     });
+    // const addTask = await this.dataSource.transaction(async (manager) => {
+    //   const task = manager.create(Task, {
+    //     projectId: dto.project_id,
+    //     title: dto.title,
+    //     description: dto.description,
+    //     status: dbStatus,
+    //     priority: dbPriority,
+    //   });
+    //   await manager.save(Task, task);
+
+    //   if (dto.assigneeIds && dto.assigneeIds.length > 0) {
+    //     await manager.insert(
+    //       TaskAssignee,
+    //       dto.assigneeIds.map((memberId) => ({
+    //         taskId: task.id,
+    //         memberId,
+    //       })),
+    //     );
+    //   }
+
+    //   await manager.insert({
+    //     ChangeLog, {
+    //       taskId: task.id,
+    //       taskTitle: task.title,
+    //       username: userId,
+    //       field: 'task creation',
+    //       oldValue: '',
+    //       newValue: task.title,
+    //       remark: dto.remark ?? null,
+    //     },
+    //   });
+
+    // });
 
     await this.cacheHelper.invalidate(
       'all_tasks',
