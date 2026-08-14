@@ -7,12 +7,17 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateChangelogDto } from './dto/create-changelog.dto';
 import { UpdateChangelogDto } from './dto/update-changelog.dto';
 import { CacheHelper } from '../common/cache/cache.helper';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ChangeLog } from '../../database/src/Entities/change-log.entity';
 
 @Injectable()
 export class ChangelogService {
   constructor(
     private prisma: PrismaService,
     private cacheHelper: CacheHelper,
+    @InjectRepository(ChangeLog)
+    private readonly changeLogRepository: Repository<ChangeLog>,
   ) {}
 
   // callerId/callerUserId come from the authenticated request (JWT), never
@@ -89,19 +94,34 @@ export class ChangelogService {
     return this.cacheHelper.getOrSet(
       cacheKey,
       async () => {
-        const logs = await this.prisma.changeLog.findMany({
+        // const logs = await this.prisma.changeLog.findMany({
+        //   where: {
+        //     task: { projectId },
+        //     ...(filterField && filterField !== 'all'
+        //       ? { field: filterField }
+        //       : {}),
+        //   },
+        //   orderBy: { createdAt: 'desc' },
+        //   take: limit + 1, // fetch one extra to know if there's more
+        //   ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+        //   include: {
+        //     task: { select: { id: true, title: true } },
+        //     member: { select: { user_id: true, username: true } },
+        //   },
+        // });
+        const logs = await this.changeLogRepository.find({
           where: {
             task: { projectId },
             ...(filterField && filterField !== 'all'
               ? { field: filterField }
               : {}),
           },
-          orderBy: { createdAt: 'desc' },
+          order: { createdAt: 'desc' },
           take: limit + 1, // fetch one extra to know if there's more
           ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-          include: {
-            task: { select: { id: true, title: true } },
-            member: { select: { user_id: true, username: true } },
+          relations: {
+            task: true,
+            member: true,
           },
         });
 
