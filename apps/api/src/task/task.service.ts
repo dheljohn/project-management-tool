@@ -556,6 +556,10 @@ export class TaskService {
       else if (normalized === 'todo') formattedStatus = TaskStatus.Todo;
       else if (normalized === 'done') formattedStatus = TaskStatus.Done;
     }
+    const formattedPriority =
+      updateDto.priority !== undefined
+        ? Priority[updateDto.priority]
+        : undefined;
 
     const fieldsToTrack = [
       { field: 'title', oldValue: existing.title, newValue: updateDto.title },
@@ -649,57 +653,11 @@ export class TaskService {
         });
       }
     }
-    const updated = await this.prisma.$transaction(async (tx) => {
-      if (updateDto.assigneeIds !== undefined) {
-        await tx.taskAssignee.deleteMany({ where: { taskId } });
-        if (updateDto.assigneeIds.length > 0) {
-          await tx.taskAssignee.createMany({
-            data: updateDto.assigneeIds.map((memberId) => ({
-              taskId,
-              memberId,
-            })),
-          });
-        }
-      }
-      await tx.task.update({
-        where: { id: taskId },
-        data: {
-          ...(updateDto.title && { title: updateDto.title }),
-          ...(updateDto.description !== undefined && {
-            description: updateDto.description,
-          }),
-          ...(formattedStatus && { status: formattedStatus }),
-          ...(updateDto.priority && {
-            priority: updateDto.priority,
-          }),
-        },
-      });
-
-      for (const log of logs) {
-        await tx.changeLog.create({ data: log });
-      }
-
-      // Refetch with the now-current assignee list included.
-      return tx.task.findUniqueOrThrow({
-        where: { id: taskId },
-        include: {
-          assignees: {
-            include: {
-              member: { select: { id: true, user_id: true, username: true } },
-            },
-          },
-        },
-      });
-    });
-
-    //unfinished
-    // const updated = await this.dataSource.transaction(async (manager) => {
-    //   const taskAssignRepo = manager.getRepository(TaskAssignee);
-    //   const changeLogRepo = manager.getRepository(ChangeLog);
+    // const updated = await this.prisma.$transaction(async (tx) => {
     //   if (updateDto.assigneeIds !== undefined) {
-    //     await taskAssignRepo.delete( where: { taskId } );
+    //     await tx.taskAssignee.deleteMany({ where: { taskId } });
     //     if (updateDto.assigneeIds.length > 0) {
-    //       await manager.taskAssignRepo.createMany({
+    //       await tx.taskAssignee.createMany({
     //         data: updateDto.assigneeIds.map((memberId) => ({
     //           taskId,
     //           memberId,
@@ -707,7 +665,7 @@ export class TaskService {
     //       });
     //     }
     //   }
-    //   await manager.task.update({
+    //   await tx.task.update({
     //     where: { id: taskId },
     //     data: {
     //       ...(updateDto.title && { title: updateDto.title }),
@@ -722,11 +680,11 @@ export class TaskService {
     //   });
 
     //   for (const log of logs) {
-    //     await manager.changeLog.create({ data: log });
+    //     await tx.changeLog.create({ data: log });
     //   }
 
     //   // Refetch with the now-current assignee list included.
-    //   return manager.task.findUniqueOrThrow({
+    //   return tx.task.findUniqueOrThrow({
     //     where: { id: taskId },
     //     include: {
     //       assignees: {
@@ -738,6 +696,56 @@ export class TaskService {
     //   });
     // });
 
+    //unfinished
+
+    const updated = await this.dataSource.transaction(async (manager) => {
+      if (updateDto.assigneeIds !== undefined) {
+        await manager.delete(TaskAssignee, { id: taskId });
+        if (updateDto.assigneeIds.length > 0) {
+          await manager.insert(
+            TaskAssignee,
+            updateDto.assigneeIds.map((memberId) => ({
+              taskId,
+              memberId,
+            })),
+          );
+        }
+      }
+
+      const updateData: Partial<Task> = {
+        ...(updateDto.title !== undefined && {
+          title: updateDto.title,
+        }),
+
+        ...(updateDto.description !== undefined && {
+          description: updateDto.description,
+        }),
+
+        ...(formattedStatus !== undefined && {
+          status: formattedStatus,
+        }),
+
+        ...(updateDto.priority !== undefined && {
+          priority: formattedPriority,
+        }),
+      };
+
+      await manager.update(Task, { id: taskId }, updateData);
+
+      for (const log of logs) {
+        await manager.insert(ChangeLog, log);
+      }
+
+      // Refetch with the now-current assignee list included.
+      return manager.findOneOrFail(Task, {
+        where: { id: taskId },
+        relations: {
+          assignees: {
+            member: true,
+          },
+        },
+      });
+    });
     await Promise.all([
       this.cacheHelper.invalidate(
         'all_tasks',
