@@ -17,10 +17,8 @@ export class ChangeLog {
 
   @Column({ type: 'int', nullable: true })
   taskId!: number | null;
-
-  @Column({ type: 'text', default: '' })
-  taskTitle!: string;
-
+  @Column({ type: 'varchar', length: 255, default: '' })
+  taskTitle: string;
   @Column()
   field!: string;
 

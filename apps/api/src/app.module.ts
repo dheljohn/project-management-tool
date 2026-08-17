@@ -26,8 +26,8 @@ import { InviteModule } from './invite/invite.module';
 import { ProjectGatewayModule } from './gateway/project-gateway.module';
 import { MembersModule } from './member/member.module';
 // import { Member } from '../database/src/Entities/member.entity';
-// import * as fs from 'fs';
-// import * as path from 'path';
+// // import * as fs from 'fs';
+// // import * as path from 'path';
 // import { Project } from '../database/src/Entities/project.entity';
 // import { ProjectMember } from '../database/src/Entities/project-member.entity';
 // import { Task } from '../database/src/Entities/task.entity';
@@ -38,11 +38,29 @@ import { MembersModule } from './member/member.module';
 
 @Module({
   imports: [
+    // TypeOrmModule.forRoot({
+    //   type: 'mysql',
+    //   url: process.env.MYSQL_URL,
+
+    //   entities: [
+    //     Member,
+    //     Project,
+    //     ProjectMember,
+    //     Task,
+    //     TaskAssignee,
+    //     ChangeLog,
+    //     RefreshToken,
+    //     InviteCode,
+    //   ],
+
+    //   synchronize: false,
+    // }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: 'mariadb',
+        type: 'mysql',
+        // url: config.getOrThrow<string>('MYSQL_URL'),
         host: config.getOrThrow<string>('DB_HOST'),
         port: config.getOrThrow<number>('DB_PORT'),
         username: config.getOrThrow<string>('DB_USER'),
