@@ -400,89 +400,186 @@ export class TaskService {
     });
   }
 
+  // async deleteTask(taskId: number, callerId: number, callerUserId: string) {
+  //   this.logger.debug(`deleteTask called`, { taskId, callerId, callerUserId });
+
+  //   if (!taskId) {
+  //     throw new BadRequestException('Task ID is required');
+  //   }
+
+  //   const existing = await this.prisma.task.findUnique({
+  //     where: { id: taskId },
+  //   });
+  //   this.logger.debug(`deleteTask: existing task lookup`, {
+  //     taskId,
+  //     found: !!existing,
+  //   });
+
+  //   if (!existing || existing.deletedAt) {
+  //     this.logger.debug(`deleteTask: task not found or already deleted`, {
+  //       taskId,
+  //     });
+  //     throw new NotFoundException('Task not found');
+  //   }
+
+  //   let deleted;
+  //   try {
+  //     this.logger.debug(`deleteTask: starting transaction`, { taskId });
+
+  //     deleted = await this.prisma.$transaction(async (tx) => {
+  //       const task = await tx.task.update({
+  //         where: { id: taskId },
+  //         data: { deletedAt: new Date() },
+  //       });
+  //       this.logger.debug(`deleteTask: task soft-deleted`, {
+  //         taskId: task.id,
+  //         projectId: task.projectId,
+  //         deletedAt: task.deletedAt,
+  //       });
+
+  //       const log = await tx.changeLog.create({
+  //         data: {
+  //           taskId: task.id,
+  //           taskTitle: task.title,
+  //           username: callerUserId,
+  //           field: 'task deletion',
+  //           oldValue: task.status,
+  //           newValue: 'deleted',
+  //         },
+  //       });
+  //       this.logger.debug(`deleteTask: changelog entry created`, {
+  //         changeLogId: log.id,
+  //         taskId: task.id,
+  //       });
+
+  //       return task;
+  //     });
+
+  //     this.logger.debug(`deleteTask: transaction committed`, {
+  //       taskId: deleted.id,
+  //     });
+  //   } catch (err) {
+  //     this.logger.debug(`deleteTask: transaction failed`, {
+  //       taskId,
+  //       errorCode:
+  //         err instanceof Prisma.PrismaClientKnownRequestError
+  //           ? err.code
+  //           : undefined,
+  //       errorMessage: err instanceof Error ? err.message : err,
+  //     });
+
+  //     if (
+  //       err instanceof Prisma.PrismaClientKnownRequestError &&
+  //       err.code === 'P2025'
+  //     ) {
+  //       throw new NotFoundException('Task not found');
+  //     }
+  //     console.log(`Failed to delete task ${taskId}`, err);
+  //     throw new InternalServerErrorException('Failed to delete task');
+  //   }
+
+  //   await this.cacheHelper.invalidate(
+  //     'all_tasks',
+  //     `tasks_project_${existing.projectId}`,
+  //     `task_history_${taskId}`,
+  //   );
+  //   await this.cacheHelper.invalidatePattern(
+  //     `changelog_project_${existing.projectId}_*`,
+  //   );
+
+  //   this.projectGateway.emitToProject(existing.projectId, 'task:deleted', {
+  //     task: deleted,
+  //   });
+
+  //   this.logger.debug(`deleteTask: completed successfully`, { taskId });
+  //   return deleted;
+  // }
   async deleteTask(taskId: number, callerId: number, callerUserId: string) {
-    this.logger.debug(`deleteTask called`, { taskId, callerId, callerUserId });
+    this.logger.debug('deleteTask called', {
+      taskId,
+      callerId,
+      callerUserId,
+    });
 
     if (!taskId) {
       throw new BadRequestException('Task ID is required');
     }
 
-    const existing = await this.prisma.task.findUnique({
-      where: { id: taskId },
+    const existing = await this.taskRepository.findOne({
+      where: {
+        id: taskId,
+        deletedAt: IsNull(),
+      },
     });
-    this.logger.debug(`deleteTask: existing task lookup`, {
+
+    this.logger.debug('deleteTask: existing task lookup', {
       taskId,
       found: !!existing,
     });
 
-    if (!existing || existing.deletedAt) {
-      this.logger.debug(`deleteTask: task not found or already deleted`, {
+    if (!existing) {
+      this.logger.debug('deleteTask: task not found or already deleted', {
         taskId,
       });
+
       throw new NotFoundException('Task not found');
     }
 
-    let deleted;
-    try {
-      this.logger.debug(`deleteTask: starting transaction`, { taskId });
+    const deleted = await this.dataSource.transaction(async (manager) => {
+      const result = await manager.update(
+        Task,
+        {
+          id: taskId,
+          deletedAt: IsNull(),
+        },
+        {
+          deletedAt: new Date(),
+        },
+      );
 
-      deleted = await this.prisma.$transaction(async (tx) => {
-        const task = await tx.task.update({
-          where: { id: taskId },
-          data: { deletedAt: new Date() },
-        });
-        this.logger.debug(`deleteTask: task soft-deleted`, {
-          taskId: task.id,
-          projectId: task.projectId,
-          deletedAt: task.deletedAt,
-        });
-
-        const log = await tx.changeLog.create({
-          data: {
-            taskId: task.id,
-            taskTitle: task.title,
-            username: callerUserId,
-            field: 'task deletion',
-            oldValue: task.status,
-            newValue: 'deleted',
-          },
-        });
-        this.logger.debug(`deleteTask: changelog entry created`, {
-          changeLogId: log.id,
-          taskId: task.id,
-        });
-
-        return task;
-      });
-
-      this.logger.debug(`deleteTask: transaction committed`, {
-        taskId: deleted.id,
-      });
-    } catch (err) {
-      this.logger.debug(`deleteTask: transaction failed`, {
-        taskId,
-        errorCode:
-          err instanceof Prisma.PrismaClientKnownRequestError
-            ? err.code
-            : undefined,
-        errorMessage: err instanceof Error ? err.message : err,
-      });
-
-      if (
-        err instanceof Prisma.PrismaClientKnownRequestError &&
-        err.code === 'P2025'
-      ) {
+      if (result.affected === 0) {
         throw new NotFoundException('Task not found');
       }
-      console.log(`Failed to delete task ${taskId}`, err);
-      throw new InternalServerErrorException('Failed to delete task');
-    }
+
+      // const task = await manager.findOneOrFail(Task, {
+      //   where: {
+      //     id: taskId,
+      //   },
+      // });
+      const task = await manager.findOneOrFail(Task, {
+        where: { id: taskId },
+        withDeleted: true,
+      });
+
+      this.logger.debug('deleteTask: task soft-deleted', {
+        taskId: task.id,
+        projectId: task.projectId,
+        deletedAt: task.deletedAt,
+      });
+
+      const log = await manager.insert(ChangeLog, {
+        taskId: task.id,
+        taskTitle: task.title,
+        username: callerUserId,
+        field: 'task deletion',
+        oldValue: task.status,
+        newValue: 'deleted',
+      });
+
+      this.logger.debug('deleteTask: changelog entry created', {
+        taskId: task.id,
+        changeLogId: log.identifiers[0]?.id,
+      });
+
+      return task;
+    });
 
     await this.cacheHelper.invalidate(
       'all_tasks',
       `tasks_project_${existing.projectId}`,
       `task_history_${taskId}`,
     );
+
     await this.cacheHelper.invalidatePattern(
       `changelog_project_${existing.projectId}_*`,
     );
@@ -491,7 +588,10 @@ export class TaskService {
       task: deleted,
     });
 
-    this.logger.debug(`deleteTask: completed successfully`, { taskId });
+    this.logger.debug('deleteTask: completed successfully', {
+      taskId,
+    });
+
     return deleted;
   }
 
@@ -700,7 +800,7 @@ export class TaskService {
 
     const updated = await this.dataSource.transaction(async (manager) => {
       if (updateDto.assigneeIds !== undefined) {
-        await manager.delete(TaskAssignee, { id: taskId });
+        await manager.delete(TaskAssignee, { taskId });
         if (updateDto.assigneeIds.length > 0) {
           await manager.insert(
             TaskAssignee,
@@ -746,6 +846,7 @@ export class TaskService {
         },
       });
     });
+
     await Promise.all([
       this.cacheHelper.invalidate(
         'all_tasks',
@@ -779,17 +880,17 @@ export class TaskService {
   }
 
   async findOne(id: number) {
-    const onetask = await this.prisma.task.findFirst({
-      where: { id, deletedAt: null },
+    const singleTask = await this.taskRepository.findOne({
+      where: { id, deletedAt: IsNull() },
     });
-    if (!onetask) throw new NotFoundException('Task not found');
-    return onetask;
+    if (!singleTask) throw new NotFoundException('Task not found');
+    return singleTask;
   }
 
   async findAll() {
     return this.cacheHelper.getOrSet('all_tasks', async () => {
-      const all = await this.prisma.task.findMany({
-        where: { deletedAt: null },
+      const all = await this.taskRepository.find({
+        where: { deletedAt: IsNull() },
       });
       if (all.length === 0) throw new NotFoundException('No tasks found');
       return all;

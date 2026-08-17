@@ -159,24 +159,29 @@ export class ProjectsService {
   async update(userId: number, updateDto: UpdateProjectDto) {
     const { id, ...data } = updateDto;
 
-    const membership = await this.prisma.projectMember.findUnique({
+    const membership = await this.projectMemberRepository.findOne({
       where: {
-        projectId_memberId: { projectId: id, memberId: userId },
+        projectId: id,
+        memberId: userId,
       },
     });
 
     if (!membership) {
       throw new NotFoundException('Project not found');
     }
-    if (membership.role !== 'OWNER') {
+    if (membership.role !== ProjectRole.OWNER) {
       throw new ForbiddenException(
         'Only the project owner can update this project',
       );
     }
 
-    const updated = await this.prisma.project.update({
+    const result = await this.projectRepository.update({ id }, data);
+
+    if (result.affected === 0) {
+      throw new NotFoundException('Project not found');
+    }
+    const updated = await this.projectRepository.findOneOrFail({
       where: { id },
-      data,
     });
 
     await this.cacheHelper.invalidate(
@@ -184,13 +189,56 @@ export class ProjectsService {
       `projects_user_${userId}`,
     );
 
-    this.projectGateway.emitToProject(updated.id, 'project:updated', {
+    this.projectGateway.emitToProject(id, 'project:updated', {
       project: updated,
       updatedBy: userId,
     });
 
     return updated;
   }
+
+  // async update(userId: number, updateDto: UpdateProjectDto) {
+  //   const { id, ...data } = updateDto;
+
+  //   const membership = await this.projectMemberRepository.findOne({
+  //     where: {
+  //       projectId: id,
+  //       memberId: userId,
+  //     },
+  //   });
+
+  //   if (!membership) {
+  //     throw new NotFoundException('Project not found');
+  //   }
+
+  //   if (membership.role !== ProjectRole.OWNER) {
+  //     throw new ForbiddenException(
+  //       'Only the project owner can update this project',
+  //     );
+  //   }
+
+  //   const result = await this.projectRepository.update({ id }, data);
+
+  //   if (result.affected === 0) {
+  //     throw new NotFoundException('Project not found');
+  //   }
+
+  //   const updated = await this.projectRepository.findOneOrFail({
+  //     where: { id },
+  //   });
+
+  //   await this.cacheHelper.invalidate(
+  //     'all_projects',
+  //     `projects_user_${userId}`,
+  //   );
+
+  //   this.projectGateway.emitToProject(id, 'project:updated', {
+  //     project: updated,
+  //     updatedBy: userId,
+  //   });
+
+  //   return updated;
+  // }
 
   async listMembers(userId: number, projectId: number) {
     const membership = await this.projectMemberRepository.findOne({
