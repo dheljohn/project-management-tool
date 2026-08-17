@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { joinProjectSchema, JoinProjectInput } from "../schemas/invite.schema";
-import { useJoinProject } from "../hooks/useInvites";
-import { useRouter } from "next/navigation";
-import { LogIn } from "lucide-react";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { joinProjectSchema, JoinProjectInput } from '../schemas/invite.schema';
+import { useJoinProject } from '../hooks/useInvites';
+import { useRouter } from 'next/navigation';
+import { LogIn } from 'lucide-react';
 
 export function JoinProjectButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,7 +73,7 @@ function JoinProjectModal({ onClose }: { onClose: () => void }) {
             <input
               type="text"
               placeholder="# Join via code"
-              {...register("code")}
+              {...register('code')}
               autoFocus
               className="w-3/4 rounded-none bg-transparent px-4 py-2 text-sm text-foreground font-mono uppercase focus-visible:outline-none placeholder:text-muted-foreground"
               maxLength={10}
@@ -85,7 +85,7 @@ function JoinProjectModal({ onClose }: { onClose: () => void }) {
               className="w-1/4 h-full py-2 text-sm rounded-none bg-accent font-medium disabled:opacity-50 transition-opacity hover:opacity-90 shrink-0 border-l border-input"
             >
               <span className="text-sm text-accent-foreground">
-                {joinProject.isPending ? "..." : "Join"}
+                {joinProject.isPending ? '...' : 'Join'}
               </span>
             </button>
           </div>
@@ -99,7 +99,7 @@ function JoinProjectModal({ onClose }: { onClose: () => void }) {
           {joinProject.isError && (
             <p className="text-xs text-destructive">
               {(joinProject.error as any)?.response?.data?.message ??
-                "Could not join with that code."}
+                'Could not join with that code.'}
             </p>
           )}
         </form>

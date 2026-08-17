@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useRef } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createInviteSchema,
   CreateInviteInput,
   CreateInviteOutput,
-} from "../schemas/invite.schema";
-import { useCreateInvite } from "../hooks/useInvites";
-import { Button } from "../../../components/ui/Button";
+} from '../schemas/invite.schema';
+import { useCreateInvite } from '../hooks/useInvites';
+import { Button } from '../../../components/ui/Button';
 
 interface GenerateInviteModalProps {
   projectId: number;
@@ -37,10 +37,10 @@ export function GenerateInviteModal({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === 'Escape') onClose();
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -63,7 +63,7 @@ export function GenerateInviteModal({
   };
 
   const inputClass =
-    "bg-muted border border-border rounded-md px-3.5 py-2.5 sm:px-4 sm:py-2 w-full text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors";
+    'bg-muted border border-border rounded-md px-3.5 py-2.5 sm:px-4 sm:py-2 w-full text-foreground text-base sm:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors';
 
   return (
     <div
@@ -113,7 +113,7 @@ export function GenerateInviteModal({
               </label>
               <input
                 type="number"
-                {...register("expiresInDays", { valueAsNumber: true })}
+                {...register('expiresInDays', { valueAsNumber: true })}
                 className={inputClass}
               />
               {errors.expiresInDays && (
@@ -129,7 +129,7 @@ export function GenerateInviteModal({
               </label>
               <input
                 type="number"
-                {...register("maxUses", { valueAsNumber: true })}
+                {...register('maxUses', { valueAsNumber: true })}
                 className={inputClass}
               />
               {errors.maxUses && (
@@ -139,7 +139,15 @@ export function GenerateInviteModal({
               )}
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 pb-4 sm:pb-0">
+            <div className="flex flex-col gap-2 pt-2 pb-4 sm:pb-0">
+              <Button
+                variant="save"
+                type="submit"
+                disabled={createInvite.isPending}
+                className="flex-1 sm:flex-none"
+              >
+                {createInvite.isPending ? 'Generating...' : 'Generate code'}
+              </Button>
               <Button
                 variant="cancel"
                 type="button"
@@ -147,15 +155,6 @@ export function GenerateInviteModal({
                 className="px-4 py-2 text-sm rounded-md flex-1 sm:flex-none"
               >
                 Cancel
-              </Button>
-
-              <Button
-                variant="save"
-                type="submit"
-                disabled={createInvite.isPending}
-                className="flex-1 sm:flex-none"
-              >
-                {createInvite.isPending ? "Generating..." : "Generate code"}
               </Button>
             </div>
 
@@ -179,7 +178,7 @@ export function GenerateInviteModal({
                 onClick={handleCopy}
                 className="w-1/4 h-full py-3 text-sm rounded-none bg-accent text-accent-foreground font-medium transition-opacity hover:opacity-90 shrink-0 border-l border-input"
               >
-                {copied ? "Copied!" : "Copy"}
+                {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
 

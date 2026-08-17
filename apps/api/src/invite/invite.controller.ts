@@ -13,7 +13,7 @@ import { InvitesService } from './invite.service';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { JoinProjectDto } from './dto/join-project.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
+import { ApiTags, ApiCookieAuth, ApiHeader } from '@nestjs/swagger';
 
 type AuthenticatedRequest = { user: { id: number } };
 
@@ -24,6 +24,11 @@ type AuthenticatedRequest = { user: { id: number } };
 export class InvitesController {
   constructor(private invitesService: InvitesService) {}
 
+  @ApiCookieAuth('auth_token')
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    description: 'Copy from your csrf_token cookie',
+  })
   @Post()
   create(@Req() req: AuthenticatedRequest, @Body() dto: CreateInviteDto) {
     return this.invitesService.create(req.user.id, dto);
