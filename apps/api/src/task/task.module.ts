@@ -6,10 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Task } from '../../database/src/Entities/task.entity';
 import { TaskAssignee } from '../../database/src/Entities/task-assignee.entity';
 import { ProjectMember } from '../../database/src/Entities/project-member.entity';
+import { ChangeLog } from '../../database/src/Entities/change-log.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Task, TaskAssignee, ProjectMember]),
+    TypeOrmModule.forFeature([Task, TaskAssignee, ProjectMember, ChangeLog]),
     ProjectGatewayModule,
   ],
   controllers: [TaskController],

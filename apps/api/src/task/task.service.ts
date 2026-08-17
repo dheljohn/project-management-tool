@@ -42,6 +42,8 @@ export class TaskService {
     private readonly taskAssigneeRepository: Repository<TaskAssignee>,
     @InjectRepository(ProjectMember)
     private readonly projectMemberRepository: Repository<ProjectMember>,
+    @InjectRepository(ChangeLog)
+    private readonly changeLogRepository: Repository<ChangeLog>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -226,10 +228,10 @@ export class TaskService {
 
     // Anyone being assigned must also actually be a member of this project.
     if (dto.assigneeIds && dto.assigneeIds.length > 0) {
-      const validCount = await this.prisma.projectMember.count({
+      const validCount = await this.projectMemberRepository.count({
         where: {
           projectId: dto.project_id,
-          memberId: { in: dto.assigneeIds },
+          memberId: In(dto.assigneeIds),
         },
       });
       if (validCount !== dto.assigneeIds.length) {
@@ -373,12 +375,28 @@ export class TaskService {
 
   async getTaskHistory(taskId: number) {
     return this.cacheHelper.getOrSet(`task_history_${taskId}`, () =>
-      this.prisma.changeLog.findMany({
+      this.changeLogRepository.find({
         where: { taskId },
-        orderBy: { createdAt: 'desc' },
-        include: {
+        order: { createdAt: 'desc' },
+        relations: {
           task: true,
-          member: { select: { id: true, user_id: true, username: true } },
+          member: true,
+        },
+        select: {
+          id: true,
+          taskId: true,
+          taskTitle: true,
+          username: true,
+          field: true,
+          oldValue: true,
+          newValue: true,
+          remark: true,
+          createdAt: true,
+          member: {
+            id: true,
+            user_id: true,
+            username: true,
+          },
         },
       }),
     );

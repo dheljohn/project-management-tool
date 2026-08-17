@@ -83,53 +83,119 @@ export class ChangelogService {
     });
   }
 
+  // async findByProjectId(
+  //   projectId: number,
+  //   cursor?: number,
+  //   limit: number = 10,
+  //   filterField?: string,
+  // ) {
+  //   const cacheKey = `changelog_project_${projectId}_${cursor ?? 'start'}_${filterField ?? 'all'}`;
+
+  //   return this.cacheHelper.getOrSet(
+  //     cacheKey,
+  //     async () => {
+  //       // const logs = await this.prisma.changeLog.findMany({
+  //       //   where: {
+  //       //     task: { projectId },
+  //       //     ...(filterField && filterField !== 'all'
+  //       //       ? { field: filterField }
+  //       //       : {}),
+  //       //   },
+  //       //   orderBy: { createdAt: 'desc' },
+  //       //   take: limit + 1, // fetch one extra to know if there's more
+  //       //   ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+  //       //   include: {
+  //       //     task: { select: { id: true, title: true } },
+  //       //     member: { select: { user_id: true, username: true } },
+  //       //   },
+  //       // });
+  //       const logs = await this.changeLogRepository.find({
+  //         where: {
+  //           task: { projectId },
+  //           ...(filterField && filterField !== 'all'
+  //             ? { field: filterField }
+  //             : {}),
+  //         },
+  //         order: { createdAt: 'desc' },
+  //         take: limit + 1, // fetch one extra to know if there's more
+  //         ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+  //         relations: {
+  //           task: true,
+  //           member: true,
+  //         },
+  //       });
+
+  //       const hasMore = logs.length > limit;
+  //       const items = hasMore ? logs.slice(0, limit) : logs;
+  //       const nextCursor = hasMore ? items[items.length - 1].id : null;
+
+  //       return { items, nextCursor, hasMore };
+  //     },
+  //     15000,
+  //   );
+  // }
   async findByProjectId(
     projectId: number,
     cursor?: number,
-    limit: number = 10,
+    limit = 10,
     filterField?: string,
   ) {
-    const cacheKey = `changelog_project_${projectId}_${cursor ?? 'start'}_${filterField ?? 'all'}`;
+    const cacheKey = `changelog_project_${projectId}_${cursor ?? 'start'}_${filterField ?? 'all'}_${limit}`;
 
     return this.cacheHelper.getOrSet(
       cacheKey,
       async () => {
-        // const logs = await this.prisma.changeLog.findMany({
-        //   where: {
-        //     task: { projectId },
-        //     ...(filterField && filterField !== 'all'
-        //       ? { field: filterField }
-        //       : {}),
-        //   },
-        //   orderBy: { createdAt: 'desc' },
-        //   take: limit + 1, // fetch one extra to know if there's more
-        //   ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-        //   include: {
-        //     task: { select: { id: true, title: true } },
-        //     member: { select: { user_id: true, username: true } },
-        //   },
-        // });
-        const logs = await this.changeLogRepository.find({
-          where: {
-            task: { projectId },
-            ...(filterField && filterField !== 'all'
-              ? { field: filterField }
-              : {}),
-          },
-          order: { createdAt: 'desc' },
-          take: limit + 1, // fetch one extra to know if there's more
-          ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-          relations: {
-            task: true,
-            member: true,
-          },
-        });
+        const qb = this.changeLogRepository
+          .createQueryBuilder('log')
+          .leftJoinAndSelect('log.task', 'task')
+          .leftJoinAndSelect('log.member', 'member')
+          .where('task.projectId = :projectId', {
+            projectId,
+          })
+          .orderBy('log.createdAt', 'DESC')
+          .addOrderBy('log.id', 'DESC')
+          .take(limit + 1);
+
+        if (filterField && filterField !== 'all') {
+          qb.andWhere('log.field = :field', {
+            field: filterField,
+          });
+        }
+
+        if (cursor) {
+          const cursorLog = await this.changeLogRepository.findOne({
+            where: {
+              id: cursor,
+            },
+          });
+
+          if (!cursorLog) {
+            throw new NotFoundException('Invalid cursor');
+          }
+
+          qb.andWhere(
+            `(log.createdAt < :createdAt
+            OR (log.createdAt = :createdAt AND log.id < :id))`,
+            {
+              createdAt: cursorLog.createdAt,
+              id: cursorLog.id,
+            },
+          );
+        }
+
+        const logs = await qb.getMany();
 
         const hasMore = logs.length > limit;
+
         const items = hasMore ? logs.slice(0, limit) : logs;
+
         const nextCursor = hasMore ? items[items.length - 1].id : null;
 
-        return { items, nextCursor, hasMore };
+        return {
+          items,
+          nextCursor,
+          hasMore,
+        };
       },
       15000,
     );

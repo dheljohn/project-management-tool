@@ -14,7 +14,7 @@ import { RefreshToken } from '../../database/src/Entities/refresh-token.entity';
 
 const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
 // const ACCESS_TOKEN_TTL_MS = 1 * 15 * 1000; // 15 seconds
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dayss
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 @Injectable()
 export class AuthService {
@@ -101,10 +101,10 @@ export class AuthService {
     }
 
     // Rotate: revoke the old token
-    await this.prisma.refreshToken.update({
-      where: { jti: payload.jti },
-      data: { revokedAt: new Date() },
-    });
+    await this.refreshTokenRepository.update(
+      { jti: payload.jti },
+      { revokedAt: new Date() },
+    );
 
     // Issue new pair
     await this.issueTokenPair(payload.sub, payload.user_id, res);
