@@ -231,7 +231,7 @@ function KanbanPageContent() {
                   className="flex items-center gap-1.5 border border-input bg-background hover:bg-muted text-foreground text-sm font-medium px-4 py-2 rounded-full cursor-pointer transition-colors duration-200 ease-in-out"
                 >
                   <div className="flex items-center gap-2">
-                    <MoveUpRight className="h-4 w-4" />
+                    <MoveUpRight className="mr-2 h-4 w-4" />
                     <span>Invite</span>
                   </div>
                 </button>
