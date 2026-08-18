@@ -3,21 +3,27 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+// import { PrismaService } from '../prisma/prisma.service';
 import { CreateChangelogDto } from './dto/create-changelog.dto';
 import { UpdateChangelogDto } from './dto/update-changelog.dto';
 import { CacheHelper } from '../common/cache/cache.helper';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChangeLog } from '../../database/src/Entities/change-log.entity';
+import { Task } from '../../database/src/Entities/task.entity';
+import { ProjectMember } from '../../database/src/Entities/project-member.entity';
 
 @Injectable()
 export class ChangelogService {
   constructor(
-    private prisma: PrismaService,
+    // private prisma: PrismaService,
     private cacheHelper: CacheHelper,
     @InjectRepository(ChangeLog)
-    private readonly changeLogRepository: Repository<ChangeLog>,
+    private readonly changeLogRepo: Repository<ChangeLog>,
+    @InjectRepository(Task)
+    private readonly taskRepo: Repository<Task>,
+    @InjectRepository(ProjectMember)
+    private readonly projectMemberRepo: Repository<ProjectMember>,
   ) {}
 
   // callerId/callerUserId come from the authenticated request (JWT), never
@@ -29,58 +35,57 @@ export class ChangelogService {
     callerId: number,
     callerUserId: string,
   ) {
-    const task = await this.prisma.task.findUnique({
+    const task = await this.taskRepo.findOne({
       where: { id: createDto.task_id },
       select: { id: true, title: true, projectId: true },
     });
     if (!task) throw new NotFoundException('Task not found');
 
-    const membership = await this.prisma.projectMember.findUnique({
+    const membership = await this.projectMemberRepo.findOne({
       where: {
-        projectId_memberId: { projectId: task.projectId, memberId: callerId },
+        projectId: task.projectId,
+        memberId: callerId,
       },
     });
     if (!membership) {
       throw new ForbiddenException('Not a member of this project');
     }
 
-    return this.prisma.changeLog.create({
-      data: {
-        taskId: createDto.task_id,
-        taskTitle: task.title,
-        username: callerUserId,
-        field: 'status',
-        oldValue: createDto.old_status,
-        newValue: createDto.new_status,
-        remark: createDto.remark ?? null,
-      },
+    return this.changeLogRepo.create({
+      taskId: createDto.task_id,
+      taskTitle: task.title,
+      username: callerUserId,
+      field: 'status',
+      oldValue: createDto.old_status,
+      newValue: createDto.new_status,
+      remark: createDto.remark ?? null,
     });
   }
 
   async findAll() {
-    return this.prisma.changeLog.findMany({
-      orderBy: { createdAt: 'desc' },
+    return this.changeLogRepo.find({
+      order: { createdAt: 'desc' },
     });
   }
 
   async findOne(id: number) {
-    const changelog = await this.prisma.changeLog.findUnique({ where: { id } });
+    const changelog = await this.changeLogRepo.findOne({ where: { id } });
     if (!changelog) throw new NotFoundException('Changelog not found');
     return changelog;
   }
 
   async update(updateDto: UpdateChangelogDto) {
-    const log = await this.prisma.changeLog.findUnique({
+    const log = await this.changeLogRepo.findOne({
       where: { id: updateDto.id },
     });
     if (!log) throw new NotFoundException('Changelog not found');
 
-    return this.prisma.changeLog.update({
-      where: { id: updateDto.id },
-      data: {
+    return this.changeLogRepo.update(
+      { id: updateDto.id },
+      {
         ...(updateDto.remark !== undefined && { remark: updateDto.remark }),
       },
-    });
+    );
   }
 
   // async findByProjectId(
@@ -145,7 +150,7 @@ export class ChangelogService {
     return this.cacheHelper.getOrSet(
       cacheKey,
       async () => {
-        const qb = this.changeLogRepository
+        const qb = this.changeLogRepo
           .createQueryBuilder('log')
           .leftJoinAndSelect('log.task', 'task')
           .leftJoinAndSelect('log.member', 'member')
@@ -163,7 +168,7 @@ export class ChangelogService {
         }
 
         if (cursor) {
-          const cursorLog = await this.changeLogRepository.findOne({
+          const cursorLog = await this.changeLogRepo.findOne({
             where: {
               id: cursor,
             },

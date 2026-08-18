@@ -6,7 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
-import { PrismaService } from '../prisma/prisma.service';
+// import { PrismaService } from '../prisma/prisma.service';
 import { CacheHelper } from '../common/cache/cache.helper';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { JoinProjectDto } from './dto/join-project.dto';
@@ -29,11 +29,11 @@ export class InvitesService {
     // private prisma: PrismaService,
     private cacheHelper: CacheHelper,
     private projectGateway: ProjectGateway,
+    private readonly dataSource: DataSource,
     @InjectRepository(InviteCode)
     private readonly inviteCodeRepo: Repository<InviteCode>,
     @InjectRepository(ProjectMember)
     private readonly projectMemberRepo: Repository<ProjectMember>,
-    private readonly dataSource: DataSource,
     // @InjectRepository(Member)
     // private readonly memberRepo: Repository<Member>,
     @InjectRepository(Project)

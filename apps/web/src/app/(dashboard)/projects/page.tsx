@@ -58,7 +58,7 @@ export default function ProjectsPage() {
   }
 
   const list = projects ?? [];
-  console.log('list length:', list.length);
+  // console.log('list length:', list.length);
   list.forEach((p, i) => {
     if (!p.name) console.log(`Project at index ${i} has no name:`, p);
   });

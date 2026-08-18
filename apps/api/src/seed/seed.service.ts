@@ -1,244 +1,3 @@
-// import { Injectable } from '@nestjs/common';
-// // import { PrismaService } from '../prisma/prisma.service';
-// import * as bcrypt from 'bcrypt';
-// import { randomBytes } from 'crypto';
-// import { Repository } from 'typeorm';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Member } from '../../database/src/Entities/member.entity';
-// import { Project } from '../../database/src/Entities/project.entity';
-// import { ChangeLog } from '../../database/src/Entities/change-log.entity';
-// import { Task } from '../../database/src/Entities/task.entity';
-// import { TaskAssignee } from '../../database/src/Entities/task-assignee.entity';
-// import { RefreshToken } from '../../database/src/Entities/refresh-token.entity';
-// import { InviteCode } from '../../database/src/Entities/invite-code.entity';
-// import { ProjectMember } from '../../database/src/Entities/project-member.entity';
-// import { ProjectRole } from '../../database/enums/project-role.enum';
-// import { TaskStatus } from '../../database/enums/task-status.enum';
-// import { Priority } from '../../database/enums/priority.enum';
-
-// @Injectable()
-// export class SeedService {
-//   constructor(
-//     // private readonly prisma: PrismaService,
-//     @InjectRepository(Member)
-//     private readonly memberRepository: Repository<Member>,
-//     @InjectRepository(Project)
-//     private readonly projectRepository: Repository<Project>,
-//     @InjectRepository(ProjectMember)
-//     private readonly projectMemberRepository: Repository<ProjectMember>,
-//     @InjectRepository(ChangeLog)
-//     private readonly changeLogRepository: Repository<ChangeLog>,
-//     @InjectRepository(Task)
-//     private readonly taskRepository: Repository<Task>,
-//     @InjectRepository(TaskAssignee)
-//     private readonly taskAssigneeRepository: Repository<TaskAssignee>,
-//     @InjectRepository(RefreshToken)
-//     private readonly refreshTokenRepository: Repository<RefreshToken>,
-//     @InjectRepository(InviteCode)
-//     private readonly inviteCodeRepository: Repository<InviteCode>,
-//   ) {}
-
-//   async seed() {
-//     const hashedPassword = await bcrypt.hash('password123', 10);
-
-//     // Wipe existing data in FK-safe order (children before parents).
-//     // TaskAssignee and InviteCode/ProjectMember must go before their
-//     // parent tables since they hold FKs into Project/Task/Member.\
-//     await this.memberRepository.deleteAll();
-//     await this.projectRepository.deleteAll();
-//     await this.projectMemberRepository.deleteAll();
-//     await this.changeLogRepository.deleteAll();
-//     await this.taskRepository.deleteAll();
-//     await this.taskAssigneeRepository.deleteAll();
-//     await this.refreshTokenRepository.deleteAll();
-//     await this.inviteCodeRepository.deleteAll();
-
-//     // await this.prisma.changeLog.deleteMany();
-//     // await this.prisma.taskAssignee.deleteMany();
-//     // await this.prisma.task.deleteMany();
-//     // await this.prisma.inviteCode.deleteMany();
-//     // await this.prisma.projectMember.deleteMany();
-//     // await this.prisma.project.deleteMany();
-//     // await this.prisma.member.deleteMany();
-
-//     // ---- Members ----
-//     const owner = await this.memberRepository.save({
-//       user_id: 'john_doe',
-//       username: 'John Doe',
-//       email: 'john@example.com',
-//       password: hashedPassword,
-//     });
-
-//     const memberA = await this.memberRepository.save({
-//       user_id: 'sasha_iyer',
-//       username: 'Sasha Iyer',
-//       email: 'sasha@example.com',
-//       password: hashedPassword,
-//     });
-
-//     const memberB = await this.memberRepository.save({
-//       user_id: 'mira_chen',
-//       username: 'Mira Chen',
-//       email: 'mira@example.com',
-//       password: hashedPassword,
-//     });
-
-//     const project = await this.projectRepository.save({
-//       name: 'ProjectFlow Demo',
-//       description: 'Sample collaborative project for testing',
-//       ownerId: owner.id,
-//       wipLimit: 3,
-//     });
-
-//     await this.projectMemberRepository.save({
-//       projectId: project.id,
-//       memberId: owner.id,
-//       role: ProjectRole.OWNER,
-//     });
-//     await this.projectMemberRepository.save({
-//       projectId: project.id,
-//       memberId: memberA.id,
-//       role: ProjectRole.MEMBER,
-//     });
-//     await this.projectMemberRepository.save({
-//       projectId: project.id,
-//       memberId: memberB.id,
-//       role: ProjectRole.MEMBER,
-//     });
-
-//     await this.inviteCodeRepository.save({
-//       code: randomBytes(4).toString('hex').toUpperCase(),
-//       projectId: project.id,
-//       createdById: owner.id,
-//       expiresAt: new Date(Date.now() + 7 * 86400_000),
-//       maxUses: 10,
-//     });
-
-//     const task1 = await this.taskRepository.save({
-//       title: 'Setup project',
-//       description: 'Initialize the repository',
-//       status: TaskStatus.Done,
-//       priority: Priority.High,
-//       projectId: project.id,
-//     });
-
-//     const task2 = await this.taskRepository.save({
-//       title: 'Homepage hero copy',
-//       description: 'Draft the hero section copy for the landing page',
-//       status: TaskStatus.In_Progress,
-//       priority: Priority.Low,
-//       projectId: project.id,
-//     });
-
-//     const task3 = await this.taskRepository.save({
-//       title: 'Logo exploration round 2',
-//       description: 'Second pass on logo concepts based on feedback',
-//       status: TaskStatus.In_Progress,
-//       priority: Priority.Medium,
-//       projectId: project.id,
-//     });
-
-//     const task4 = await this.taskRepository.save({
-//       title: 'Component library migration',
-//       description: 'Migrate shared components to the new design tokens',
-//       status: TaskStatus.In_Progress,
-//       priority: Priority.Low,
-//       projectId: project.id,
-//     });
-
-//     await this.taskAssigneeRepository.insert([
-//       { taskId: task2.id, memberId: memberA.id },
-//       { taskId: task3.id, memberId: memberB.id },
-//       { taskId: task3.id, memberId: memberA.id }, // task3 has two assignees
-//       { taskId: task4.id, memberId: owner.id },
-//     ]);
-
-//     //  await this.prisma.taskAssignee.createMany({
-//     //   data: [
-//     //     { taskId: task2.id, memberId: memberA.id },
-//     //     { taskId: task3.id, memberId: memberB.id },
-//     //     { taskId: task3.id, memberId: memberA.id }, // task3 has two assignees
-//     //     { taskId: task4.id, memberId: owner.id },
-//     //   ],
-//     // });
-
-//     await this.changeLogRepository.insert([
-//       {
-//         taskId: task1.id,
-//         taskTitle: task1.title,
-//         username: owner.user_id,
-//         field: 'task creation',
-//         oldValue: '',
-//         newValue: task1.title,
-//         remark: null,
-//       },
-//       {
-//         taskId: task2.id,
-//         taskTitle: task2.title,
-//         username: memberA.user_id,
-//         field: 'task creation',
-//         oldValue: '',
-//         newValue: task2.title,
-//         remark: null,
-//       },
-//       {
-//         taskId: task2.id,
-//         taskTitle: task2.title,
-//         username: memberA.user_id,
-//         field: 'status',
-//         oldValue: 'Todo',
-//         newValue: 'In_Progress',
-//         remark: null,
-//       },
-//       {
-//         taskId: task3.id,
-//         taskTitle: task3.title,
-//         username: memberB.user_id,
-//         field: 'description',
-//         oldValue: '',
-//         newValue: task3.description,
-//         remark: 'Push the wordmark variants further — try a condensed cut.',
-//       },
-//       {
-//         taskId: task3.id,
-//         taskTitle: task3.title,
-//         username: memberA.user_id,
-//         field: 'assignees',
-//         oldValue: '',
-//         newValue: `${memberB.id},${memberA.id}`,
-//         remark: null,
-//       },
-//       {
-//         taskId: task4.id,
-//         taskTitle: task4.title,
-//         username: owner.user_id,
-//         field: 'priority',
-//         oldValue: 'Medium',
-//         newValue: 'Low',
-//         remark: null,
-//       },
-//       {
-//         taskId: task4.id,
-//         taskTitle: task4.title,
-//         username: owner.user_id,
-//         field: 'status',
-//         oldValue: 'In_Progress',
-//         newValue: 'Done',
-//         remark: null,
-//       },
-//     ]);
-
-//     return {
-//       message: 'Database seeded successfully',
-//       credentials: [
-//         { user_id: owner.user_id, password: 'password123', role: 'OWNER' },
-//         { user_id: memberA.user_id, password: 'password123', role: 'MEMBER' },
-//         { user_id: memberB.user_id, password: 'password123', role: 'MEMBER' },
-//       ],
-//     };
-//   }
-// }
-
 import { Injectable, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
@@ -262,21 +21,21 @@ export class SeedService {
 
   constructor(
     @InjectRepository(Member)
-    private readonly memberRepository: Repository<Member>,
+    private readonly memberRepo: Repository<Member>,
     @InjectRepository(Project)
-    private readonly projectRepository: Repository<Project>,
+    private readonly projectRepo: Repository<Project>,
     @InjectRepository(ProjectMember)
-    private readonly projectMemberRepository: Repository<ProjectMember>,
+    private readonly projectMemberRepo: Repository<ProjectMember>,
     @InjectRepository(ChangeLog)
-    private readonly changeLogRepository: Repository<ChangeLog>,
+    private readonly changeLogRepo: Repository<ChangeLog>,
     @InjectRepository(Task)
-    private readonly taskRepository: Repository<Task>,
+    private readonly taskRepo: Repository<Task>,
     @InjectRepository(TaskAssignee)
-    private readonly taskAssigneeRepository: Repository<TaskAssignee>,
+    private readonly taskAssigneeRepo: Repository<TaskAssignee>,
     @InjectRepository(RefreshToken)
-    private readonly refreshTokenRepository: Repository<RefreshToken>,
+    private readonly refreshTokenRepo: Repository<RefreshToken>,
     @InjectRepository(InviteCode)
-    private readonly inviteCodeRepository: Repository<InviteCode>,
+    private readonly inviteCodeRepo: Repository<InviteCode>,
   ) {}
 
   async seed() {
@@ -317,31 +76,28 @@ export class SeedService {
       // this.logger.debug('Clearing Member...');
       // await this.memberRepository.clear();
       this.logger.debug('Clearing ChangeLog...');
-      await this.changeLogRepository.createQueryBuilder().delete().execute();
+      await this.changeLogRepo.createQueryBuilder().delete().execute();
 
       this.logger.debug('Clearing TaskAssignee...');
-      await this.taskAssigneeRepository.createQueryBuilder().delete().execute();
+      await this.taskAssigneeRepo.createQueryBuilder().delete().execute();
 
       this.logger.debug('Clearing InviteCode...');
-      await this.inviteCodeRepository.createQueryBuilder().delete().execute();
+      await this.inviteCodeRepo.createQueryBuilder().delete().execute();
 
       this.logger.debug('Clearing ProjectMember...');
-      await this.projectMemberRepository
-        .createQueryBuilder()
-        .delete()
-        .execute();
+      await this.projectMemberRepo.createQueryBuilder().delete().execute();
 
       this.logger.debug('Clearing Task...');
-      await this.taskRepository.createQueryBuilder().delete().execute();
+      await this.taskRepo.createQueryBuilder().delete().execute();
 
       this.logger.debug('Clearing RefreshToken...');
-      await this.refreshTokenRepository.createQueryBuilder().delete().execute();
+      await this.refreshTokenRepo.createQueryBuilder().delete().execute();
 
       this.logger.debug('Clearing Project...');
-      await this.projectRepository.createQueryBuilder().delete().execute();
+      await this.projectRepo.createQueryBuilder().delete().execute();
 
       this.logger.debug('Clearing Member...');
-      await this.memberRepository.createQueryBuilder().delete().execute();
+      await this.memberRepo.createQueryBuilder().delete().execute();
 
       this.logger.log(`--- Wipe complete in ${Date.now() - wipeStart}ms ---`);
     } catch (err) {
@@ -356,7 +112,7 @@ export class SeedService {
     this.logger.log('--- Creating members ---');
     let owner: Member, memberA: Member, memberB: Member;
     try {
-      owner = await this.memberRepository.save({
+      owner = await this.memberRepo.save({
         user_id: 'john_doe',
         username: 'John Doe',
         email: 'john@example.com',
@@ -366,7 +122,7 @@ export class SeedService {
         `Created owner: id=${owner.id} user_id=${owner.user_id}`,
       );
 
-      memberA = await this.memberRepository.save({
+      memberA = await this.memberRepo.save({
         user_id: 'sasha_iyer',
         username: 'Sasha Iyer',
         email: 'sasha@example.com',
@@ -376,7 +132,7 @@ export class SeedService {
         `Created memberA: id=${memberA.id} user_id=${memberA.user_id}`,
       );
 
-      memberB = await this.memberRepository.save({
+      memberB = await this.memberRepo.save({
         user_id: 'mira_chen',
         username: 'Mira Chen',
         email: 'mira@example.com',
@@ -397,7 +153,7 @@ export class SeedService {
     this.logger.log('--- Creating project ---');
     let project: Project;
     try {
-      project = await this.projectRepository.save({
+      project = await this.projectRepo.save({
         name: 'ProjectFlow Demo',
         description: 'Sample collaborative project for testing',
         ownerId: owner.id,
@@ -417,7 +173,7 @@ export class SeedService {
     // ---- Project members ----
     this.logger.log('--- Creating project members ---');
     try {
-      const pmOwner = await this.projectMemberRepository.save({
+      const pmOwner = await this.projectMemberRepo.save({
         projectId: project.id,
         memberId: owner.id,
         role: ProjectRole.OWNER,
@@ -426,7 +182,7 @@ export class SeedService {
         `ProjectMember created: projectId=${pmOwner.projectId} memberId=${pmOwner.memberId} role=${pmOwner.role}`,
       );
 
-      const pmA = await this.projectMemberRepository.save({
+      const pmA = await this.projectMemberRepo.save({
         projectId: project.id,
         memberId: memberA.id,
         role: ProjectRole.MEMBER,
@@ -435,7 +191,7 @@ export class SeedService {
         `ProjectMember created: projectId=${pmA.projectId} memberId=${pmA.memberId} role=${pmA.role}`,
       );
 
-      const pmB = await this.projectMemberRepository.save({
+      const pmB = await this.projectMemberRepo.save({
         projectId: project.id,
         memberId: memberB.id,
         role: ProjectRole.MEMBER,
@@ -455,7 +211,7 @@ export class SeedService {
     this.logger.log('--- Creating invite code ---');
     try {
       const code = randomBytes(4).toString('hex').toUpperCase();
-      const invite = await this.inviteCodeRepository.save({
+      const invite = await this.inviteCodeRepo.save({
         code,
         projectId: project.id,
         createdById: owner.id,
@@ -477,7 +233,7 @@ export class SeedService {
     this.logger.log('--- Creating tasks ---');
     let task1: Task, task2: Task, task3: Task, task4: Task;
     try {
-      task1 = await this.taskRepository.save({
+      task1 = await this.taskRepo.save({
         title: 'Setup project',
         description: 'Initialize the repository',
         status: TaskStatus.Done,
@@ -488,7 +244,7 @@ export class SeedService {
         `Task created: id=${task1.id} title="${task1.title}" status=${task1.status}`,
       );
 
-      task2 = await this.taskRepository.save({
+      task2 = await this.taskRepo.save({
         title: 'Homepage hero copy',
         description: 'Draft the hero section copy for the landing page',
         status: TaskStatus.In_Progress,
@@ -499,7 +255,7 @@ export class SeedService {
         `Task created: id=${task2.id} title="${task2.title}" status=${task2.status}`,
       );
 
-      task3 = await this.taskRepository.save({
+      task3 = await this.taskRepo.save({
         title: 'Logo exploration round 2',
         description: 'Second pass on logo concepts based on feedback',
         status: TaskStatus.In_Progress,
@@ -510,7 +266,7 @@ export class SeedService {
         `Task created: id=${task3.id} title="${task3.title}" status=${task3.status}`,
       );
 
-      task4 = await this.taskRepository.save({
+      task4 = await this.taskRepo.save({
         title: 'Component library migration',
         description: 'Migrate shared components to the new design tokens',
         status: TaskStatus.In_Progress,
@@ -540,7 +296,7 @@ export class SeedService {
       this.logger.debug(
         `Inserting ${assigneeRows.length} task assignee rows: ${JSON.stringify(assigneeRows)}`,
       );
-      const result = await this.taskAssigneeRepository.insert(assigneeRows);
+      const result = await this.taskAssigneeRepo.insert(assigneeRows);
       this.logger.debug(
         `TaskAssignee insert result: ${result.identifiers.length} rows inserted`,
       );
@@ -621,7 +377,7 @@ export class SeedService {
         },
       ];
       this.logger.debug(`Inserting ${changeLogRows.length} change log rows`);
-      const result = await this.changeLogRepository.insert(changeLogRows);
+      const result = await this.changeLogRepo.insert(changeLogRows);
       this.logger.debug(
         `ChangeLog insert result: ${result.identifiers.length} rows inserted`,
       );

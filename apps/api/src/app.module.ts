@@ -11,9 +11,9 @@ import { APP_FILTER } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
-import { PrismaService } from './prisma/prisma.service';
+// import { PrismaService } from './prisma/prisma.service';
 import { AuthModule } from './auth/auth.module';
-import { PrismaModule } from './prisma/prisma.module';
+// import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TaskModule } from './task/task.module';
 import { ChangelogModule } from './changelog/changelog.module';
@@ -80,28 +80,6 @@ import { MembersModule } from './member/member.module';
         synchronize: true,
       }),
     }),
-    // TypeOrmModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   inject: [ConfigService],
-    //   useFactory: (config: ConfigService) => ({
-    //     type: 'mariadb',
-    //     host: config.get<string>('DB_HOST'),
-    //     port: config.get<number>('DB_PORT'),
-    //     username: config.get<string>('DB_USER'),
-    //     password: config.get<string>('DB_PASSWORD'),
-    //     database: config.get<string>('DB_NAME'),
-    //     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    //     synchronize: false,
-    //     autoLoadEntities: true,
-    //     ssl: {
-    //       ca: fs.readFileSync(path.join(process.cwd(), 'skysql-ca.pem')),
-    //       rejectUnauthorized: true,
-    //     },
-    //     extra: {
-    //       connectionLimit: 10,
-    //     },
-    //   }),
-    // }),
 
     SentryModule.forRoot(),
     ProjectGatewayModule,
@@ -118,7 +96,7 @@ import { MembersModule } from './member/member.module';
       isGlobal: true,
     }),
     MembersModule,
-    PrismaModule,
+    // PrismaModule,
     AuthModule,
     ProjectsModule,
     TaskModule,
@@ -129,7 +107,7 @@ import { MembersModule } from './member/member.module';
   controllers: [AppController],
 
   providers: [
-    PrismaService,
+    // PrismaService,
     { provide: APP_GUARD, useClass: CustomThrottlerGuard },
     { provide: APP_GUARD, useClass: CsrfGuard },
     {

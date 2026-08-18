@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
+// import { PrismaService } from '../prisma/prisma.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import * as bcrypt from 'bcrypt';
 import type { Response, Request } from 'express';
@@ -19,13 +19,13 @@ const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    // private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     @InjectRepository(Member)
     private readonly memberRepository: Repository<Member>,
     @InjectRepository(RefreshToken)
-    private readonly refreshTokenRepository: Repository<RefreshToken>,
+    private readonly refreshTokenRepo: Repository<RefreshToken>,
   ) {}
 
   async login(loginDto: LoginUserDto, res: Response) {
@@ -71,7 +71,7 @@ export class AuthService {
     // const stored = await this.prisma.refreshToken.findUnique({
     //   where: { jti: payload.jti },
     // });
-    const stored = await this.refreshTokenRepository.findOneBy({
+    const stored = await this.refreshTokenRepo.findOneBy({
       jti: payload.jti,
     });
 
@@ -86,7 +86,7 @@ export class AuthService {
       //   });
       // }
       if (stored?.revokedAt) {
-        await this.refreshTokenRepository.update(
+        await this.refreshTokenRepo.update(
           // where: { userId: stored.userId, revokedAt: null },
           {
             userId: stored.userId,
@@ -101,7 +101,7 @@ export class AuthService {
     }
 
     // Rotate: revoke the old token
-    await this.refreshTokenRepository.update(
+    await this.refreshTokenRepo.update(
       { jti: payload.jti },
       { revokedAt: new Date() },
     );
@@ -121,7 +121,7 @@ export class AuthService {
           secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
         });
         // Revoke the specific token so a stolen cookie is invalidated immediately
-        await this.refreshTokenRepository.update(
+        await this.refreshTokenRepo.update(
           { jti: payload.jti, revokedAt: IsNull() },
           { revokedAt: new Date() },
         );
@@ -168,7 +168,7 @@ export class AuthService {
     //     expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
     //   },
     // });
-    await this.refreshTokenRepository.save({
+    await this.refreshTokenRepo.save({
       jti,
       userId,
       expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),

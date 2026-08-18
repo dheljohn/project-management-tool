@@ -8,7 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
+// import { PrismaService } from '../prisma/prisma.service';
 import { PayloadT, SocketT } from './gateway-type';
 
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
@@ -35,7 +35,7 @@ export class ProjectGateway implements OnGatewayConnection {
 
   constructor(
     private jwtService: JwtService,
-    private prisma: PrismaService,
+    // private prisma: PrismaService,
     @InjectRepository(ProjectMember)
     private readonly projectMemberRepository: Repository<ProjectMember>,
   ) {}
