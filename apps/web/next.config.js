@@ -8,6 +8,7 @@ const nextConfig = {
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT, // should resolve to your Next.js project, not "node-nestjs"
+  outputFileTracingRoot: path.join(__dirname, '../../'),
 
   // Only print source map upload logs in CI
   silent: !process.env.CI,
