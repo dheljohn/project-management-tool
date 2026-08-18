@@ -1,6 +1,6 @@
-import Link from "next/link";
-import Image from "next/image";
-import Logo from "../../components/layout/navbar/Logo";
+import Link from 'next/link';
+import Image from 'next/image';
+import Logo from '../../components/layout/navbar/Logo';
 
 export default function AuthLayout({
   children,

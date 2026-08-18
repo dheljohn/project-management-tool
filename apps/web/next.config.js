@@ -25,3 +25,10 @@ export default withSentryConfig(nextConfig, {
   // Automatic instrumentation of Vercel Cron Monitors (only relevant if deployed on Vercel)
   automaticVercelMonitors: false,
 });
+// /** @type {import('next').NextConfig} */
+
+// const nextConfig = {
+//   output: 'standalone',
+// };
+
+// export default nextConfig;
