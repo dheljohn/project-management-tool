@@ -1,5 +1,5 @@
 export enum TaskStatusPayload {
-  TODO = 'Todo',
-  IN_PROGRESS = 'In Progress', // The incoming string format
-  DONE = 'Done',
+  Todo = 'Todo',
+  In_Progress = 'In Progress', // The incoming string format
+  Done = 'Done',
 }

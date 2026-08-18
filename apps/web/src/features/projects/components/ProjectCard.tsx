@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { Project } from "../../../types/types";
-import { useProjectTasks } from "../hooks/useProjectTasks";
-import { Button } from "../../../components/ui/Button";
-import { TruncatedText } from "../../../components/ui/TruncatedText";
-import { getUserInitials } from "../../../app/utils/getUserInitials";
-import { useProjectMembers } from "../../tasks/hooks/useProjectMembers";
+import { useRouter } from 'next/navigation';
+import { Project } from '../../../types/types';
+import { useProjectTasks } from '../hooks/useProjectTasks';
+import { Button } from '../../../components/ui/Button';
+import { TruncatedText } from '../../../components/ui/TruncatedText';
+import { getUserInitials } from '../../../app/utils/getUserInitials';
+import { useProjectMembers } from '../../tasks/hooks/useProjectMembers';
 
 interface ProjectCardProps {
   project: Project;
@@ -22,9 +22,9 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
 
   const counts = tasks
     ? {
-        todo: tasks.filter((t) => t.status === "Todo").length,
-        inProgress: tasks.filter((t) => t.status === "In_Progress").length,
-        done: tasks.filter((t) => t.status === "Done").length,
+        todo: tasks.filter((t) => t.status === 'Todo').length,
+        inProgress: tasks.filter((t) => t.status === 'In_Progress').length,
+        done: tasks.filter((t) => t.status === 'Done').length,
         total: tasks.length,
       }
     : null;
@@ -45,10 +45,10 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
       <div
         className={`h-1 w-full transition-colors ${
           isComplete
-            ? "bg-status-done"
+            ? 'bg-status-done'
             : isEmpty
-              ? "bg-border"
-              : "bg-status-progress"
+              ? 'bg-border'
+              : 'bg-status-progress'
         }`}
       />
 
@@ -75,15 +75,15 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
 
         {/* Description */}
         <p className="text-muted-foreground text-[11px] sm:text-xs leading-relaxed line-clamp-2 min-h-[1.75rem] sm:min-h-[2rem]">
-          {project.description || "No description yet."}
+          {project.description || 'No description yet.'}
         </p>
 
         {/* Task breakdown — task count | in progress | updated date, vertical dividers only */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs text-muted-foreground">
           <span>
             <span className="font-mono text-foreground">
-              {counts?.total ?? "—"}
-            </span>{" "}
+              {counts?.total ?? '—'}
+            </span>{' '}
             tasks
           </span>
 
@@ -93,7 +93,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
               <span>
                 <span className="font-mono text-foreground">
                   {counts.inProgress}
-                </span>{" "}
+                </span>{' '}
                 in progress
               </span>
             </>
@@ -101,10 +101,10 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
 
           <span className="h-3 w-px bg-border" />
           <span className="whitespace-nowrap">
-            Updated{" "}
-            {new Date(project.updatedAt).toLocaleDateString("en-PH", {
-              month: "short",
-              day: "numeric",
+            Updated{' '}
+            {new Date(project.updatedAt).toLocaleDateString('en-PH', {
+              month: 'short',
+              day: 'numeric',
             })}
           </span>
         </div>
@@ -117,10 +117,10 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
             </span>
             <span
               className={`text-[11px] sm:text-xs font-semibold tabular-nums transition-colors ${
-                isComplete ? "text-status-done" : "text-foreground"
+                isComplete ? 'text-status-done' : 'text-foreground'
               }`}
             >
-              {counts ? `${donePercent}%` : "—"}
+              {counts ? `${donePercent}%` : '—'}
             </span>
           </div>
 

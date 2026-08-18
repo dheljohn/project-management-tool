@@ -1,44 +1,56 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
+// import { PrismaService } from '../prisma/prisma.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import * as bcrypt from 'bcrypt';
 import type { Response, Request } from 'express';
 import { randomBytes } from 'crypto';
 import { getAuthCookieOptions } from './cookie-options.util';
+import { IsNull, Repository } from 'typeorm';
+import { Member } from '../../database/src/Entities/member.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RefreshToken } from '../../database/src/Entities/refresh-token.entity';
 
 const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
 // const ACCESS_TOKEN_TTL_MS = 1 * 15 * 1000; // 15 seconds
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dayss
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    // private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    @InjectRepository(Member)
+    private readonly memberRepository: Repository<Member>,
+    @InjectRepository(RefreshToken)
+    private readonly refreshTokenRepo: Repository<RefreshToken>,
   ) {}
 
   async login(loginDto: LoginUserDto, res: Response) {
-    const member = await this.prisma.member.findUnique({
-      where: { user_id: loginDto.user_id },
+    // const member = await this.prisma.member.findUnique({
+    //   where: { user_id: loginDto.user_id },
+    // });
+    const normalizedUserId = loginDto.user_id.toLowerCase();
+    // const password = loginDto.password.toLowerCase();
+    const existingMember = await this.memberRepository.findOne({
+      where: { user_id: normalizedUserId },
     });
-
     // Constant-time compare even when member is not found (timing-safe)
     const dummyHash = '$2b$10$invalidsaltinvalidsaltinvalidsalt';
     const isMatch = await bcrypt.compare(
       loginDto.password,
-      member?.password ?? dummyHash,
+      existingMember?.password ?? dummyHash,
     );
 
-    if (!isMatch || !member) {
+    if (!isMatch || !existingMember) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    await this.issueTokenPair(member.id, member.user_id, res);
+    await this.issueTokenPair(existingMember.id, existingMember.user_id, res);
 
-    return { user_id: member.user_id };
+    return { user_id: existingMember.user_id };
   }
 
   async refresh(req: Request, res: Response) {
@@ -56,27 +68,43 @@ export class AuthService {
     }
 
     // Validate the jti against the DB
-    const stored = await this.prisma.refreshToken.findUnique({
-      where: { jti: payload.jti },
+    // const stored = await this.prisma.refreshToken.findUnique({
+    //   where: { jti: payload.jti },
+    // });
+    const stored = await this.refreshTokenRepo.findOneBy({
+      jti: payload.jti,
     });
 
     if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
       // If jti was already revoked/used and someone is replaying it,
       // revoke the entire family (all tokens for this user) as a precaution.
+
+      // if (stored?.revokedAt) {
+      //   await this.prisma.refreshToken.updateMany({
+      //     where: { userId: stored.userId, revokedAt: null },
+      //     data: { revokedAt: new Date() },
+      //   });
+      // }
       if (stored?.revokedAt) {
-        await this.prisma.refreshToken.updateMany({
-          where: { userId: stored.userId, revokedAt: null },
-          data: { revokedAt: new Date() },
-        });
+        await this.refreshTokenRepo.update(
+          // where: { userId: stored.userId, revokedAt: null },
+          {
+            userId: stored.userId,
+            revokedAt: IsNull(),
+          },
+          {
+            revokedAt: new Date(),
+          },
+        );
       }
       throw new UnauthorizedException('Refresh token invalid or expired');
     }
 
     // Rotate: revoke the old token
-    await this.prisma.refreshToken.update({
-      where: { jti: payload.jti },
-      data: { revokedAt: new Date() },
-    });
+    await this.refreshTokenRepo.update(
+      { jti: payload.jti },
+      { revokedAt: new Date() },
+    );
 
     // Issue new pair
     await this.issueTokenPair(payload.sub, payload.user_id, res);
@@ -93,10 +121,10 @@ export class AuthService {
           secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
         });
         // Revoke the specific token so a stolen cookie is invalidated immediately
-        await this.prisma.refreshToken.updateMany({
-          where: { jti: payload.jti, revokedAt: null },
-          data: { revokedAt: new Date() },
-        });
+        await this.refreshTokenRepo.update(
+          { jti: payload.jti, revokedAt: IsNull() },
+          { revokedAt: new Date() },
+        );
       } catch {
         // Token already expired or invalid
       }
@@ -133,12 +161,17 @@ export class AuthService {
     });
 
     // Persist the refresh token jti so we can revoke it
-    await this.prisma.refreshToken.create({
-      data: {
-        jti,
-        userId,
-        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-      },
+    // await this.prisma.refreshToken.create({
+    //   data: {
+    //     jti,
+    //     userId,
+    //     expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+    //   },
+    // });
+    await this.refreshTokenRepo.save({
+      jti,
+      userId,
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
     });
 
     res.cookie('auth_token', accessToken, {

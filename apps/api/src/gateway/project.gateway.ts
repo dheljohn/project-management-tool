@@ -8,11 +8,15 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
+// import { PrismaService } from '../prisma/prisma.service';
 import { PayloadT, SocketT } from './gateway-type';
 
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { UseFilters } from '@nestjs/common';
+import { Repository } from 'typeorm';
+// import { Member } from '../../database/src/Entities/member.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ProjectMember } from '../../database/src/Entities/project-member.entity';
 
 function projectRoom(projectId: number) {
   return `project:${projectId}`;
@@ -31,7 +35,9 @@ export class ProjectGateway implements OnGatewayConnection {
 
   constructor(
     private jwtService: JwtService,
-    private prisma: PrismaService,
+    // private prisma: PrismaService,
+    @InjectRepository(ProjectMember)
+    private readonly projectMemberRepository: Repository<ProjectMember>,
   ) {}
 
   handleConnection(client: Socket & { data: { userId?: number } }) {
@@ -75,12 +81,10 @@ export class ProjectGateway implements OnGatewayConnection {
     }
 
     console.log('[socket] join attempt', userId, data.projectId);
-    const membership = await this.prisma.projectMember.findUnique({
+    const membership = await this.projectMemberRepository.findOne({
       where: {
-        projectId_memberId: {
-          projectId: data.projectId,
-          memberId: userId,
-        },
+        projectId: data.projectId,
+        memberId: userId,
       },
     });
     if (!membership) {

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useProjectMutation } from "../../features/projects/hooks/useProjectMutation";
-import { useIsProjectOwner } from "../../features/tasks/hooks/useIsProjectOwner";
+import { useState } from 'react';
+import { useProjectMutation } from '../../features/projects/hooks/useProjectMutation';
+import { useIsProjectOwner } from '../../features/tasks/hooks/useIsProjectOwner';
 // import { Project } from "../../types/types";
 
 export function WipControl({
@@ -15,11 +15,11 @@ export function WipControl({
   inProgressCount: number;
 }) {
   const [editing, setEditing] = useState(false);
-  const [input, setInput] = useState(String(wipLimit ?? ""));
+  const [input, setInput] = useState(String(wipLimit ?? ''));
   const isOwner = useIsProjectOwner(projectId);
 
   const { mutate: saveWipLimit } = useProjectMutation({
-    mode: "edit",
+    mode: 'edit',
     projectId,
     onSuccess: () => {}, // cache already updated via invalidateQueries in the hook
   });
@@ -30,7 +30,7 @@ export function WipControl({
   function handleSave() {
     const trimmed = input.trim();
     const parsed = parseInt(trimmed, 10);
-    const isValidLimit = trimmed !== "" && !isNaN(parsed) && parsed > 0;
+    const isValidLimit = trimmed !== '' && !isNaN(parsed) && parsed > 0;
     saveWipLimit({ wipLimit: isValidLimit ? parsed : null });
     setEditing(false);
   }
@@ -46,7 +46,7 @@ export function WipControl({
               min={0}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSave()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
               autoFocus
               className="w-12 text-xs bg-muted border border-accent rounded px-1.5 py-0.5 text-foreground focus:outline-none"
             />
@@ -70,12 +70,12 @@ export function WipControl({
         ) : (
           <button
             onClick={() => {
-              setInput(String(wipLimit ?? ""));
+              setInput(String(wipLimit ?? ''));
               setEditing(true);
             }}
             className="inline-flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground hover:text-accent transition-colors"
           >
-            <span>{wipLimit ? "Edit WIP" : "Set WIP"}</span>
+            <span>{wipLimit ? 'Edit WIP' : 'Set WIP'}</span>
             <span className="text-[10px] text-muted-foreground">
               / {wipLimit}
             </span>

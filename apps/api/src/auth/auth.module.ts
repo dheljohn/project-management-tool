@@ -5,11 +5,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Member } from '../../database/src/Entities/member.entity';
+import { RefreshToken } from '../../database/src/Entities/refresh-token.entity';
 
 @Module({
   imports: [
     PassportModule,
     ConfigModule,
+    TypeOrmModule.forFeature([Member, RefreshToken]),
     // The shared JwtService instance is used for signing both token types
     // inside AuthService via explicit secret/expiresIn per call.
     // The default secret here covers the JwtStrategy (access token validation).

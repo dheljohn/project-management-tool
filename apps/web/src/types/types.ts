@@ -11,7 +11,7 @@ export interface Project {
 export interface Task {
   id: number;
   title: string;
-  description?: string | null;
+  description: string | null;
   status: TaskStatus;
   priority: Priority;
   projectId: number;
@@ -36,15 +36,32 @@ export type TaskID = {
   task_id: number;
 };
 
-export interface Task {
-  id: number;
-  title: string;
-  description?: string | null;
-  status: TaskStatus;
+export interface BoardStateT {
   projectId: number;
-  createdAt: string;
-  updatedAt: string;
+  wipLimit?: number | null; // you already have this on Project
+  tasks: Task[]; // flat list; group by status on the frontend
 }
+
+// Sent to a client right after joinProject succeeds
+export interface BoardSnapshotEventT {
+  type: 'boardSnapshot';
+  payload: BoardStateT;
+}
+
+// Incremental live updates
+export type BoardUpdateEventT =
+  | { type: 'taskCreated'; payload: Task }
+  | { type: 'taskUpdated'; payload: Task }
+  | { type: 'taskDeleted'; payload: { id: number; projectId: number } }
+  | {
+      type: 'taskMoved';
+      payload: {
+        id: number;
+        status: TaskStatus;
+        projectId: number;
+        version: number;
+      };
+    };
 
 export interface ChangeLog {
   id: number;

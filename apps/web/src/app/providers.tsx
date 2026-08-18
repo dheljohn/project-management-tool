@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import axios from "axios";
+import { useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import axios from 'axios';
 
 function shouldRetry(failureCount: number, error: unknown) {
   if (axios.isAxiosError(error) && error.response?.status === 429) {

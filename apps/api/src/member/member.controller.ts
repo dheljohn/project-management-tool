@@ -22,7 +22,10 @@ import { ApiHeader, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 @ApiTags('members')
 @Controller('test01')
 export class MemberController {
-  constructor(private readonly memberService: MemberService) {}
+  constructor(
+    private readonly memberService: MemberService,
+    // private memberService: MemberService,
+  ) {}
 
   @SkipCsrf()
   @Get('/debug-sentry')
@@ -37,8 +40,8 @@ export class MemberController {
     return this.memberService.create(createDto);
   }
 
-  @ApiCookieAuth('auth_token')
-  @UseGuards(JwtAuthGuard)
+  // @ApiCookieAuth('auth_token')
+  // @UseGuards(JwtAuthGuard)
   @Get('get_all_member')
   findAll() {
     return this.memberService.findAll();

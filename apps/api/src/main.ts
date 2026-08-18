@@ -64,10 +64,6 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 8000);
 }
 bootstrap().catch((err) => {
-  // Ensure unhandled rejections are logged and process exits with failure
-  // This satisfies lint rules requiring a rejection handler on returned Promises
-  // and keeps behavior explicit in production.
-  // eslint-disable-next-line no-console
   console.error(err);
   process.exit(1);
 });

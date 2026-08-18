@@ -28,5 +28,5 @@
     "noFallthroughCasesInSwitch": false,
     "types": ["jest", "node"]
   },
-  "include": ["src/**/*", "instrument.ts"]
+  "include": ["src/**/*", "database/**/*", "instrument.ts"]
 }
