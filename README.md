@@ -1,3 +1,5 @@
+UPDATE: currently refactoring
+
 # Proyekto
 
 A Kanban-style project management tool built for the **Dowinn Group IT Assessment**.
