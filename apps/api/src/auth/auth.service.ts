@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 // import { PrismaService } from '../prisma/prisma.service';
@@ -18,37 +18,58 @@ const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     // private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     @InjectRepository(Member)
-    private readonly memberRepository: Repository<Member>,
+    private readonly memberRepo: Repository<Member>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepo: Repository<RefreshToken>,
   ) {}
 
   async login(loginDto: LoginUserDto, res: Response) {
-    // const member = await this.prisma.member.findUnique({
-    //   where: { user_id: loginDto.user_id },
-    // });
+    const loginStart = Date.now();
     const normalizedUserId = loginDto.user_id.toLowerCase();
-    // const password = loginDto.password.toLowerCase();
-    const existingMember = await this.memberRepository.findOne({
+    this.logger.debug(`Login attempt for user_id: ${normalizedUserId}`);
+
+    const t0 = Date.now();
+    const existingMember = await this.memberRepo.findOne({
       where: { user_id: normalizedUserId },
     });
+    this.logger.debug(
+      `memberRepository.findOne lookup took ${Date.now() - t0}ms — found: ${!!existingMember}`,
+    );
+
     // Constant-time compare even when member is not found (timing-safe)
     const dummyHash = '$2b$10$invalidsaltinvalidsaltinvalidsalt';
+    const t1 = Date.now();
     const isMatch = await bcrypt.compare(
       loginDto.password,
       existingMember?.password ?? dummyHash,
     );
+    this.logger.debug(`bcrypt.compare took ${Date.now() - t1}ms`);
 
     if (!isMatch || !existingMember) {
+      this.logger.warn(
+        `Login failed for user_id: ${normalizedUserId} — ${
+          !existingMember ? 'member not found' : 'password mismatch'
+        }`,
+      );
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    this.logger.debug(
+      `Credentials valid for memberId=${existingMember.id}, issuing token pair...`,
+    );
+    const t2 = Date.now();
     await this.issueTokenPair(existingMember.id, existingMember.user_id, res);
+    this.logger.debug(`issueTokenPair took ${Date.now() - t2}ms`);
+
+    this.logger.log(
+      `Login success: memberId=${existingMember.id} user_id=${existingMember.user_id} (total ${Date.now() - loginStart}ms)`,
+    );
 
     return { user_id: existingMember.user_id };
   }

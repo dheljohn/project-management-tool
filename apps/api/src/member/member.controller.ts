@@ -47,6 +47,7 @@ export class MemberController {
     return this.memberService.findAll();
   }
 
+  @SkipCsrf()
   @ApiCookieAuth('auth_token')
   @UseGuards(JwtAuthGuard)
   @Get('get_member')
