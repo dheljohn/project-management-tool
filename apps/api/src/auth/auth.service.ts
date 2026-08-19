@@ -1,4 +1,10 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 // import { PrismaService } from '../prisma/prisma.service';
@@ -31,44 +37,79 @@ export class AuthService {
 
   async login(loginDto: LoginUserDto, res: Response) {
     const loginStart = Date.now();
+
+    if (!loginDto?.user_id || !loginDto?.password) {
+      this.logger.warn(
+        'Login rejected: missing user_id or password in request body',
+      );
+      throw new BadRequestException('user_id and password are required');
+    }
+
     const normalizedUserId = loginDto.user_id.toLowerCase();
     this.logger.debug(`Login attempt for user_id: ${normalizedUserId}`);
 
-    const t0 = Date.now();
-    const existingMember = await this.memberRepo.findOne({
-      where: { user_id: normalizedUserId },
-    });
-    this.logger.debug(
-      `memberRepository.findOne lookup took ${Date.now() - t0}ms — found: ${!!existingMember}`,
-    );
+    let existingMember: Member | null;
+    try {
+      const t0 = Date.now();
+      existingMember = await this.memberRepo.findOne({
+        where: { user_id: normalizedUserId },
+      });
+      this.logger.debug(
+        `memberRepository.findOne took ${Date.now() - t0}ms — found: ${!!existingMember}`,
+      );
+    } catch (err) {
+      this.logger.error(
+        `DB lookup failed during login for user_id: ${normalizedUserId}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+      throw new InternalServerErrorException('Login temporarily unavailable');
+    }
 
-    // Constant-time compare even when member is not found (timing-safe)
     const dummyHash = '$2b$10$invalidsaltinvalidsaltinvalidsalt';
-    const t1 = Date.now();
-    const isMatch = await bcrypt.compare(
-      loginDto.password,
-      existingMember?.password ?? dummyHash,
-    );
-    this.logger.debug(`bcrypt.compare took ${Date.now() - t1}ms`);
+    let isMatch: boolean;
+    try {
+      const t1 = Date.now();
+      isMatch = await bcrypt.compare(
+        loginDto.password,
+        existingMember?.password ?? dummyHash,
+      );
+      this.logger.debug(`bcrypt.compare took ${Date.now() - t1}ms`);
+    } catch (err) {
+      this.logger.error(
+        `bcrypt.compare threw unexpectedly for user_id: ${normalizedUserId}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+      throw new InternalServerErrorException('Login temporarily unavailable');
+    }
 
-    if (!isMatch || !existingMember) {
+    if (!existingMember) {
       this.logger.warn(
-        `Login failed for user_id: ${normalizedUserId} — ${
-          !existingMember ? 'member not found' : 'password mismatch'
-        }`,
+        `Login failed — no member found for user_id: ${normalizedUserId}`,
       );
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    this.logger.debug(
-      `Credentials valid for memberId=${existingMember.id}, issuing token pair...`,
-    );
-    const t2 = Date.now();
-    await this.issueTokenPair(existingMember.id, existingMember.user_id, res);
-    this.logger.debug(`issueTokenPair took ${Date.now() - t2}ms`);
+    if (!isMatch) {
+      this.logger.warn(
+        `Login failed — password mismatch for memberId: ${existingMember.id}`,
+      );
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    try {
+      const t2 = Date.now();
+      await this.issueTokenPair(existingMember.id, existingMember.user_id, res);
+      this.logger.debug(`issueTokenPair took ${Date.now() - t2}ms`);
+    } catch (err) {
+      this.logger.error(
+        `issueTokenPair failed for memberId: ${existingMember.id}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+      throw new InternalServerErrorException('Failed to complete login');
+    }
 
     this.logger.log(
-      `Login success: memberId=${existingMember.id} user_id=${existingMember.user_id} (total ${Date.now() - loginStart}ms)`,
+      `Login success: memberId=${existingMember.id} user_id=${existingMember.user_id} (${Date.now() - loginStart}ms)`,
     );
 
     return { user_id: existingMember.user_id };
